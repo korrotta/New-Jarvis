@@ -31,6 +31,12 @@ migrate_working_dir/
 .pub/
 /build/
 
+# Ephemerally generated
+**/ios/Runner/GeneratedPluginRegistrant.h
+**/ios/Runner/GeneratedPluginRegistrant.m
+**/macos/Flutter/Flutter-Generated.xcconfig
+**/macos/Flutter/Flutter-Generated.entitlements
+
 # Symbolication related
 app.*.symbols
 
