@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:newjarvis/components/AI_Model_Selection_Sheet.dart';
+import 'package:newjarvis/models/AI_Model.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -9,6 +11,33 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
+  late String selectedModel;
+
+  final List<AIModel> aiModels = [
+    AIModel(name: 'Monica'),
+    AIModel(name: 'Genius'),
+    AIModel(name: 'Gemini'),
+    AIModel(name: 'Claude-Instant-100k'),
+    AIModel(name: 'Claude-2'),
+    AIModel(name: 'Writing Agent'),
+    AIModel(name: 'Auto Agent'),
+    AIModel(name: 'Bard'),
+    AIModel(name: 'Mistral-7b'),
+    AIModel(name: 'Llama-2-70b'),
+    AIModel(name: 'Codellama-34b'),
+    AIModel(name: 'Instagram Post Generator'),
+    AIModel(name: 'Twitter Post Generator'),
+  ];
+
+  final List<String> filters = [
+    'All',
+    'AI Models',
+    'Agents',
+    'Social Platforms',
+    'Work Scenarios',
+    'Emotions'
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,6 +69,8 @@ class _ChatPageState extends State<ChatPage> {
           ],
         ),
       ),
+      // Set Default AI Model to the first model in the list
+      restorationId: selectedModel = aiModels[0].name,
       // Bottom Navigation Bar
       bottomNavigationBar: bottomNavSection(context),
     );
@@ -481,22 +512,32 @@ class _ChatPageState extends State<ChatPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          DropdownButton<String>(
-            items: <String>['Monica', 'Gemini', 'Genius'].map((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(value),
-              );
-            }).toList(),
-            onChanged: (newValue) {},
-            hint: const Text(
-              'Select AI Model',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
+          // AI Model Selection
+          MaterialButton(
+              onPressed: () {
+                _showModelBottomSheet(
+                  context,
+                  selectedModel,
+                  aiModels,
+                  filters,
+                );
+              },
+              child: Row(
+                children: [
+                  Text(
+                    selectedModel,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.inversePrimary,
+                      fontSize: 12,
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_drop_down_sharp,
+                    color: Theme.of(context).colorScheme.inversePrimary,
+                  ),
+                ],
+              )),
+
           // Icons
           Icon(
             Icons.import_contacts_outlined,
@@ -914,4 +955,15 @@ class _ChatPageState extends State<ChatPage> {
       ),
     );
   }
+}
+
+void _showModelBottomSheet(BuildContext context, String selectedModel,
+    List<AIModel> aiModels, List<String> filters) {
+  showModalBottomSheet(
+    context: context,
+    builder: (context) => AiModelSelectionSheet(
+      aiModels: aiModels,
+      filters: filters,
+    ),
+  );
 }
