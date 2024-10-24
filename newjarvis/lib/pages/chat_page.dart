@@ -11,7 +11,9 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return 
+    Scaffold(
+      
       // Empty AppBar
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.secondary,
@@ -20,7 +22,8 @@ class _ChatPageState extends State<ChatPage> {
       endDrawer: endDrawerSection(context),
 
       // Monica Chat Section
-      body: Container(
+      body:
+      Container(
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.secondary,
         ),
