@@ -57,18 +57,12 @@ class _HomePageState extends State<HomePage> {
         AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           margin: EdgeInsets.only(
-              right: isSidebarVisible ? (isExpanded ? 180 : 98) : 0),
+            right: isSidebarVisible ? (isExpanded ? 180 : 98) : 0,
+          ),
           child: Scaffold(
             appBar: AppBar(
               backgroundColor: Theme.of(context).colorScheme.secondary,
               elevation: 0,
-              // Empty
-              actions: const [
-                Padding(
-                  padding: EdgeInsets.only(right: 10),
-                  child: Icon(Icons.search, size: 30),
-                ),
-              ],
             ),
             body: _getScreenContent(), // Nội dung thay đổi ở đây
           ),
