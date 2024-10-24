@@ -40,39 +40,65 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // Empty AppBar
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.secondary,
-        elevation: 0,
-      ),
-      endDrawer: endDrawerSection(context),
+    return SafeArea(
+      minimum: const EdgeInsets.only(top: 45),
+      top: true,
+      left: false,
+      right: false,
+      bottom: false,
+      child: Scaffold(
+        // Empty AppBar
+        appBar: AppBar(
+          backgroundColor: Theme.of(context).colorScheme.secondary,
+          elevation: 0,
+        ),
+        endDrawer: endDrawerSection(context),
 
-      // Monica Chat Section
-      body: Container(
-        decoration: BoxDecoration(
+        // Monica Chat Section
+        body: Container(
+          height: double.infinity,
           color: Theme.of(context).colorScheme.secondary,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Personalize Monica Section
+                personalizeSection(context),
+
+                // AI Search Section
+                aiSearchSection(context),
+
+                // Upload Section
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    uploadSection(context),
+
+                    // Writing Agent Section
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        writingAgentSection(context),
+                        autoAgentSection(context),
+                      ],
+                    ),
+                  ],
+                ),
+
+                // SizedBox
+                const SizedBox(height: 30),
+              ],
+            ),
+          ),
         ),
-        child: Column(
-          children: [
-            // Personalize Monica Section
-            personalizeSection(context),
 
-            // AI Search Section
-            aiSearchSection(context),
-
-            // Upload Section
-            uploadSection(context),
-
-            // Writing Agent Section
-            writingAgentSection(context),
-          ],
-        ),
+        // Set Default AI Model to the first model in the list
+        restorationId: selectedModel = aiModels[0].name,
+        // Bottom Navigation Bar
+        bottomNavigationBar: bottomNavSection(context),
       ),
-      // Set Default AI Model to the first model in the list
-      restorationId: selectedModel = aiModels[0].name,
-      // Bottom Navigation Bar
-      bottomNavigationBar: bottomNavSection(context),
     );
   }
 
@@ -85,8 +111,10 @@ class _ChatPageState extends State<ChatPage> {
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(15),
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      child: Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        alignment: WrapAlignment.spaceEvenly,
         children: [
           // AI Model Selection
           modelSection(context),
@@ -273,53 +301,118 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
-  Padding uploadSection(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: ListTile(
-          leading: Icon(Icons.upload_file_outlined,
-              color: Theme.of(context).primaryColor),
-          title: const Text('Upload'),
-          onTap: () {},
-        ),
+  Container uploadSection(BuildContext context) {
+    return Container(
+      width: 150,
+      height: 150,
+      padding: const EdgeInsets.all(20.0),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade400,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Background image
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.add_photo_alternate_outlined,
+                color: Theme.of(context).colorScheme.inversePrimary,
+                size: 30,
+              ),
+              Icon(
+                Icons.description_outlined,
+                color: Theme.of(context).colorScheme.inversePrimary,
+                size: 30,
+              ),
+            ],
+          ),
+          // Text
+          Text(
+            'Upload',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.inversePrimary,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text(
+            'Click/Drag and drop here to chat',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.grey.shade800,
+              fontSize: 12,
+            ),
+          )
+        ],
       ),
     );
   }
 
-  Padding writingAgentSection(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Container(
-        width: 150,
-        height: 120,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Column(
-          children: [
-            // Background image
-            Image.asset(
-              'assets/icons/icon.png',
-              width: MediaQuery.of(context).size.width * 0.1,
-              height: MediaQuery.of(context).size.height * 0.1,
+  Container writingAgentSection(BuildContext context) {
+    return Container(
+      width: 160,
+      height: 110,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade400,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Background image
+          Image.asset(
+            'assets/images/email_marketing.png',
+            fit: BoxFit.contain,
+            width: double.infinity,
+            height: 84,
+          ),
+          // Text
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(20),
+                bottomRight: Radius.circular(20),
+              ),
             ),
-            // Text
-            Text(
+            child: Text(
               'Writing Agent',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Theme.of(context).colorScheme.primary,
-                fontSize: 14,
+                color: Theme.of(context).colorScheme.inversePrimary,
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
-          ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  ElevatedButton autoAgentSection(BuildContext context) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 30),
+        backgroundColor: Colors.grey.shade300,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+      ),
+      onPressed: () {
+        // Handle Auto Agent action
+      },
+      child: Text(
+        'Auto Agent',
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.inversePrimary,
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
         ),
       ),
     );
@@ -514,21 +607,38 @@ class _ChatPageState extends State<ChatPage> {
         children: [
           // AI Model Selection
           MaterialButton(
+              height: 40,
               onPressed: () {
                 _showModelBottomSheet(
                   context,
                   selectedModel,
                   aiModels,
                   filters,
+                  aiModels.indexWhere(
+                    (element) => element.name == selectedModel,
+                  ),
                 );
               },
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              color: Theme.of(context).colorScheme.secondary,
               child: Row(
                 children: [
-                  Text(
-                    selectedModel,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.inversePrimary,
-                      fontSize: 12,
+                  Image.asset(
+                    'assets/icons/icon.png',
+                    fit: BoxFit.scaleDown,
+                    width: 25,
+                    height: 25,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Text(
+                      selectedModel,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.inversePrimary,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
                   Icon(
@@ -958,12 +1068,14 @@ class _ChatPageState extends State<ChatPage> {
 }
 
 void _showModelBottomSheet(BuildContext context, String selectedModel,
-    List<AIModel> aiModels, List<String> filters) {
+    List<AIModel> aiModels, List<String> filters, int selectedIndex) {
   showModalBottomSheet(
     context: context,
     builder: (context) => AiModelSelectionSheet(
       aiModels: aiModels,
       filters: filters,
+      selectedIndex: selectedIndex,
     ),
+    isScrollControlled: true,
   );
 }
