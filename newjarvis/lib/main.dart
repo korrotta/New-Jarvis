@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:newjarvis/pages/chat_page.dart';
+import 'package:newjarvis/pages/home_page.dart';
 import 'package:newjarvis/themes/light_theme.dart';
 
 void main() {
@@ -12,10 +12,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'New Jarvis',
       debugShowCheckedModeBanner: false,
       theme: lightTheme,
-      home: ChatPage(),
+      home: const SafeArea(child: Scaffold(body: HomePage())),
     );
   }
 }
