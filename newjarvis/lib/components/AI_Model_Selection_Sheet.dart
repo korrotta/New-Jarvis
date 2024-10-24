@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:newjarvis/models/AI_Model.dart';
+import 'package:newjarvis/models/ai_model.dart';
 
 class AiModelSelectionSheet extends StatelessWidget {
   final List<AIModel> aiModels;
