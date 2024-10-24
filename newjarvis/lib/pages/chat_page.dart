@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:newjarvis/components/bottom_nav_section.dart';
-import 'package:newjarvis/components/end_drawer_section.dart';
 import 'package:newjarvis/components/writing_agent_section.dart';
 import 'package:newjarvis/components/ai_search_section.dart';
 import 'package:newjarvis/components/personalize_section.dart';
@@ -35,82 +34,68 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      minimum: const EdgeInsets.only(top: 45),
-      top: true,
-      left: false,
-      right: false,
-      bottom: false,
-      child: Scaffold(
-        // Empty AppBar
-        appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.secondary,
-          elevation: 0,
-        ),
-        endDrawer: const EndDrawerSection(),
+    return Scaffold(
+      // Monica Chat Section
+      body: Container(
+        height: double.infinity,
+        color: Theme.of(context).colorScheme.secondary,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Welcome Text
+                welcomeSection(context),
 
-        // Monica Chat Section
-        body: Container(
-          height: double.infinity,
-          color: Theme.of(context).colorScheme.secondary,
-          child: SingleChildScrollView(
-            scrollDirection: Axis.vertical,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Welcome Text
-                  welcomeSection(context),
+                // Personalize Monica Section
+                const PersonalizeSection(),
 
-                  // Personalize Monica Section
-                  const PersonalizeSection(),
+                // SizedBox
+                const SizedBox(height: 20),
 
-                  // SizedBox
-                  const SizedBox(height: 20),
+                // AI Search Section
+                const AiSearchSection(),
 
-                  // AI Search Section
-                  const AiSearchSection(),
+                // SizedBox
+                const SizedBox(height: 20),
 
-                  // SizedBox
-                  const SizedBox(height: 20),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    // Upload Section
+                    const UploadSection(),
 
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      // Upload Section
-                      const UploadSection(),
+                    // Writing Agent Section
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        const WritingAgentSection(),
+                        autoAgentSection(context),
+                      ],
+                    ),
+                  ],
+                ),
 
-                      // Writing Agent Section
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          const WritingAgentSection(),
-                          autoAgentSection(context),
-                        ],
-                      ),
-                    ],
-                  ),
-
-                  // SizedBox
-                  const SizedBox(height: 30),
-                ],
-              ),
+                // SizedBox
+                const SizedBox(height: 30),
+              ],
             ),
           ),
         ),
+      ),
 
-        // Set Default AI Model to the first model in the list
-        restorationId: selectedModel = aiModels[0].name,
+      // Set Default AI Model to the first model in the list
+      restorationId: selectedModel = aiModels[0].name,
 
-        // Bottom Navigation Bar
-        bottomNavigationBar: BottomNavSection(
-          selectedModel: selectedModel,
-          aiModels: aiModels,
-          selectedIndex: 0,
-        ),
+      // Bottom Navigation Bar
+      bottomNavigationBar: BottomNavSection(
+        selectedModel: selectedModel,
+        aiModels: aiModels,
+        selectedIndex: 0,
       ),
     );
   }
@@ -121,7 +106,7 @@ class _ChatPageState extends State<ChatPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          // emoji
+          // Emoji
           '👋\n'
           'Welcome',
           style: TextStyle(
