@@ -26,39 +26,39 @@ class TranslatePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Custom Top Bar Section
-          Padding(
-            padding: const EdgeInsets.only(
-              top: 40.0, // Adjust for status bar
-              left: 16.0,
-              right: 16.0,
-              bottom: 10.0,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Translate',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Custom Top Bar Section
+            Padding(
+              padding: const EdgeInsets.only(
+                top: 40.0, // Adjust for status bar
+                left: 16.0,
+                right: 16.0,
+                bottom: 10.0,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Translate',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.tune, color: Colors.black),
-                  onPressed: () {
-                    // Handle settings
-                  },
-                ),
-              ],
+                  IconButton(
+                    icon: const Icon(Icons.tune, color: Colors.black),
+                    onPressed: () {
+                      // Handle settings
+                    },
+                  ),
+                ],
+              ),
             ),
-          ),
 
-          Expanded(
-            child: Padding(
+            Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -139,8 +139,8 @@ class TranslatePage extends StatelessWidget {
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
