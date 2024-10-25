@@ -3,6 +3,7 @@ import 'package:newjarvis/components/floating_button.dart';
 import 'package:newjarvis/components/side_bar.dart';
 import 'package:newjarvis/pages/chat_page.dart';
 import 'package:newjarvis/pages/screen_art.dart';
+import 'package:newjarvis/pages/screen_write.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -27,7 +28,7 @@ class _HomePageState extends State<HomePage> {
       case 2:
         return const Center(child: Text("Search Page")); // Search Page
       case 3:
-        return const Center(child: Text("Write Page")); // Write Page
+        return const ScreenWrite(); // Write Page
       case 4:
         return const Center(child: Text("Translate Page")); // Translate Page
       case 5:
