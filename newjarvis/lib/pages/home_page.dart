@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:newjarvis/components/floating_button.dart';
-import 'package:newjarvis/components/route_controller.dart';
-import 'package:newjarvis/pages/read_page.dart';
 import 'package:newjarvis/components/side_bar.dart';
 import 'package:newjarvis/pages/chat_page.dart';
 import 'package:newjarvis/pages/device_page.dart';
@@ -35,7 +33,7 @@ class _HomePageState extends State<HomePage> {
       case 0:
         return const ChatPage(); // Chat Page
       case 1:
-        return const ScreenEmail();  // Email Page
+        return const ScreenEmail(); // Email Page
       case 2:
         return const SearchPage(); // Search Page
       case 3:
@@ -46,7 +44,7 @@ class _HomePageState extends State<HomePage> {
         return const ScreenArt(); // Art Page
       case 6:
         return const ToolkitPage(); // Toolkit Page
-      case 7:// Email Page
+      case 7: // Email Page
         return const MemoPage(); // Memo Page
       case 8:
         return const DevicePage(); // Devices Page
