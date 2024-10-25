@@ -13,7 +13,7 @@ import 'package:newjarvis/pages/translate/translate_page.dart';
 import 'package:newjarvis/pages/settings_page.dart';
 import 'package:newjarvis/pages/toolkit_page.dart';
 import 'package:newjarvis/pages/voucher_page.dart';
-import 'package:newjarvis/pages/write_page.dart';
+import 'package:newjarvis/pages/screen_write.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -38,7 +38,7 @@ class _HomePageState extends State<HomePage> {
       case 2:
         return const SearchPage(); // Search Page
       case 3:
-        return const WritePage(); // Write Page
+        return const ScreenWrite(); // Write Page
       case 4:
         return const TranslatePage(); // Translate Page
       case 5:
