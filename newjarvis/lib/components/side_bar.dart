@@ -120,9 +120,7 @@ class SideBar extends StatelessWidget {
             },
           ),
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
           const SizedBox(height: 20),
           Align(
             alignment: Alignment.center,
@@ -223,7 +221,7 @@ class SideBar extends StatelessWidget {
 
 const List<IconData> menuIcons = [
   Icons.chat_bubble_rounded,
-  Icons.menu_book_outlined,
+  Icons.email_outlined,
   Icons.search_outlined,
   Icons.edit_outlined,
   Icons.translate_outlined,
@@ -238,7 +236,7 @@ const List<IconData> menuIcons = [
 
 const List<String> menuLabels = [
   'Chat',
-  'Read',
+  'Email',
   'Search',
   'Write',
   'Translate',
