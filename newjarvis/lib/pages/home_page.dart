@@ -3,6 +3,7 @@ import 'package:newjarvis/components/floating_button.dart';
 import 'package:newjarvis/components/side_bar.dart';
 import 'package:newjarvis/pages/chat_page.dart';
 import 'package:newjarvis/pages/screen_art.dart';
+import 'package:newjarvis/pages/screen_email.dart';
 import 'package:newjarvis/pages/screen_write.dart';
 
 class HomePage extends StatefulWidget {
@@ -36,7 +37,7 @@ class _HomePageState extends State<HomePage> {
       case 6:
         return const Center(child: Text("Toolkit Page")); // Toolkit Page
       case 7:
-        return const Center(child: Text("Memo Page")); // Memo Page
+        return const ScreenEmail(); // Email Page
       case 8:
         return const Center(child: Text("Devices Page")); // Devices Page
       case 9:
