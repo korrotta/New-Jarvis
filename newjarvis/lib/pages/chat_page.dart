@@ -15,6 +15,9 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   late String selectedModel;
+  bool isExpanded = false;
+  bool isSidebarVisible = false;
+  double dragOffset = 200.0;
 
   final List<AIModel> aiModels = [
     AIModel(name: 'Monica'),
@@ -33,63 +36,76 @@ class _ChatPageState extends State<ChatPage> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    // Set Default AI Model to the first model in the list
+    selectedModel = aiModels[0].name;
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       // Monica Chat Section
       body: Container(
+        padding: const EdgeInsets.only(top: 20),
         height: double.infinity,
         color: Theme.of(context).colorScheme.secondary,
-        child: SingleChildScrollView(
-          scrollDirection: Axis.vertical,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Welcome Text
-                welcomeSection(context),
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.vertical,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Welcome Text
+                      welcomeSection(context),
 
-                // Personalize Monica Section
-                const PersonalizeSection(),
+                      // Personalize Monica Section
+                      const PersonalizeSection(),
 
-                // SizedBox
-                const SizedBox(height: 20),
+                      // SizedBox
+                      const SizedBox(height: 20),
 
-                // AI Search Section
-                const AiSearchSection(),
+                      // AI Search Section
+                      const AiSearchSection(),
 
-                // SizedBox
-                const SizedBox(height: 20),
+                      // SizedBox
+                      const SizedBox(height: 20),
 
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    // Upload Section
-                    const UploadSection(),
+                      Wrap(
+                        direction: Axis.horizontal,
+                        alignment: WrapAlignment.center,
+                        runAlignment: WrapAlignment.start,
+                        spacing: 20,
+                        children: [
+                          // Upload Section
+                          const UploadSection(),
 
-                    // Writing Agent Section
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        const WritingAgentSection(),
-                        autoAgentSection(context),
-                      ],
-                    ),
-                  ],
+                          // Writing Agent Section
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              const WritingAgentSection(),
+                              autoAgentSection(context),
+                            ],
+                          ),
+                        ],
+                      ),
+
+                      // SizedBox
+                      const SizedBox(height: 30),
+                    ],
+                  ),
                 ),
-
-                // SizedBox
-                const SizedBox(height: 30),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
-
-      // Set Default AI Model to the first model in the list
-      restorationId: selectedModel = aiModels[0].name,
 
       // Bottom Navigation Bar
       bottomNavigationBar: BottomNavSection(
@@ -100,10 +116,11 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
-  Column welcomeSection(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Wrap welcomeSection(BuildContext context) {
+    return Wrap(
+      direction: Axis.horizontal,
+      alignment: WrapAlignment.start,
+      runAlignment: WrapAlignment.start,
       children: [
         Text(
           // Emoji
