@@ -32,6 +32,8 @@ flutter:
   assets: 
     - assets/icons/
     - assets/images/
+    - assets/icons/book.png
+    - assets/icons/menu_write.png
 
   # fonts:
   #   - family: Schyler

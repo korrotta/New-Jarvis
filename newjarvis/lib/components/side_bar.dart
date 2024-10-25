@@ -72,7 +72,7 @@ class SideBar extends StatelessWidget {
                       indent: 10,
                       endIndent: 10,
                     ),
-                  if (index == 8) const SizedBox(height: 70.0),
+                  if (index == 8) const SizedBox(height: 90.0),
                   GestureDetector(
                     onTap: () => onItemSelected(index),
                     child: Container(
@@ -120,9 +120,12 @@ class SideBar extends StatelessWidget {
             },
           ),
         ),
-        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
           const SizedBox(height: 20),
           Align(
+            alignment: Alignment.center,
             child: ClipOval(
               child: Image.asset(
                 "assets/icons/icon.png",
