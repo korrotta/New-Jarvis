@@ -4,6 +4,7 @@ import 'package:newjarvis/components/side_bar.dart';
 import 'package:newjarvis/pages/chat_page.dart';
 import 'package:newjarvis/pages/screen_art.dart';
 import 'package:newjarvis/pages/search/search_page.dart';
+import 'package:newjarvis/pages/translate/translate_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -30,7 +31,7 @@ class _HomePageState extends State<HomePage> {
       case 3:
         return const Center(child: Text("Write Page")); // Write Page
       case 4:
-        return const Center(child: Text("Translate Page")); // Translate Page
+        return const TranslatePage(); // Translate Page
       case 5:
         return const ScreenArt(); // Art Page
       case 6:
