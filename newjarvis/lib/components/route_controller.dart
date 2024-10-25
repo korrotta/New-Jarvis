@@ -4,8 +4,8 @@ import 'package:newjarvis/pages/device_page.dart';
 import 'package:newjarvis/pages/help_page.dart';
 import 'package:newjarvis/pages/home_page.dart';
 import 'package:newjarvis/pages/memo_page.dart';
-import 'package:newjarvis/pages/read_page.dart';
 import 'package:newjarvis/pages/screen_art.dart';
+import 'package:newjarvis/pages/screen_email.dart';
 import 'package:newjarvis/pages/search/search_page.dart';
 import 'package:newjarvis/pages/settings_page.dart';
 import 'package:newjarvis/pages/toolkit_page.dart';
@@ -21,7 +21,7 @@ class RouteController {
   static const String home = '/';
   static const String auth = '/auth';
   static const String chat = '/chat';
-  static const String read = '/read';
+  static const String email = '/email';
   static const String search = '/search';
   static const String write = '/write';
   static const String translate = '/translate';
@@ -41,8 +41,8 @@ class RouteController {
         return MaterialPageRoute(builder: (_) => const AuthGate());
       case chat:
         return MaterialPageRoute(builder: (_) => const ChatPage());
-      case read:
-        return MaterialPageRoute(builder: (_) => const ReadPage());
+      case email:
+        return MaterialPageRoute(builder: (_) => const ScreenEmail());
       case search:
         return MaterialPageRoute(builder: (_) => const SearchPage());
       case write:
@@ -77,7 +77,7 @@ class RouteController {
         navigatorKey.currentState?.pushNamed(chat);
         break;
       case 2:
-        navigatorKey.currentState?.pushNamed(read);
+        navigatorKey.currentState?.pushNamed(email);
         break;
       case 3:
         navigatorKey.currentState?.pushNamed(search);
@@ -120,7 +120,7 @@ class RouteController {
       home: (context) => const HomePage(),
       auth: (context) => const AuthGate(),
       chat: (context) => const ChatPage(),
-      read: (context) => const ReadPage(),
+      email: (context) => const ScreenEmail(),
       search: (context) => const SearchPage(),
       write: (context) => const WritePage(),
       translate: (context) => const TranslatePage(),
@@ -141,9 +141,9 @@ class RouteController {
       'route': chat,
     },
     {
-      'icon': Icons.menu_book_outlined,
-      'label': 'Read',
-      'route': read,
+      'icon': Icons.email_outlined,
+      'label': 'Email',
+      'route': email,
     },
     {
       'icon': Icons.search_outlined,
