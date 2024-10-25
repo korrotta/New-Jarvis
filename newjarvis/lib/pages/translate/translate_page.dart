@@ -11,7 +11,8 @@ class TranslatePage extends StatelessWidget {
         return const PdfTranslationDialog(); // Open PDF translation dialog
       },
     );
-  } 
+  }
+
   void _openWebTranslationDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -63,8 +64,11 @@ class TranslatePage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Top Row for PDF and Web Translation Buttons
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  Wrap(
+                    direction: Axis.horizontal,
+                    spacing: 20,
+                    runSpacing: 10,
+                    alignment: WrapAlignment.spaceBetween,
                     children: [
                       CustomButton(
                         label: 'PDF Translation',
@@ -104,7 +108,8 @@ class TranslatePage extends StatelessWidget {
                   // Swap Button between input and output
                   Center(
                     child: IconButton(
-                      icon: const Icon(Icons.swap_vert, size: 30, color: Colors.grey),
+                      icon: const Icon(Icons.swap_vert,
+                          size: 30, color: Colors.grey),
                       onPressed: () {
                         // Handle swap functionality
                       },

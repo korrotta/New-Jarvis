@@ -10,10 +10,8 @@ import 'package:newjarvis/pages/memo_page.dart';
 import 'package:newjarvis/pages/screen_art.dart';
 import 'package:newjarvis/pages/search/search_page.dart';
 import 'package:newjarvis/pages/translate/translate_page.dart';
-import 'package:newjarvis/pages/search_page.dart';
 import 'package:newjarvis/pages/settings_page.dart';
 import 'package:newjarvis/pages/toolkit_page.dart';
-import 'package:newjarvis/pages/translate_page.dart';
 import 'package:newjarvis/pages/voucher_page.dart';
 import 'package:newjarvis/pages/write_page.dart';
 
