@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1098947487924",
+    "project_id": "new-jarvis-725d8",
+    "storage_bucket": "new-jarvis-725d8.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1098947487924:android:8a3b00dc92a278fc3e4fe1",
+        "android_client_info": {
+          "package_name": "com.example.newjarvis"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAI_SCLv6ViZ2vLMTvWIS6_8Bd18xQPeJI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
