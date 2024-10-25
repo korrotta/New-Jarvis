@@ -8,6 +8,7 @@ import 'package:newjarvis/pages/device_page.dart';
 import 'package:newjarvis/pages/help_page.dart';
 import 'package:newjarvis/pages/memo_page.dart';
 import 'package:newjarvis/pages/screen_art.dart';
+import 'package:newjarvis/pages/screen_email.dart';
 import 'package:newjarvis/pages/search/search_page.dart';
 import 'package:newjarvis/pages/translate/translate_page.dart';
 import 'package:newjarvis/pages/settings_page.dart';
@@ -34,7 +35,7 @@ class _HomePageState extends State<HomePage> {
       case 0:
         return const ChatPage(); // Chat Page
       case 1:
-        return const ReadPage(); // Read Page
+        return const ScreenEmail();  // Email Page
       case 2:
         return const SearchPage(); // Search Page
       case 3:
@@ -45,7 +46,7 @@ class _HomePageState extends State<HomePage> {
         return const ScreenArt(); // Art Page
       case 6:
         return const ToolkitPage(); // Toolkit Page
-      case 7:
+      case 7:// Email Page
         return const MemoPage(); // Memo Page
       case 8:
         return const DevicePage(); // Devices Page
