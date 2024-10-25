@@ -13,7 +13,6 @@ class _ReadPageState extends State<ReadPage> {
     return Scaffold(
       body: Container(
         padding: const EdgeInsets.only(top: 20),
-        height: double.infinity,
         color: Theme.of(context).colorScheme.secondary,
         child: const Text(
           'Read Page',

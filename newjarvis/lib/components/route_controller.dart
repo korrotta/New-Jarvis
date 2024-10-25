@@ -3,8 +3,10 @@ import 'package:newjarvis/pages/chat_page.dart';
 import 'package:newjarvis/pages/device_page.dart';
 import 'package:newjarvis/pages/help_page.dart';
 import 'package:newjarvis/pages/home_page.dart';
+import 'package:newjarvis/pages/login_page.dart';
 import 'package:newjarvis/pages/memo_page.dart';
 import 'package:newjarvis/pages/read_page.dart';
+import 'package:newjarvis/pages/register_page.dart';
 import 'package:newjarvis/pages/screen_art.dart';
 import 'package:newjarvis/pages/search_page.dart';
 import 'package:newjarvis/pages/settings_page.dart';
@@ -12,12 +14,14 @@ import 'package:newjarvis/pages/toolkit_page.dart';
 import 'package:newjarvis/pages/translate_page.dart';
 import 'package:newjarvis/pages/write_page.dart';
 import 'package:newjarvis/pages/voucher_page.dart';
+import 'package:newjarvis/services/auth_gate.dart';
 
 class RouteController {
   static final GlobalKey<NavigatorState> navigatorKey =
       GlobalKey<NavigatorState>();
 
   static const String home = '/';
+  static const String auth = '/auth';
   static const String chat = '/chat';
   static const String read = '/read';
   static const String search = '/search';
@@ -35,6 +39,8 @@ class RouteController {
     switch (settings.name) {
       case home:
         return MaterialPageRoute(builder: (_) => const HomePage());
+      case auth:
+        return MaterialPageRoute(builder: (_) => const AuthGate());
       case chat:
         return MaterialPageRoute(builder: (_) => const ChatPage());
       case read:
@@ -60,50 +66,53 @@ class RouteController {
       case voucher:
         return MaterialPageRoute(builder: (_) => const VoucherPage());
       default:
-        return MaterialPageRoute(builder: (_) => const HomePage());
+        return MaterialPageRoute(builder: (_) => const AuthGate());
     }
   }
 
   static void navigateTo(int index) {
     switch (index) {
       case 0:
-        navigatorKey.currentState?.pushNamed(chat);
+        navigatorKey.currentState?.pushNamed(auth);
         break;
       case 1:
-        navigatorKey.currentState?.pushNamed(read);
+        navigatorKey.currentState?.pushNamed(chat);
         break;
       case 2:
-        navigatorKey.currentState?.pushNamed(search);
+        navigatorKey.currentState?.pushNamed(read);
         break;
       case 3:
-        navigatorKey.currentState?.pushNamed(write);
+        navigatorKey.currentState?.pushNamed(search);
         break;
       case 4:
-        navigatorKey.currentState?.pushNamed(translate);
+        navigatorKey.currentState?.pushNamed(write);
         break;
       case 5:
-        navigatorKey.currentState?.pushNamed(screenArt);
+        navigatorKey.currentState?.pushNamed(translate);
         break;
       case 6:
-        navigatorKey.currentState?.pushNamed(toolkit);
+        navigatorKey.currentState?.pushNamed(screenArt);
         break;
       case 7:
-        navigatorKey.currentState?.pushNamed(memo);
+        navigatorKey.currentState?.pushNamed(toolkit);
         break;
       case 8:
-        navigatorKey.currentState?.pushNamed(devices);
+        navigatorKey.currentState?.pushNamed(memo);
         break;
       case 9:
-        navigatorKey.currentState?.pushNamed(help);
+        navigatorKey.currentState?.pushNamed(devices);
         break;
       case 10:
-        navigatorKey.currentState?.pushNamed(setting);
+        navigatorKey.currentState?.pushNamed(help);
         break;
       case 11:
+        navigatorKey.currentState?.pushNamed(setting);
+        break;
+      case 12:
         navigatorKey.currentState?.pushNamed(voucher);
         break;
       default:
-        navigatorKey.currentState?.pushNamed(home);
+        navigatorKey.currentState?.pushNamed(auth);
         break;
     }
   }
@@ -111,6 +120,7 @@ class RouteController {
   static Map<String, WidgetBuilder> getRoutes() {
     return {
       home: (context) => const HomePage(),
+      auth: (context) => const AuthGate(),
       chat: (context) => const ChatPage(),
       read: (context) => const ReadPage(),
       search: (context) => const SearchPage(),

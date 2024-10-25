@@ -5,6 +5,7 @@ import 'package:newjarvis/components/ai_search_section.dart';
 import 'package:newjarvis/components/personalize_section.dart';
 import 'package:newjarvis/components/upload_section.dart';
 import 'package:newjarvis/models/ai_model.dart';
+import 'package:newjarvis/services/auth_service.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -155,10 +156,11 @@ class _ChatPageState extends State<ChatPage> {
         ),
       ),
       onPressed: () {
-        // Handle Auto Agent action
+        // Handle signout here
+        AuthService().signOut();
       },
       child: Text(
-        'Auto Agent',
+        'Sign out',
         style: TextStyle(
           color: Theme.of(context).colorScheme.inversePrimary,
           fontSize: 18,
