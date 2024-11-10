@@ -1,17 +1,32 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:newjarvis/components/custom_button.dart';
 import 'package:newjarvis/components/custom_textfield.dart';
-import 'package:newjarvis/services/auth_service.dart';
+import 'package:newjarvis/services/api_service.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
+  // Page navigation
+  final void Function()? onTap;
+
+  const LoginPage({super.key, required this.onTap});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  // ApiService
+  final ApiService apiService = ApiService();
+
+  // Form key for validation
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   // Email and Password controllers
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  // Page navigation
-  final void Function()? onTap;
-
-  LoginPage({super.key, required this.onTap});
+  // Loading state
+  bool isLoading = false;
 
   // Validate email and password
   bool validateEmailAndPassword(String email, String password) {
@@ -33,55 +48,73 @@ class LoginPage extends StatelessWidget {
     return true;
   }
 
-  // Login Method
-  void login(BuildContext context) {
-    // Auth Service
-    final authService = AuthService();
+  // Check network connectivity
+  Future<bool> checkNetworkConnectivity() async {
+    var connectivityResult = await (Connectivity().checkConnectivity());
+    if (connectivityResult == ConnectivityResult.none) {
+      return false;
+    }
+    return true;
+  }
 
+  // Sign in API call
+  void signIn() async {
     final String email = _emailController.text;
     final String password = _passwordController.text;
 
-    // Validate email and password
-    if (!validateEmailAndPassword(email, password)) {
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text("Error"),
-            content: Text("Please enter a valid email and password"),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text("OK"),
-              ),
-            ],
-          );
-        },
+    // Validate email and password using Form validation
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    // Set loading state
+    setState(() {
+      isLoading = true;
+    });
+
+    if (!mounted) return;
+
+    // Check network connectivity
+    bool isConnected = await checkNetworkConnectivity();
+    if (!isConnected) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No internet connection')),
       );
       return;
     }
 
     try {
-      authService.signInWithEmailPassword(email, password);
+      // Await the response from the signIn API
+      final response =
+          await apiService.signIn(email: email, password: password);
+
+      if (!mounted) return;
+
+      // Set loading state
+      setState(() {
+        isLoading = false;
+      });
+
+      if (response.isNotEmpty) {
+        Navigator.pushReplacementNamed(context, '/chat');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login failed')),
+        );
+      }
     } catch (e) {
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text("Error"),
-            content: Text(e.toString()),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text("OK"),
-              ),
-            ],
-          );
-        },
+      if (!mounted) return;
+
+      // Set loading state
+      setState(() {
+        isLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
       );
     }
   }
@@ -146,60 +179,91 @@ class LoginPage extends StatelessWidget {
 
             const SizedBox(height: 30),
 
-            // Email textfield
-            CustomTextfield(
-              hintText: "Email",
-              obscureText: false,
-              controller: _emailController,
-            ),
-
-            const SizedBox(height: 20),
-
-            // Password textfield
-            CustomTextfield(
-              hintText: "Password",
-              obscureText: true,
-              controller: _passwordController,
-            ),
-
-            const SizedBox(height: 10),
-
-            // Remebmer me and forgot password
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            // Form for email and password fields
+            Form(
+              key: _formKey,
+              child: Column(
                 children: [
-                  Row(
-                    children: [
-                      Checkbox(value: false, onChanged: (value) {}),
-                      Text(
-                        "Remember me",
-                        style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary),
-                      ),
-                    ],
+                  // Email textfield
+                  CustomTextfield(
+                    hintText: "Email",
+                    obscureText: false,
+                    controller: _emailController,
+                    validator: (email) {
+                      if (email == null || email.isEmpty) {
+                        return "Please enter an email";
+                      }
+                      if (!email.contains("@") || !email.contains(".")) {
+                        return "Please enter a valid email";
+                      }
+                      return null;
+                    },
                   ),
-                  GestureDetector(
-                    onTap: () {},
-                    child: const Text(
-                      "Forgot password?",
-                      style: TextStyle(
-                        color: Colors.blue,
-                        fontSize: 15,
-                      ),
+
+                  const SizedBox(height: 20),
+
+                  // Password textfield
+                  CustomTextfield(
+                    hintText: "Password",
+                    obscureText: true,
+                    controller: _passwordController,
+                    validator: (password) {
+                      if (password == null || password.isEmpty) {
+                        return "Please enter a password";
+                      }
+                      if (password.length < 6) {
+                        return "Password should be at least 6 characters";
+                      }
+                      return null;
+                    },
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  // Remebmer me and forgot password
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Checkbox(value: false, onChanged: (value) {}),
+                            Text(
+                              "Remember me",
+                              style: TextStyle(
+                                  color: Theme.of(context).colorScheme.primary),
+                            ),
+                          ],
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            // Test api
+                            apiService.testApi();
+                          },
+                          child: const Text(
+                            "Forgot password?",
+                            style: TextStyle(
+                              color: Colors.blue,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
+
+                  const SizedBox(height: 10),
+
+                  // Login button
+                  isLoading
+                      ? const CircularProgressIndicator()
+                      : CustomButton(
+                          text: "Login",
+                          onTap: signIn,
+                        ),
                 ],
               ),
-            ),
-
-            const SizedBox(height: 10),
-
-            // Login button
-            CustomButton(
-              text: "Login",
-              onTap: () => login(context),
             ),
 
             const SizedBox(height: 10),
@@ -278,7 +342,7 @@ class LoginPage extends StatelessWidget {
                       color: Theme.of(context).colorScheme.inversePrimary),
                 ),
                 GestureDetector(
-                  onTap: onTap,
+                  onTap: widget.onTap,
                   child: const Text(
                     "Sign up now",
                     style: TextStyle(

@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:newjarvis/components/bottom_nav_section.dart';
-import 'package:newjarvis/components/writing_agent_section.dart';
-import 'package:newjarvis/components/ai_search_section.dart';
-import 'package:newjarvis/components/personalize_section.dart';
-import 'package:newjarvis/components/upload_section.dart';
 import 'package:newjarvis/models/ai_model.dart';
-import 'package:newjarvis/services/auth_service.dart';
+import 'package:newjarvis/services/api_service.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -15,113 +11,45 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
-  late String selectedModel;
-  bool isExpanded = false;
-  bool isSidebarVisible = false;
-  double dragOffset = 200.0;
-
-  final List<AIModel> aiModels = [
-    AIModel(name: 'Monica'),
-    AIModel(name: 'Genius'),
-    AIModel(name: 'Gemini'),
-    AIModel(name: 'Claude-Instant-100k'),
-    AIModel(name: 'Claude-2'),
-    AIModel(name: 'Writing Agent'),
-    AIModel(name: 'Auto Agent'),
-    AIModel(name: 'Bard'),
-    AIModel(name: 'Mistral-7b'),
-    AIModel(name: 'Llama-2-70b'),
-    AIModel(name: 'Codellama-34b'),
-    AIModel(name: 'Instagram Post Generator'),
-    AIModel(name: 'Twitter Post Generator'),
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    // Set Default AI Model to the first model in the list
-    selectedModel = aiModels[0].name;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Monica Chat Section
       body: Container(
         padding: const EdgeInsets.only(top: 20),
         height: double.infinity,
         color: Theme.of(context).colorScheme.secondary,
         child: Column(
           children: [
-            Expanded(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.vertical,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      // Welcome Text
-                      welcomeSection(context),
-
-                      // Personalize Monica Section
-                      const PersonalizeSection(),
-
-                      // SizedBox
-                      const SizedBox(height: 20),
-
-                      // AI Search Section
-                      const AiSearchSection(),
-
-                      // SizedBox
-                      const SizedBox(height: 20),
-
-                      Wrap(
-                        direction: Axis.horizontal,
-                        alignment: WrapAlignment.center,
-                        runAlignment: WrapAlignment.start,
-                        spacing: 20,
-                        children: [
-                          // Upload Section
-                          const UploadSection(),
-
-                          // Writing Agent Section
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              const WritingAgentSection(),
-                              autoAgentSection(context),
-                            ],
-                          ),
-                        ],
-                      ),
-
-                      // SizedBox
-                      const SizedBox(height: 30),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+            signOutButton(context),
           ],
         ),
       ),
-
-      // Bottom Navigation Bar
       bottomNavigationBar: BottomNavSection(
-        selectedModel: selectedModel,
-        aiModels: aiModels,
+        selectedModel: 'All',
+        aiModels: [
+          AIModel(name: 'Monica'),
+          AIModel(name: 'Genius'),
+          AIModel(name: 'Gemini'),
+          AIModel(name: 'Claude-Instant-100k'),
+          AIModel(name: 'Claude-2'),
+          AIModel(name: 'Writing Agent'),
+          AIModel(name: 'Auto Agent'),
+          AIModel(name: 'Bard'),
+          AIModel(name: 'Mistral-7b'),
+          AIModel(name: 'Llama-2-70b'),
+          AIModel(name: 'Codellama-34b'),
+          AIModel(name: 'Instagram Post Generator'),
+          AIModel(name: 'Twitter Post Generator'),
+        ],
         selectedIndex: 0,
       ),
     );
   }
 
-  Wrap welcomeSection(BuildContext context) {
-    return Wrap(
-      direction: Axis.horizontal,
-      alignment: WrapAlignment.start,
-      runAlignment: WrapAlignment.start,
+  Column welcomeSection(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           // Emoji
@@ -146,7 +74,7 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
-  ElevatedButton autoAgentSection(BuildContext context) {
+  ElevatedButton signOutButton(BuildContext context) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         padding: const EdgeInsets.symmetric(horizontal: 30),
@@ -157,7 +85,8 @@ class _ChatPageState extends State<ChatPage> {
       ),
       onPressed: () {
         // Handle signout here
-        AuthService().signOut();
+        ApiService().signOut();
+        Navigator.pushReplacementNamed(context, '/login');
       },
       child: Text(
         'Sign out',

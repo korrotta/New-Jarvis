@@ -10,9 +10,9 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
-  firebase_core: ^3.6.0
-  firebase_auth: ^5.3.1
-  cloud_firestore: ^5.4.4
+  http: ^1.2.2
+  shared_preferences: ^2.3.3
+  connectivity_plus: ^6.1.0
 
 flutter_launcher_icons:
   android: "launcher_icon"
