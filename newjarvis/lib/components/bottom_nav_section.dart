@@ -27,35 +27,32 @@ class BottomNavSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Flexible(
-      child: Container(
-        clipBehavior: Clip.antiAlias,
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(15),
-        ),
-        child: Wrap(
-          direction: Axis.horizontal,
-          runAlignment: WrapAlignment.start,
-          spacing: 10,
-          runSpacing: 10,
-          alignment: WrapAlignment.start,
-          children: [
-            // AI Model Selection
-            AiModelSelectionSection(
-              selectedModel: selectedModel,
-              aiModels: aiModels,
-              filters: filters,
-            ),
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Wrap(
+        direction: Axis.horizontal,
+        runAlignment: WrapAlignment.start,
+        spacing: 10,
+        runSpacing: 10,
+        alignment: WrapAlignment.start,
+        children: [
+          // AI Model Selection
+          AiModelSelectionSection(
+            selectedModel: selectedModel,
+            aiModels: aiModels,
+            filters: filters,
+          ),
 
-            // Chat Input Section
-            const ChatInputSection(),
+          // Chat Input Section
+          const ChatInputSection(),
 
-            // Switches
-            const BottomSwitchSection(),
-          ],
-        ),
+          // Switches
+          const BottomSwitchSection(),
+        ],
       ),
     );
   }
