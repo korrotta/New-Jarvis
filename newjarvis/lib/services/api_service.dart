@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:newjarvis/pages/toolkit_page.dart';
+import 'package:newjarvis/models/ai_chat_model.dart';
+import 'package:newjarvis/models/basic_user_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
@@ -153,7 +154,7 @@ class ApiService {
   }
 
   // Get current user info
-  Future<Map<String, dynamic>> getCurrentUser() async {
+  Future<Map<BasicUserModel, dynamic>> getCurrentUser() async {
     final token = await _getToken();
 
     if (token == null) {
@@ -178,14 +179,15 @@ class ApiService {
 
       if (response.statusCode == 200) {
         // Decode and return the current user data
-        return jsonDecode(response.body);
+        BasicUserModel user =
+            BasicUserModel.fromJson(jsonDecode(response.body));
+        return {user: jsonDecode(response.body)};
       } else {
         throw Exception(
             "Failed to get current user. Status Code: ${response.statusCode}");
       }
     } catch (e) {
-      print("Error getting current user: $e");
-      return {};
+      throw Exception("Error getting current user: $e");
     }
   }
 
@@ -229,9 +231,130 @@ class ApiService {
     }
   }
 
-  void testApi() {
-    // Sign in with hardcoded email and password
-    signIn(email: 'Alexie9911@gmail.com', password: '2wyML3agdX695ae');
+  // Get token usage
+  Future<Map<String, dynamic>> getTokenUsage() async {
+    final token = await _getToken();
+
+    if (token == null) {
+      throw Exception('No token found. Please sign in.');
+    }
+
+    final url = Uri.parse('$_baseUrl/api/v1/tokens/usage');
+
+    print('Getting token usage');
+    print('Parsed URL: $url');
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        // Decode and return the token usage data
+        final data = jsonDecode(response.body);
+
+        return data;
+      } else {
+        throw Exception(
+            "Failed to get token usage. Status Code: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Error getting token usage: $e");
+      return {};
+    }
+  }
+
+  // Do AI Chat
+  Future<Map<String, dynamic>> doAIChat({
+    required AiChatModel aiChat,
+  }) async {
+    final token = await _getToken();
+
+    if (token == null) {
+      throw Exception('No token found. Please sign in.');
+    }
+
+    final url = Uri.parse('$_baseUrl/api/v1/ai-chat');
+
+    print('Chatting with AI');
+    print('Parsed URL: $url');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+        body: {
+          aiChat,
+        },
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        // Decode and return the AI chat response
+        final data = jsonDecode(response.body);
+        return data;
+      } else {
+        throw Exception(
+            "Failed to chat with AI. Status Code: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Error chatting with AI: $e");
+      return {};
+    }
+  }
+
+  // Send message
+  Future<Map<String, dynamic>> sendMessage({
+    required AiChatModel aiChat,
+  }) async {
+    final token = await _getToken();
+
+    if (token == null) {
+      throw Exception('No token found. Please sign in.');
+    }
+
+    final url = Uri.parse('$_baseUrl/api/v1/message');
+
+    print('Sending message');
+    print('Parsed URL: $url');
+    print('Message: $aiChat');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+        body: {
+          aiChat,
+        },
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        // Decode and return the message response
+        final data = jsonDecode(response.body);
+        return data;
+      } else {
+        throw Exception(
+            "Failed to send message. Status Code: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Error sending message: $e");
+      return {};
+    }
   }
 
   Future<bool> isLoggedIn() async {

@@ -237,10 +237,7 @@ class _LoginPageState extends State<LoginPage> {
                           ],
                         ),
                         GestureDetector(
-                          onTap: () {
-                            // Test api
-                            apiService.testApi();
-                          },
+                          onTap: () {},
                           child: const Text(
                             "Forgot password?",
                             style: TextStyle(

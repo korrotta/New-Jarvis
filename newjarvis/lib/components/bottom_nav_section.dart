@@ -4,11 +4,26 @@ import 'package:newjarvis/components/bottom_switch_section.dart';
 import 'package:newjarvis/components/chat_input_section.dart';
 import 'package:newjarvis/models/ai_model.dart';
 
-class BottomNavSection extends StatelessWidget {
+class BottomNavSection extends StatefulWidget {
   final String selectedModel;
   final List<AIModel> aiModels;
   final int selectedIndex;
+  final String Function(String) onSend;
 
+  const BottomNavSection({
+    super.key,
+    required this.selectedModel,
+    required this.aiModels,
+    required this.selectedIndex,
+    required this.onSend,
+  });
+
+  @override
+  State<BottomNavSection> createState() => _BottomNavSectionState();
+}
+
+class _BottomNavSectionState extends State<BottomNavSection> {
+  String chat = '';
   final List<String> filters = [
     'All',
     'AI Models',
@@ -18,12 +33,10 @@ class BottomNavSection extends StatelessWidget {
     'Emotions'
   ];
 
-  BottomNavSection({
-    super.key,
-    required this.selectedModel,
-    required this.aiModels,
-    required this.selectedIndex,
-  });
+  // Send chat
+  String _sendChat() {
+    return chat;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,13 +55,15 @@ class BottomNavSection extends StatelessWidget {
         children: [
           // AI Model Selection
           AiModelSelectionSection(
-            selectedModel: selectedModel,
-            aiModels: aiModels,
+            selectedModel: widget.selectedModel,
+            aiModels: widget.aiModels,
             filters: filters,
           ),
 
           // Chat Input Section
-          const ChatInputSection(),
+          ChatInputSection(
+            onSend: widget.onSend,
+          ),
 
           // Switches
           const BottomSwitchSection(),

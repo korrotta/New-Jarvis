@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:newjarvis/components/bottom_nav_section.dart';
 import 'package:newjarvis/components/floating_button.dart';
 import 'package:newjarvis/components/side_bar.dart';
-import 'package:newjarvis/models/ai_model.dart';
 import 'package:newjarvis/pages/chat_page.dart';
 import 'package:newjarvis/pages/device_page.dart';
 import 'package:newjarvis/pages/help_page.dart';
@@ -29,35 +27,55 @@ class _HomePageState extends State<HomePage> {
   bool isSidebarVisible = false;
   double dragOffset = 200.0;
 
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+
   // Hàm để render nội dung dựa trên selectedIndex
-  Widget _getScreenContent() {
-    switch (selectedIndex) {
+  void _onItemTapped(int index) {
+    setState(() {
+      selectedIndex = index;
+      isSidebarVisible = false;
+    });
+
+    switch (index) {
       case 0:
-        return const ChatPage(); // Chat Page
+        _navigatorKey.currentState?.pushReplacementNamed('/chat');
+        break;
       case 1:
-        return const ScreenEmail(); // Email Page
+        _navigatorKey.currentState?.pushReplacementNamed('/email');
+        break;
       case 2:
-        return const SearchPage(); // Search Page
+        _navigatorKey.currentState?.pushReplacementNamed('/search');
+        break;
       case 3:
-        return const ScreenWrite(); // Write Page
+        _navigatorKey.currentState?.pushReplacementNamed('/write');
+        break;
       case 4:
-        return const TranslatePage(); // Translate Page
+        _navigatorKey.currentState?.pushReplacementNamed('/translate');
+        break;
       case 5:
-        return const ScreenArt(); // Art Page
+        _navigatorKey.currentState?.pushReplacementNamed('/art');
+        break;
       case 6:
-        return const ToolkitPage(); // Toolkit Page
+        _navigatorKey.currentState?.pushReplacementNamed('/toolkit');
+        break;
       case 7:
-        return const MemoPage(); // Memo Page
+        _navigatorKey.currentState?.pushReplacementNamed('/memo');
+        break;
       case 8:
-        return const DevicePage(); // Devices Page
+        _navigatorKey.currentState?.pushReplacementNamed('/devices');
+        break;
       case 9:
-        return const HelpPage(); // Question Page
+        _navigatorKey.currentState?.pushReplacementNamed('/help');
+        break;
       case 10:
-        return const SettingsPage(); // Settings Page
+        _navigatorKey.currentState?.pushReplacementNamed('/settings');
+        break;
       case 11:
-        return const VoucherPage(); // Voucher Page
+        _navigatorKey.currentState?.pushReplacementNamed('/voucher');
+        break;
       default:
-        return const HomePage(); // Home Page
+        _navigatorKey.currentState?.pushReplacementNamed('/home');
+        break;
     }
   }
 
@@ -72,8 +90,55 @@ class _HomePageState extends State<HomePage> {
             margin: EdgeInsets.only(
               right: isSidebarVisible ? (isExpanded ? 180 : 98) : 0,
             ),
-            child: Scaffold(
-              body: _getScreenContent(),
+            width: double.infinity,
+            child: Navigator(
+              key: _navigatorKey,
+              initialRoute: '/chat',
+              onGenerateRoute: (RouteSettings settings) {
+                WidgetBuilder builder;
+                switch (settings.name) {
+                  case '/chat':
+                    builder = (BuildContext _) => const ChatPage();
+                    break;
+                  case '/email':
+                    builder = (BuildContext _) => const ScreenEmail();
+                    break;
+                  case '/search':
+                    builder = (BuildContext _) => const SearchPage();
+                    break;
+                  case '/write':
+                    builder = (BuildContext _) => const ScreenWrite();
+                    break;
+                  case '/translate':
+                    builder = (BuildContext _) => const TranslatePage();
+                    break;
+                  case '/art':
+                    builder = (BuildContext _) => const ScreenArt();
+                    break;
+                  case '/toolkit':
+                    builder = (BuildContext _) => const ToolkitPage();
+                    break;
+                  case '/memo':
+                    builder = (BuildContext _) => const MemoPage();
+                    break;
+                  case '/devices':
+                    builder = (BuildContext _) => const DevicePage();
+                    break;
+                  case '/help':
+                    builder = (BuildContext _) => const HelpPage();
+                    break;
+                  case '/settings':
+                    builder = (BuildContext _) => const SettingsPage();
+                    break;
+                  case '/voucher':
+                    builder = (BuildContext _) => const VoucherPage();
+                    break;
+                  default:
+                    builder = (BuildContext _) => const ChatPage();
+                    break;
+                }
+                return MaterialPageRoute(builder: builder, settings: settings);
+              },
             ),
           ),
 
@@ -85,12 +150,7 @@ class _HomePageState extends State<HomePage> {
               child: SideBar(
                 isExpanded: isExpanded,
                 selectedIndex: selectedIndex,
-                onItemSelected: (index) {
-                  setState(() {
-                    selectedIndex = index;
-                    isSidebarVisible = false;
-                  });
-                },
+                onItemSelected: _onItemTapped,
                 onExpandToggle: () {
                   setState(() {
                     isExpanded = !isExpanded;

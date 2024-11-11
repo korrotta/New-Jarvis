@@ -1,7 +1,37 @@
 import 'package:flutter/material.dart';
 
-class ChatInputSection extends StatelessWidget {
-  const ChatInputSection({super.key});
+class ChatInputSection extends StatefulWidget {
+  final String Function(String) onSend;
+
+  const ChatInputSection({
+    super.key,
+    required this.onSend,
+  });
+
+  @override
+  State<ChatInputSection> createState() => _ChatInputSectionState();
+}
+
+class _ChatInputSectionState extends State<ChatInputSection> {
+  // Text controller for the chat input
+  final TextEditingController _chatController = TextEditingController();
+
+  // Send chat
+  void _sendChat(BuildContext context) {
+    final chat = _chatController.text.trim();
+    if (chat.isNotEmpty) {
+      widget.onSend(chat);
+      _chatController.clear();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please type a message'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,6 +49,7 @@ class ChatInputSection extends StatelessWidget {
           children: [
             Expanded(
               child: TextField(
+                controller: _chatController,
                 minLines: 1,
                 maxLines: 5,
                 decoration: InputDecoration(
@@ -38,7 +69,7 @@ class ChatInputSection extends StatelessWidget {
               icon: Icon(Icons.send_sharp,
                   color: Theme.of(context).colorScheme.primary),
               onPressed: () {
-                // Handle send action
+                _sendChat(context);
               },
             ),
           ],
