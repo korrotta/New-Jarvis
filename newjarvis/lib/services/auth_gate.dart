@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:newjarvis/pages/home_page.dart';
 import 'package:newjarvis/services/api_service.dart';
-import 'package:newjarvis/services/auth_provider.dart';
+import 'package:newjarvis/services/auth_state.dart';
 
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});

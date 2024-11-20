@@ -1,9 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:newjarvis/components/bottom_nav_section.dart';
+import 'package:newjarvis/enums/id.dart';
+import 'package:newjarvis/enums/model.dart';
+import 'package:newjarvis/models/ai_chat_model.dart';
 import 'package:newjarvis/models/ai_model.dart';
+import 'package:newjarvis/models/assistant_model.dart';
 import 'package:newjarvis/models/basic_user_model.dart';
-import 'package:newjarvis/components/chat_bubble.dart';
+import 'package:newjarvis/models/chat_response_model.dart';
+import 'package:newjarvis/models/conversation_history_item_model.dart';
+import 'package:newjarvis/models/conversation_item_model.dart';
+import 'package:newjarvis/providers/auth_provider.dart';
 import 'package:newjarvis/services/api_service.dart';
+import 'package:newjarvis/services/auth_state.dart';
+import 'package:provider/provider.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -16,29 +25,151 @@ class _ChatPageState extends State<ChatPage> {
   // ApiService
   final ApiService apiService = ApiService();
 
-  String _handleSend(String chat) {
+  // List of conversations
+  List<ConversationItemModel> _conversations = [];
+
+  // Loading state
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializePage();
+  }
+
+  Future<void> _initializePage() async {
+    await _checkAndFetchConversations();
+  }
+
+  String _handleSend(BuildContext context, String chat) {
+    // Create AiChatModel
+    final assistant = AssistantModel(
+      id: Id.GPT_4_O.value,
+      model: Model.dify.name,
+    );
+
+    AiChatModel message = AiChatModel(
+      assistant: assistant,
+      content: chat,
+      files: null,
+      metadata: null,
+    );
+
+    print('Sending message: $message');
+
     // Call ApiService to send chat
-    print(chat);
-    return chat;
+    Future<ChatResponseModel> chatResponse = apiService.sendMessage(
+      context: context,
+      aiChat: message,
+    );
+
+    return chatResponse.toString();
+  }
+
+  Future<void> _checkAndFetchConversations() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    if (authProvider.currentUser != null) {
+      await _fetchAllConversations();
+    } else {
+      print('User is not logged in');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _fetchAllConversations() async {
+    final assistant = AssistantModel(
+      id: Id.GPT_4_O.value,
+      model: Model.dify.name,
+    );
+
+    try {
+      final List<ConversationItemModel> conversations =
+          await apiService.getConversations(
+        context: context,
+        cursor: null,
+        limit: 15,
+        assistant: assistant,
+      );
+      setState(() {
+        _conversations = conversations;
+        print('Conversations: $_conversations');
+
+        print('Latest Conversation: ${_conversations.first}');
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error fetching conversation history: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final assistant = AssistantModel(
+      id: Id.GPT_4_O.value,
+      model: Model.dify.name,
+    );
+    final authProvider = Provider.of<AuthProvider>(context);
+    final currentUser = authProvider.currentUser;
+    List<ConversationItemModel> conversations = [];
+    List<ConversationHistoryItemModel> conversationHistory = [];
+
     return Scaffold(
-      body: Container(
-        padding: const EdgeInsets.all(20),
-        color: Theme.of(context).colorScheme.secondary,
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              welcomeSection(context),
-              signOutButton(context),
-            ],
-          ),
-        ),
-      ),
+      body: authProvider.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Container(
+              padding: const EdgeInsets.all(20),
+              color: Theme.of(context).colorScheme.secondary,
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    welcomeSection(context),
+                    const SizedBox(height: 20),
+                    // Test get conversations
+                    ElevatedButton(
+                      onPressed: () async {
+                        conversations = await apiService.getConversations(
+                          context: context,
+                          cursor: null,
+                          limit: 15,
+                          assistant: assistant,
+                        );
+                      },
+                      child: Text('Get Conversations'),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Test get latest conversation
+                    ElevatedButton(
+                      onPressed: () async {
+                        print('Conversations: $conversations');
+                        print('Latest Conversation: ${conversations.first}');
+                        conversationHistory =
+                            await apiService.getConversationHistory(
+                          context: context,
+                          conversationId: conversations.first.id,
+                          cursor: null,
+                          limit: 100,
+                          assistant: assistant,
+                        );
+                      },
+                      child: Text('Get Latest Conversation'),
+                    ),
+                    const SizedBox(height: 20),
+
+                    signOutButton(context),
+
+                    const SizedBox(height: 20),
+                  ],
+                ),
+              ),
+            ),
       bottomNavigationBar: BottomNavSection(
-        selectedModel: 'All',
+        selectedModel: 'Monica',
         aiModels: [
           AIModel(name: 'Monica'),
           AIModel(name: 'Genius'),
@@ -55,7 +186,7 @@ class _ChatPageState extends State<ChatPage> {
           AIModel(name: 'Twitter Post Generator'),
         ],
         selectedIndex: 0,
-        onSend: _handleSend,
+        onSend: (chat) => _handleSend(context, chat),
       ),
     );
   }
@@ -210,31 +341,6 @@ class _ChatPageState extends State<ChatPage> {
   // Build chat list
 
   // Build chat item
-  Widget _buildChatItem(String chat, BuildContext context) {
-    final isUser = false;
-    return Container(
-      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-      padding: const EdgeInsets.all(10),
-      margin: const EdgeInsets.symmetric(vertical: 5),
-      decoration: BoxDecoration(
-        color: isUser
-            ? Theme.of(context).colorScheme.primary
-            : Theme.of(context).colorScheme.secondary,
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Column(
-        crossAxisAlignment:
-            isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-        children: [
-          // Chat bubble
-          ChatBubble(
-            message: chat,
-            isCurrentUser: isUser,
-          ),
-        ],
-      ),
-    );
-  }
 
   ElevatedButton signOutButton(BuildContext context) {
     return ElevatedButton(
@@ -247,7 +353,14 @@ class _ChatPageState extends State<ChatPage> {
       ),
       onPressed: () {
         // Handle signout here
-        Navigator.pushNamed(context, '/login');
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) {
+              return const Authentication();
+            },
+          ),
+        );
         ApiService().signOut();
       },
       child: Text(

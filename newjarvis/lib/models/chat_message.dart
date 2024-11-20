@@ -12,4 +12,22 @@ class ChatMessage {
     required this.files,
     required this.role,
   });
+
+  factory ChatMessage.fromJson(Map<String, dynamic> json) {
+    return ChatMessage(
+      assistant: AssistantModel.fromJson(json['assistant']),
+      content: json['content'],
+      files: List<String>.from(json['files'].map((x) => x)),
+      role: json['role'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['assistant'] = assistant.toJson();
+    data['content'] = content;
+    data['files'] = files;
+    data['role'] = role;
+    return data;
+  }
 }

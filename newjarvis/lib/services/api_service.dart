@@ -2,7 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:newjarvis/models/ai_chat_model.dart';
+import 'package:newjarvis/models/assistant_model.dart';
 import 'package:newjarvis/models/basic_user_model.dart';
+import 'package:newjarvis/models/chat_response_model.dart';
+import 'package:newjarvis/models/conversation_history_item_model.dart';
+import 'package:newjarvis/models/conversation_item_model.dart';
+import 'package:newjarvis/models/geo_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
@@ -18,6 +23,57 @@ class ApiService {
 
   // Factory Constructor
   factory ApiService() => instance;
+
+  // Show error dialog
+  void _showErrorDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.red,
+          title: const Text('Error'),
+          content: Text(
+            message,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text(
+                'OK',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                ),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Show error snackbar
+  void _showErrorSnackbar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: Colors.red,
+        content: Text(
+          message,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+          ),
+        ),
+        duration: const Duration(seconds: 5),
+      ),
+    );
+  }
 
   // Store the token in SharedPreferences
   Future<void> _storeToken(String token) async {
@@ -39,9 +95,6 @@ class ApiService {
   }) async {
     final url = Uri.parse('$_baseUrl/api/v1/auth/sign-in');
 
-    print('Signing in with email: $email');
-    print('Parsed URL: $url');
-
     try {
       final response = await http.post(
         url,
@@ -51,7 +104,6 @@ class ApiService {
         },
       );
 
-      print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
@@ -64,11 +116,8 @@ class ApiService {
         print('Token: $token');
 
         // Format the token into access and refresh tokens
-        // Token = {accessToken: ..., refreshToken: ...}
         final accessToken = token['accessToken'];
         final refreshToken = token['refreshToken'];
-        print('Access Token: $accessToken');
-        print('Refresh Token: $refreshToken');
 
         // Store accessToken in SharedPreferences for future use
         await _storeToken(accessToken);
@@ -93,10 +142,6 @@ class ApiService {
   }) async {
     final url = Uri.parse('$_baseUrl/api/v1/auth/sign-up');
 
-    print('Signing up with email: $email');
-    print('Username: $username');
-    print('Parsed URL: $url');
-
     try {
       final response = await http.post(
         url,
@@ -107,11 +152,9 @@ class ApiService {
         },
       );
 
-      print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');
 
       if (response.statusCode == 201) {
-        print('Signed up successfully');
         // Decode and return JSON response
         final data = jsonDecode(response.body);
         print('Data: ${data["user"]}');
@@ -133,28 +176,21 @@ class ApiService {
     }
   }
 
-  void _showErrorDialog(BuildContext context, String message) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Error'),
-          content: Text(message),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   // Get current user info
-  Future<Map<BasicUserModel, dynamic>> getCurrentUser() async {
+  Future<BasicUserModel> getCurrentUser(
+    BuildContext context,
+  ) async {
+    BasicUserModel user = BasicUserModel(
+      id: '',
+      email: '',
+      username: '',
+      geo: Geo(
+        city: '',
+        region: '',
+      ),
+      roles: [],
+    );
+
     final token = await _getToken();
 
     if (token == null) {
@@ -163,31 +199,30 @@ class ApiService {
 
     final url = Uri.parse('$_baseUrl/api/v1/auth/me');
 
-    print('Getting current user info');
-    print('Parsed URL: $url');
-
     try {
       final response = await http.get(
         url,
         headers: {
           'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
         },
       );
 
-      print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         // Decode and return the current user data
-        BasicUserModel user =
-            BasicUserModel.fromJson(jsonDecode(response.body));
-        return {user: jsonDecode(response.body)};
+        final data = jsonDecode(response.body);
+        user = BasicUserModel.fromMap(data);
+        return user;
       } else {
-        throw Exception(
-            "Failed to get current user. Status Code: ${response.statusCode}");
+        _showErrorSnackbar(
+            context, "Failed to get current user: ${response.statusCode}");
+        return user;
       }
     } catch (e) {
-      throw Exception("Error getting current user: $e");
+      _showErrorSnackbar(context, "Error getting current user: $e");
+      return user;
     }
   }
 
@@ -209,6 +244,7 @@ class ApiService {
         url,
         headers: {
           'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
         },
       );
 
@@ -249,6 +285,7 @@ class ApiService {
         url,
         headers: {
           'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
         },
       );
 
@@ -290,6 +327,7 @@ class ApiService {
         url,
         headers: {
           'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
         },
         body: {
           aiChat,
@@ -314,19 +352,24 @@ class ApiService {
   }
 
   // Send message
-  Future<Map<String, dynamic>> sendMessage({
+  Future<ChatResponseModel> sendMessage({
+    required BuildContext context,
     required AiChatModel aiChat,
   }) async {
+    ChatResponseModel chatResponse = ChatResponseModel(
+      id: '',
+      message: '',
+      remainingUsage: 0,
+    );
+
     final token = await _getToken();
 
     if (token == null) {
       throw Exception('No token found. Please sign in.');
     }
 
-    final url = Uri.parse('$_baseUrl/api/v1/message');
+    final url = Uri.parse('$_baseUrl/api/v1/ai-chat/messages');
 
-    print('Sending message');
-    print('Parsed URL: $url');
     print('Message: $aiChat');
 
     try {
@@ -334,26 +377,165 @@ class ApiService {
         url,
         headers: {
           'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
         },
-        body: {
-          aiChat,
-        },
+        body: jsonEncode(aiChat.toJson()),
       );
 
-      print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         // Decode and return the message response
         final data = jsonDecode(response.body);
-        return data;
+
+        chatResponse = ChatResponseModel.fromJson(data);
+
+        return chatResponse;
       } else {
-        throw Exception(
+        _showErrorSnackbar(context,
             "Failed to send message. Status Code: ${response.statusCode}");
+        return chatResponse;
       }
     } catch (e) {
-      print("Error sending message: $e");
-      return {};
+      _showErrorSnackbar(context, "Error sending message: $e");
+      return chatResponse;
+    }
+  }
+
+  // Get conversations
+  Future<List<ConversationItemModel>> getConversations({
+    required BuildContext context,
+    required String? cursor,
+    required int? limit,
+    required AssistantModel? assistant,
+  }) async {
+    final token = await _getToken();
+
+    final assistantId = assistant?.id;
+    final assistantModel = assistant?.model;
+
+    if (token == null) {
+      throw Exception('No token found. Please sign in.');
+    }
+
+    final url = Uri.parse('$_baseUrl/api/v1/ai-chat/conversations').replace(
+      queryParameters: {
+        if (cursor != null) 'cursor': cursor,
+        if (limit != null) 'limit': limit.toString(),
+        if (assistantId != null) 'assistantId': assistantId,
+        'assistantModel': assistantModel,
+      },
+    );
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      print('Response body conversations: ${response.body}');
+
+      if (response.statusCode == 200) {
+        // Decode and return the conversation
+        final data = jsonDecode(response.body);
+
+        String cursor = data['cursor'];
+        bool hasMore = data['has_more'];
+        int limit = data['limit'];
+        final List<dynamic> items = data['items'] ?? [];
+
+        print('Cursor: $cursor');
+        print('Has more: $hasMore');
+        print('Limit: $limit');
+        print('Items: $items');
+
+        List<ConversationItemModel> conversations = items.map((item) {
+          return ConversationItemModel.fromJson(item);
+        }).toList();
+
+        return conversations;
+      } else {
+        _showErrorSnackbar(context,
+            "Failed to get conversation. Status Code: ${response.statusCode}");
+        return [];
+      }
+    } catch (e) {
+      _showErrorSnackbar(context, "Error getting conversation: $e");
+      return [];
+    }
+  }
+
+  // Get conversation history /api/v1/ai-chat/conversations/{conversationId}/messages
+  Future<List<ConversationHistoryItemModel>> getConversationHistory({
+    required BuildContext context,
+    required String conversationId,
+    required String? cursor,
+    required int? limit,
+    required AssistantModel? assistant,
+  }) async {
+    final token = await _getToken();
+
+    final assistantId = assistant?.id;
+    final assistantModel = assistant?.model;
+
+    if (token == null) {
+      throw Exception('No token found. Please sign in.');
+    }
+
+    final url = Uri.parse(
+            '$_baseUrl/api/v1/ai-chat/conversations/$conversationId/messages')
+        .replace(
+      queryParameters: {
+        if (cursor != null) 'cursor': cursor,
+        if (limit != null) 'limit': limit.toString(),
+        if (assistantId != null) 'assistantId': assistantId,
+        'assistantModel': assistantModel,
+      },
+    );
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        // Decode and return the conversation history
+        final data = jsonDecode(response.body);
+
+        String cursor = data['cursor'];
+        bool hasMore = data['has_more'];
+        int limit = data['limit'];
+        final items = data['items'];
+
+        print('Cursor: $cursor');
+        print('Has more: $hasMore');
+        print('Limit: $limit');
+        print('Items: $items');
+
+        List<ConversationHistoryItemModel> conversationHistory = [];
+        conversationHistory = items
+            .map<ConversationHistoryItemModel>(
+                (item) => ConversationHistoryItemModel.fromJson(item))
+            .toList();
+
+        return conversationHistory;
+      } else {
+        _showErrorSnackbar(context,
+            "Failed to get conversation history. Status Code: ${response.statusCode}");
+        return [];
+      }
+    } catch (e) {
+      _showErrorSnackbar(context, "Error getting conversation history: $e");
+      return [];
     }
   }
 
