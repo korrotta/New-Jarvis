@@ -9,8 +9,8 @@ class Geo {
 
   factory Geo.fromMap(Map<String, dynamic> map) {
     return Geo(
-      city: map['city'] as String,
-      region: map['region'] as String,
+      city: map['city'] as String ?? '',
+      region: map['region'] as String ?? '',
     );
   }
 

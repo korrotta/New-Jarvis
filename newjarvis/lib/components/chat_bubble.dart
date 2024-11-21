@@ -4,23 +4,22 @@ import 'package:provider/provider.dart';
 
 class ChatBubble extends StatelessWidget {
   final String message;
-  final bool isCurrentUser;
+  final bool isQuery;
 
   const ChatBubble({
     super.key,
     required this.message,
-    required this.isCurrentUser,
+    required this.isQuery,
   });
 
   @override
   Widget build(BuildContext context) {
     // Light theme and Dark theme
-    bool isDarkTheme =
-        Provider.of<ThemeProvider>(context, listen: false).isDarkTheme;
+    bool isDarkTheme = false;
 
     return Container(
       decoration: BoxDecoration(
-        color: isCurrentUser
+        color: isQuery
             ? (isDarkTheme ? Colors.blue.shade600 : Colors.blue.shade500)
             : (isDarkTheme ? Colors.grey.shade800 : Colors.grey.shade200),
         borderRadius: BorderRadius.circular(10),
@@ -30,7 +29,7 @@ class ChatBubble extends StatelessWidget {
       child: Text(
         message,
         style: TextStyle(
-          color: isCurrentUser
+          color: isQuery
               ? Colors.white
               : (isDarkTheme ? Colors.white : Colors.black),
         ),

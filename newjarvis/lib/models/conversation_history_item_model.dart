@@ -44,4 +44,9 @@ class ConversationHistoryItemModel {
   }
 
   String toJson() => json.encode(toMap());
+
+  @override
+  String toString() {
+    return 'ConversationHistoryItemModel(answer: $answer, createdAt: $createdAt, files: $files, query: $query)';
+  }
 }

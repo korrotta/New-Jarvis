@@ -7,13 +7,12 @@ import 'package:newjarvis/models/basic_user_model.dart';
 import 'package:newjarvis/models/chat_response_model.dart';
 import 'package:newjarvis/models/conversation_history_item_model.dart';
 import 'package:newjarvis/models/conversation_item_model.dart';
-import 'package:newjarvis/models/geo_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
   // Base URL
-  static const String _baseUrl = 'https://api.jarvis.cx';
+  static const String _baseUrl = 'https://api.dev.jarvis.cx';
 
   // Private Constructor
   ApiService._privateConstructor();
@@ -92,6 +91,7 @@ class ApiService {
   Future<Map<String, dynamic>> signIn({
     required String email,
     required String password,
+    required BuildContext context,
   }) async {
     final url = Uri.parse('$_baseUrl/api/v1/auth/sign-in');
 
@@ -124,8 +124,11 @@ class ApiService {
 
         return data;
       } else {
-        throw Exception(
-            "Failed to sign in. Status Code: ${response.statusCode}");
+        // Format the error message to get issue
+        var error = (jsonDecode(response.body)["details"]);
+        error = error.toString().substring(9, error.toString().length - 2);
+        _showErrorSnackbar(context, "Failed to sign in. \n$error");
+        return {};
       }
     } catch (e) {
       print("Error during sign in: $e");
@@ -184,10 +187,6 @@ class ApiService {
       id: '',
       email: '',
       username: '',
-      geo: Geo(
-        city: '',
-        region: '',
-      ),
       roles: [],
     );
 
@@ -520,6 +519,7 @@ class ApiService {
         print('Has more: $hasMore');
         print('Limit: $limit');
         print('Items: $items');
+        print('Items length: ${items.length}');
 
         List<ConversationHistoryItemModel> conversationHistory = [];
         conversationHistory = items

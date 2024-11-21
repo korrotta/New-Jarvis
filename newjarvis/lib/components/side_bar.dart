@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:newjarvis/services/api_service.dart';
+import 'package:newjarvis/services/auth_gate.dart';
 
 class SideBar extends StatelessWidget {
   final bool isExpanded;
@@ -49,6 +51,37 @@ class SideBar extends StatelessWidget {
           const SizedBox(height: 15),
           Expanded(
             child: isExpanded ? _buildExpandedMenu() : _buildCollapsedMenu(),
+          ),
+
+          // Sign out button
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 30),
+              backgroundColor: Colors.grey.shade300,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+            onPressed: () {
+              // Handle signout here
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) {
+                    return const AuthGate();
+                  },
+                ),
+              );
+              ApiService().signOut();
+            },
+            child: Text(
+              'Sign out',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.inversePrimary,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
@@ -120,20 +153,23 @@ class SideBar extends StatelessWidget {
             },
           ),
         ),
-        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          const SizedBox(height: 20),
-          Align(
-            alignment: Alignment.center,
-            child: ClipOval(
-              child: Image.asset(
-                "assets/icons/icon.png",
-                width: 26,
-                height: 26,
-                fit: BoxFit.cover,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(height: 20),
+            Align(
+              alignment: Alignment.center,
+              child: ClipOval(
+                child: Image.asset(
+                  "assets/icons/icon.png",
+                  width: 26,
+                  height: 26,
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
-          ),
-        ]),
+          ],
+        ),
       ],
     );
   }

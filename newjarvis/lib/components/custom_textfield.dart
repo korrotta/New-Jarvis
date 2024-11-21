@@ -24,6 +24,7 @@ class CustomTextfield extends StatelessWidget {
         obscureText: obscureText,
         controller: controller,
         validator: validator,
+        autovalidateMode: AutovalidateMode.onUserInteraction,
         decoration: InputDecoration(
           contentPadding: const EdgeInsets.symmetric(horizontal: 20),
           enabledBorder: OutlineInputBorder(
@@ -36,6 +37,18 @@ class CustomTextfield extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(
               color: Colors.blue,
+            ),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(
+              color: Colors.red,
+            ),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(
+              color: Colors.red,
             ),
           ),
           fillColor: Theme.of(context).colorScheme.tertiary,

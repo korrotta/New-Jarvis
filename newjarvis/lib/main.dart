@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:newjarvis/components/route_controller.dart';
 import 'package:newjarvis/providers/auth_provider.dart';
+import 'package:newjarvis/services/auth_state.dart';
 import 'package:newjarvis/themes/light_theme.dart';
 import 'package:provider/provider.dart';
 
@@ -21,9 +22,8 @@ class MyApp extends StatelessWidget {
         title: 'New Jarvis',
         debugShowCheckedModeBanner: false,
         theme: lightTheme,
-        navigatorKey: RouteController.navigatorKey,
-        initialRoute: RouteController.auth,
         onGenerateRoute: RouteController.generateRoute,
+        initialRoute: '/auth',
       ),
     );
   }

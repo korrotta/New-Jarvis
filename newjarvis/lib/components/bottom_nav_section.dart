@@ -8,7 +8,7 @@ class BottomNavSection extends StatefulWidget {
   final String selectedModel;
   final List<AIModel> aiModels;
   final int selectedIndex;
-  final String Function(String) onSend;
+  final Function(String) onSend;
 
   const BottomNavSection({
     super.key,

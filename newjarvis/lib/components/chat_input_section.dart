@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class ChatInputSection extends StatefulWidget {
-  final String Function(String) onSend;
+  final Function(String) onSend;
 
   const ChatInputSection({
     super.key,

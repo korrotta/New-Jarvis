@@ -30,7 +30,6 @@ class AuthProvider extends ChangeNotifier {
       }
     } else {
       _currentUser = null;
-      print('User is not logged in');
     }
     _isLoading = false;
     notifyListeners();
@@ -50,6 +49,6 @@ class AuthProvider extends ChangeNotifier {
     await apiService.signOut();
     _currentUser = null;
     notifyListeners();
-    Navigator.pushNamed(context, '/login');
+    Navigator.pushNamed(context, '/auth');
   }
 }

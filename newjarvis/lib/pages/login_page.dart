@@ -28,26 +28,6 @@ class _LoginPageState extends State<LoginPage> {
   // Loading state
   bool isLoading = false;
 
-  // Validate email and password
-  bool validateEmailAndPassword(String email, String password) {
-    // Check if email and password are not empty
-    if (email.isEmpty || password.isEmpty) {
-      return false;
-    }
-
-    // Check if email is valid
-    if (!email.contains("@") || !email.contains(".")) {
-      return false;
-    }
-
-    // Check if password is at least 6 characters long
-    if (password.length < 6) {
-      return false;
-    }
-
-    return true;
-  }
-
   // Check network connectivity
   Future<bool> checkNetworkConnectivity() async {
     var connectivityResult = await (Connectivity().checkConnectivity());
@@ -86,10 +66,12 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
+    if (!mounted) return;
+
     try {
       // Await the response from the signIn API
-      final response =
-          await apiService.signIn(email: email, password: password);
+      final response = await apiService.signIn(
+          email: email, password: password, context: context);
 
       if (!mounted) return;
 
@@ -213,6 +195,11 @@ class _LoginPageState extends State<LoginPage> {
                       }
                       if (password.length < 6) {
                         return "Password should be at least 6 characters";
+                      }
+                      if (!RegExp(
+                              r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{6,}$')
+                          .hasMatch(password)) {
+                        return "Password must contain at least one uppercase letter, one lowercase letter, one number";
                       }
                       return null;
                     },

@@ -2,16 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:newjarvis/components/floating_button.dart';
 import 'package:newjarvis/components/side_bar.dart';
 import 'package:newjarvis/pages/chat_page.dart';
-import 'package:newjarvis/pages/device_page.dart';
-import 'package:newjarvis/pages/help_page.dart';
-import 'package:newjarvis/pages/memo_page.dart';
 import 'package:newjarvis/pages/screen_art.dart';
 import 'package:newjarvis/pages/screen_email.dart';
 import 'package:newjarvis/pages/search/search_page.dart';
 import 'package:newjarvis/pages/translate/translate_page.dart';
-import 'package:newjarvis/pages/settings_page.dart';
-import 'package:newjarvis/pages/toolkit_page.dart';
-import 'package:newjarvis/pages/voucher_page.dart';
 import 'package:newjarvis/pages/screen_write.dart';
 
 class HomePage extends StatefulWidget {
@@ -55,24 +49,6 @@ class _HomePageState extends State<HomePage> {
       case 5:
         _navigatorKey.currentState?.pushReplacementNamed('/art');
         break;
-      case 6:
-        _navigatorKey.currentState?.pushReplacementNamed('/toolkit');
-        break;
-      case 7:
-        _navigatorKey.currentState?.pushReplacementNamed('/memo');
-        break;
-      case 8:
-        _navigatorKey.currentState?.pushReplacementNamed('/devices');
-        break;
-      case 9:
-        _navigatorKey.currentState?.pushReplacementNamed('/help');
-        break;
-      case 10:
-        _navigatorKey.currentState?.pushReplacementNamed('/settings');
-        break;
-      case 11:
-        _navigatorKey.currentState?.pushReplacementNamed('/voucher');
-        break;
       default:
         _navigatorKey.currentState?.pushReplacementNamed('/home');
         break;
@@ -114,24 +90,6 @@ class _HomePageState extends State<HomePage> {
                     break;
                   case '/art':
                     builder = (BuildContext _) => const ScreenArt();
-                    break;
-                  case '/toolkit':
-                    builder = (BuildContext _) => const ToolkitPage();
-                    break;
-                  case '/memo':
-                    builder = (BuildContext _) => const MemoPage();
-                    break;
-                  case '/devices':
-                    builder = (BuildContext _) => const DevicePage();
-                    break;
-                  case '/help':
-                    builder = (BuildContext _) => const HelpPage();
-                    break;
-                  case '/settings':
-                    builder = (BuildContext _) => const SettingsPage();
-                    break;
-                  case '/voucher':
-                    builder = (BuildContext _) => const VoucherPage();
                     break;
                   default:
                     builder = (BuildContext _) => const ChatPage();

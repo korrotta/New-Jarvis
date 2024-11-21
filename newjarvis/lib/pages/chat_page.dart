@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:newjarvis/components/bottom_nav_section.dart';
+import 'package:newjarvis/components/chat_bubble.dart';
+import 'package:newjarvis/components/floating_button.dart';
+import 'package:newjarvis/components/side_bar.dart';
 import 'package:newjarvis/enums/id.dart';
 import 'package:newjarvis/enums/model.dart';
 import 'package:newjarvis/models/ai_chat_model.dart';
@@ -11,6 +14,7 @@ import 'package:newjarvis/models/conversation_history_item_model.dart';
 import 'package:newjarvis/models/conversation_item_model.dart';
 import 'package:newjarvis/providers/auth_provider.dart';
 import 'package:newjarvis/services/api_service.dart';
+import 'package:newjarvis/services/auth_gate.dart';
 import 'package:newjarvis/services/auth_state.dart';
 import 'package:provider/provider.dart';
 
@@ -22,14 +26,16 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
-  // ApiService
   final ApiService apiService = ApiService();
 
-  // List of conversations
+  // State variables
   List<ConversationItemModel> _conversations = [];
-
-  // Loading state
-  bool _isLoading = true;
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+  List<ConversationHistoryItemModel> _conversationHistory = [];
+  int selectedIndex = 0;
+  bool isExpanded = false;
+  bool isSidebarVisible = false;
+  double dragOffset = 200.0;
 
   @override
   void initState() {
@@ -38,10 +44,58 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Future<void> _initializePage() async {
-    await _checkAndFetchConversations();
+    await _checkLoginStatus();
+    await _fetchAllConversations();
+    if (_conversations.isNotEmpty) {
+      await _getLatestConversationHistory(_conversations.first.id);
+    }
   }
 
-  String _handleSend(BuildContext context, String chat) {
+  void _onItemTapped(int index) {
+    setState(() {
+      selectedIndex = index;
+      isSidebarVisible = false;
+    });
+
+    switch (index) {
+      case 0:
+        _navigatorKey.currentState?.pushReplacementNamed('/chat');
+        break;
+      case 1:
+        _navigatorKey.currentState?.pushReplacementNamed('/email');
+        break;
+      case 2:
+        _navigatorKey.currentState?.pushReplacementNamed('/search');
+        break;
+      case 3:
+        _navigatorKey.currentState?.pushReplacementNamed('/write');
+        break;
+      case 4:
+        _navigatorKey.currentState?.pushReplacementNamed('/translate');
+        break;
+      case 5:
+        _navigatorKey.currentState?.pushReplacementNamed('/art');
+        break;
+      default:
+        _navigatorKey.currentState?.pushReplacementNamed('/chat');
+        break;
+    }
+  }
+
+  Future<String> _handleSend(BuildContext context, String chat) async {
+    if (chat.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Please enter a message',
+            style: TextStyle(color: Colors.white, fontSize: 16),
+          ),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+
     // Create AiChatModel
     final assistant = AssistantModel(
       id: Id.GPT_4_O.value,
@@ -58,26 +112,35 @@ class _ChatPageState extends State<ChatPage> {
     print('Sending message: $message');
 
     // Call ApiService to send chat
-    Future<ChatResponseModel> chatResponse = apiService.sendMessage(
-      context: context,
-      aiChat: message,
-    );
+    try {
+      await apiService.sendMessage(
+        context: context,
+        aiChat: message,
+      );
 
-    return chatResponse.toString();
-  }
-
-  Future<void> _checkAndFetchConversations() async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    if (authProvider.currentUser != null) {
-      await _fetchAllConversations();
-    } else {
-      print('User is not logged in');
-      setState(() {
-        _isLoading = false;
-      });
+      // Fetch the latest conversation history
+      if (_conversations.isNotEmpty) {
+        await _getLatestConversationHistory(_conversations.first.id);
+      }
+    } catch (e) {
+      print('Error sending message: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error sending message: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
+    return chat;
   }
 
+  // Check login status
+  Future<bool> _checkLoginStatus() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    return authProvider.currentUser != null;
+  }
+
+  // Fetch all conversations
   Future<void> _fetchAllConversations() async {
     final assistant = AssistantModel(
       id: Id.GPT_4_O.value,
@@ -95,78 +158,109 @@ class _ChatPageState extends State<ChatPage> {
       setState(() {
         _conversations = conversations;
         print('Conversations: $_conversations');
-
         print('Latest Conversation: ${_conversations.first}');
-        _isLoading = false;
       });
     } catch (e) {
       print('Error fetching conversation history: $e');
-      setState(() {
-        _isLoading = false;
-      });
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
+  // Get latest conversation history
+  Future<List<ConversationHistoryItemModel>> _getLatestConversationHistory(
+      String conversationId) async {
     final assistant = AssistantModel(
       id: Id.GPT_4_O.value,
       model: Model.dify.name,
     );
+
+    try {
+      final history = await apiService.getConversationHistory(
+        context: context,
+        conversationId: conversationId,
+        cursor: null,
+        limit: 100,
+        assistant: assistant,
+      );
+      print('Conversation History: $history');
+
+      setState(() {
+        _conversationHistory = history;
+      });
+
+      return _conversationHistory;
+    } catch (e) {
+      print('Error fetching conversation history: $e');
+    }
+
+    return [];
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
-    final currentUser = authProvider.currentUser;
-    List<ConversationItemModel> conversations = [];
-    List<ConversationHistoryItemModel> conversationHistory = [];
-
     return Scaffold(
-      body: authProvider.isLoading
+      body: authProvider.currentUser == null
           ? const Center(child: CircularProgressIndicator())
-          : Container(
-              padding: const EdgeInsets.all(20),
-              color: Theme.of(context).colorScheme.secondary,
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    welcomeSection(context),
-                    const SizedBox(height: 20),
-                    // Test get conversations
-                    ElevatedButton(
-                      onPressed: () async {
-                        conversations = await apiService.getConversations(
-                          context: context,
-                          cursor: null,
-                          limit: 15,
-                          assistant: assistant,
-                        );
-                      },
-                      child: Text('Get Conversations'),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Test get latest conversation
-                    ElevatedButton(
-                      onPressed: () async {
-                        print('Conversations: $conversations');
-                        print('Latest Conversation: ${conversations.first}');
-                        conversationHistory =
-                            await apiService.getConversationHistory(
-                          context: context,
-                          conversationId: conversations.first.id,
-                          cursor: null,
-                          limit: 100,
-                          assistant: assistant,
-                        );
-                      },
-                      child: Text('Get Latest Conversation'),
-                    ),
-                    const SizedBox(height: 20),
-
-                    signOutButton(context),
-
-                    const SizedBox(height: 20),
-                  ],
+          : Stack(
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  margin: EdgeInsets.only(
+                    right: isSidebarVisible ? (isExpanded ? 180 : 98) : 0,
+                  ),
+                  width: double.infinity,
+                  child: _buildChatList(context),
                 ),
-              ),
+
+                // Sidebar
+                if (isSidebarVisible)
+                  Positioned(
+                    top: 0,
+                    bottom: 0,
+                    right: 0,
+                    child: SideBar(
+                      isExpanded: isExpanded,
+                      selectedIndex: selectedIndex,
+                      onItemSelected: _onItemTapped,
+                      onExpandToggle: () {
+                        setState(() {
+                          isExpanded = !isExpanded;
+                        });
+                      },
+                      onClose: () {
+                        setState(() {
+                          isSidebarVisible = false;
+                        });
+                      },
+                    ),
+                  ),
+
+                // Nửa hình tròn khi sidebar bị ẩn (Floating Button)
+                if (!isSidebarVisible)
+                  FloatingButton(
+                    dragOffset: dragOffset,
+                    onDragUpdate: (delta) {
+                      setState(
+                        () {
+                          dragOffset += delta;
+                          if (dragOffset < 0) dragOffset = 0;
+                          if (dragOffset >
+                              MediaQuery.of(context).size.height - 100) {
+                            dragOffset =
+                                MediaQuery.of(context).size.height - 100;
+                          }
+                        },
+                      );
+                    },
+                    onTap: () {
+                      setState(
+                        () {
+                          isSidebarVisible = true;
+                        },
+                      );
+                    },
+                  ),
+              ],
             ),
       bottomNavigationBar: BottomNavSection(
         selectedModel: 'Monica',
@@ -338,39 +432,36 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
-  // Build chat list
+  Widget _buildChatList(BuildContext context) {
+    print('Conversations: $_conversations');
+    print('Conversation History: $_conversationHistory');
+    if (_conversations.isEmpty) {
+      return const Center(child: Text('No conversations available.'));
+    }
 
-  // Build chat item
+    // Fetch the history of the latest conversation
+    return ListView.builder(
+      itemCount: _conversationHistory.length,
+      itemBuilder: (context, index) {
+        final item = _conversationHistory[index];
 
-  ElevatedButton signOutButton(BuildContext context) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 30),
-        backgroundColor: Colors.grey.shade300,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-      ),
-      onPressed: () {
-        // Handle signout here
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) {
-              return const Authentication();
-            },
-          ),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Display the user query
+            Container(
+              alignment: Alignment.centerRight,
+              child: ChatBubble(message: item.query, isQuery: true),
+            ),
+
+            // Display the AI answer
+            Container(
+              alignment: Alignment.centerLeft,
+              child: ChatBubble(message: item.answer, isQuery: false),
+            ),
+          ],
         );
-        ApiService().signOut();
       },
-      child: Text(
-        'Sign out',
-        style: TextStyle(
-          color: Theme.of(context).colorScheme.inversePrimary,
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
     );
   }
 }

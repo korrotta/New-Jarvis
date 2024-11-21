@@ -1,7 +1,7 @@
 class ChatResponseModel {
-  String id;
-  String message;
-  int remainingUsage;
+  String? id;
+  String? message;
+  int? remainingUsage;
 
   ChatResponseModel({
     required this.id,
