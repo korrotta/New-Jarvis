@@ -31,7 +31,14 @@ class _ChatPageState extends State<ChatPage> {
   // State variables
   List<ConversationItemModel> _conversations = [];
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
-  List<ConversationHistoryItemModel> _conversationHistory = [];
+  ConversationHistoryItemModel _conversationHistory =
+      ConversationHistoryItemModel(
+    query: '',
+    answer: '',
+    files: [],
+    createdAt: 0,
+  );
+  Future<List<ConversationHistoryItemModel>>? _conversationHistoryFuture;
   int selectedIndex = 0;
   bool isExpanded = false;
   bool isSidebarVisible = false;
@@ -46,9 +53,7 @@ class _ChatPageState extends State<ChatPage> {
   Future<void> _initializePage() async {
     await _checkLoginStatus();
     await _fetchAllConversations();
-    if (_conversations.isNotEmpty) {
-      await _getLatestConversationHistory(_conversations.first.id);
-    }
+    _conversationHistoryFuture = _getAllConversationHistory(_conversations);
   }
 
   void _onItemTapped(int index) {
@@ -120,7 +125,7 @@ class _ChatPageState extends State<ChatPage> {
 
       // Fetch the latest conversation history
       if (_conversations.isNotEmpty) {
-        await _getLatestConversationHistory(_conversations.first.id);
+        await _getConversationHistory(_conversations.first.id);
       }
     } catch (e) {
       print('Error sending message: $e');
@@ -157,16 +162,27 @@ class _ChatPageState extends State<ChatPage> {
       );
       setState(() {
         _conversations = conversations;
-        print('Conversations: $_conversations');
-        print('Latest Conversation: ${_conversations.first}');
       });
     } catch (e) {
       print('Error fetching conversation history: $e');
     }
   }
 
+  // Get all conversations history
+  Future<List<ConversationHistoryItemModel>> _getAllConversationHistory(
+      List<ConversationItemModel> conversations) async {
+    List<ConversationHistoryItemModel> history = [];
+    conversations = conversations.reversed.toList();
+    for (var conversation in conversations) {
+      final item = await _getConversationHistory(conversation.id);
+      history.add(item);
+    }
+
+    return history;
+  }
+
   // Get latest conversation history
-  Future<List<ConversationHistoryItemModel>> _getLatestConversationHistory(
+  Future<ConversationHistoryItemModel> _getConversationHistory(
       String conversationId) async {
     final assistant = AssistantModel(
       id: Id.GPT_4_O.value,
@@ -181,18 +197,22 @@ class _ChatPageState extends State<ChatPage> {
         limit: 100,
         assistant: assistant,
       );
-      print('Conversation History: $history');
 
       setState(() {
         _conversationHistory = history;
       });
 
-      return _conversationHistory;
+      return history;
     } catch (e) {
       print('Error fetching conversation history: $e');
     }
 
-    return [];
+    return ConversationHistoryItemModel(
+      query: '',
+      answer: '',
+      files: [],
+      createdAt: 0,
+    );
   }
 
   @override
@@ -433,34 +453,46 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Widget _buildChatList(BuildContext context) {
-    print('Conversations: $_conversations');
-    print('Conversation History: $_conversationHistory');
-    if (_conversations.isEmpty) {
-      return const Center(child: Text('No conversations available.'));
-    }
-
-    // Fetch the history of the latest conversation
-    return ListView.builder(
-      itemCount: _conversationHistory.length,
-      itemBuilder: (context, index) {
-        final item = _conversationHistory[index];
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Display the user query
-            Container(
-              alignment: Alignment.centerRight,
-              child: ChatBubble(message: item.query, isQuery: true),
-            ),
-
-            // Display the AI answer
-            Container(
-              alignment: Alignment.centerLeft,
-              child: ChatBubble(message: item.answer, isQuery: false),
-            ),
-          ],
-        );
+    // Return listbuilder of all conversations
+    return FutureBuilder<List<ConversationHistoryItemModel>>(
+      future: _conversationHistoryFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(
+              child: Text('No conversation history available.'));
+        } else {
+          final items = snapshot.data!;
+          return ListView.builder(
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final history = items[index];
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    alignment: Alignment.centerRight,
+                    child: ChatBubble(
+                      message: history.query,
+                      isQuery: true,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    alignment: Alignment.centerLeft,
+                    child: ChatBubble(
+                      message: history.answer,
+                      isQuery: false,
+                    ),
+                  ),
+                ],
+              );
+            },
+          );
+        }
       },
     );
   }

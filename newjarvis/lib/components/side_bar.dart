@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:newjarvis/providers/auth_provider.dart';
 import 'package:newjarvis/services/api_service.dart';
 import 'package:newjarvis/services/auth_gate.dart';
+import 'package:provider/provider.dart';
 
 class SideBar extends StatelessWidget {
   final bool isExpanded;
@@ -64,15 +66,9 @@ class SideBar extends StatelessWidget {
             ),
             onPressed: () {
               // Handle signout here
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) {
-                    return const AuthGate();
-                  },
-                ),
-              );
-              ApiService().signOut();
+              Navigator.of(context).pop();
+              Provider.of<AuthProvider>(context, listen: false)
+                  .signOut(context);
             },
             child: Text(
               'Sign out',
