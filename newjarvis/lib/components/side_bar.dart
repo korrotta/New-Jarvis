@@ -55,6 +55,7 @@ class SideBar extends StatelessWidget {
             child: isExpanded ? _buildExpandedMenu() : _buildCollapsedMenu(),
           ),
 
+          const SizedBox(height: 15),
           // Sign out button
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -74,7 +75,7 @@ class SideBar extends StatelessWidget {
               'Sign out',
               style: TextStyle(
                 color: Theme.of(context).colorScheme.inversePrimary,
-                fontSize: 18,
+                fontSize: 14,
                 fontWeight: FontWeight.bold,
               ),
             ),

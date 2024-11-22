@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:newjarvis/models/basic_user_model.dart';
 import 'package:newjarvis/services/api_service.dart';
-import 'package:newjarvis/services/auth_gate.dart';
 
 class AuthProvider extends ChangeNotifier {
   final ApiService apiService = ApiService();

@@ -15,7 +15,7 @@ class ChatBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Light theme and Dark theme
-    bool isDarkTheme = false;
+    bool isDarkTheme = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       decoration: BoxDecoration(
@@ -26,14 +26,56 @@ class ChatBubble extends StatelessWidget {
       ),
       padding: const EdgeInsets.all(10),
       margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 15),
-      child: Text(
-        message,
+      child: RichText(
+        text: _parseMessage(message, isQuery, isDarkTheme),
+      ),
+    );
+  }
+
+  TextSpan _parseMessage(String message, bool isQuery, bool isDarkTheme) {
+    final spans = <TextSpan>[];
+    final boldRegex = RegExp(r'\*\*(.*?)\*\*'); // Match **bold**
+
+    int start = 0;
+    for (final match in boldRegex.allMatches(message)) {
+      // Add text before the bold part
+      if (match.start > start) {
+        spans.add(TextSpan(
+          text: message.substring(start, match.start),
+          style: TextStyle(
+            color: isQuery
+                ? Colors.white
+                : (isDarkTheme ? Colors.white : Colors.black),
+          ),
+        ));
+      }
+
+      // Add the bold text
+      spans.add(TextSpan(
+        text: match.group(1), // The content inside ** **
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: isQuery
+              ? Colors.white
+              : (isDarkTheme ? Colors.white : Colors.black),
+        ),
+      ));
+
+      start = match.end;
+    }
+
+    // Add remaining text
+    if (start < message.length) {
+      spans.add(TextSpan(
+        text: message.substring(start),
         style: TextStyle(
           color: isQuery
               ? Colors.white
               : (isDarkTheme ? Colors.white : Colors.black),
         ),
-      ),
-    );
+      ));
+    }
+
+    return TextSpan(children: spans);
   }
 }

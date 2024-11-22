@@ -31,18 +31,12 @@ class _ChatPageState extends State<ChatPage> {
   // State variables
   List<ConversationItemModel> _conversations = [];
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
-  ConversationHistoryItemModel _conversationHistory =
-      ConversationHistoryItemModel(
-    query: '',
-    answer: '',
-    files: [],
-    createdAt: 0,
-  );
   Future<List<ConversationHistoryItemModel>>? _conversationHistoryFuture;
   int selectedIndex = 0;
   bool isExpanded = false;
   bool isSidebarVisible = false;
   double dragOffset = 200.0;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -50,10 +44,29 @@ class _ChatPageState extends State<ChatPage> {
     _initializePage();
   }
 
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   Future<void> _initializePage() async {
     await _checkLoginStatus();
     await _fetchAllConversations();
     _conversationHistoryFuture = _getAllConversationHistory(_conversations);
+    await _scrollToBottom();
+  }
+
+  Future<void> _scrollToBottom() async {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.fastOutSlowIn,
+        );
+      }
+    });
   }
 
   void _onItemTapped(int index) {
@@ -99,34 +112,56 @@ class _ChatPageState extends State<ChatPage> {
           duration: Duration(seconds: 3),
         ),
       );
+      return chat;
     }
 
-    // Create AiChatModel
-    final assistant = AssistantModel(
-      id: Id.GPT_4_O.value,
-      model: Model.dify.name,
+    // Create placeholders for the conversation
+    final tempConversation = ConversationHistoryItemModel(
+      query: chat,
+      answer: '', // Placeholder for AI's response
+      files: [],
+      createdAt: DateTime.now().millisecondsSinceEpoch,
     );
 
-    AiChatModel message = AiChatModel(
-      assistant: assistant,
-      content: chat,
-      files: null,
-      metadata: null,
-    );
+    // Add placeholder to the conversation history
+    setState(() {
+      _conversationHistoryFuture = _conversationHistoryFuture!
+          .then((history) => [...history, tempConversation]);
+    });
 
-    print('Sending message: $message');
-
-    // Call ApiService to send chat
     try {
-      await apiService.sendMessage(
+      // Call API to send the message and receive a response
+      final response = await apiService.sendMessage(
         context: context,
-        aiChat: message,
+        aiChat: AiChatModel(
+          assistant: AssistantModel(
+            id: Id.GPT_4_O.value,
+            model: Model.dify.name,
+          ),
+          content: chat,
+          files: null,
+          metadata: null,
+        ),
       );
 
-      // Fetch the latest conversation history
-      if (_conversations.isNotEmpty) {
-        await _getConversationHistory(_conversations.first.id);
-      }
+      // Update the last message with AI's response
+      setState(() {
+        _conversationHistoryFuture =
+            _conversationHistoryFuture!.then((history) {
+          // Replace the placeholder with the final response
+          final updatedHistory =
+              List<ConversationHistoryItemModel>.from(history);
+          updatedHistory.last = ConversationHistoryItemModel(
+            query: chat,
+            answer: response.message ??
+                '', // Use actual AI response or empty string if null
+            files: [],
+            createdAt: tempConversation.createdAt,
+          );
+          _scrollToBottom(); // Scroll to bottom after receiving the response
+          return updatedHistory;
+        });
+      });
     } catch (e) {
       print('Error sending message: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -136,6 +171,8 @@ class _ChatPageState extends State<ChatPage> {
         ),
       );
     }
+
+    _scrollToBottom(); // Scroll to bottom after receiving the response
     return chat;
   }
 
@@ -177,7 +214,7 @@ class _ChatPageState extends State<ChatPage> {
       final item = await _getConversationHistory(conversation.id);
       history.add(item);
     }
-
+    _scrollToBottom();
     return history;
   }
 
@@ -197,11 +234,7 @@ class _ChatPageState extends State<ChatPage> {
         limit: 100,
         assistant: assistant,
       );
-
-      setState(() {
-        _conversationHistory = history;
-      });
-
+      _scrollToBottom();
       return history;
     } catch (e) {
       print('Error fetching conversation history: $e');
@@ -230,6 +263,22 @@ class _ChatPageState extends State<ChatPage> {
                   ),
                   width: double.infinity,
                   child: _buildChatList(context),
+                ),
+
+                // Scroll to bottom button
+                Positioned(
+                  bottom: 20,
+                  right: 20,
+                  child: FloatingActionButton(
+                    onPressed: _scrollToBottom,
+                    backgroundColor: Colors.blue,
+                    shape: const CircleBorder(),
+                    elevation: 4,
+                    child: const Icon(
+                      Icons.arrow_downward,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
 
                 // Sidebar
@@ -283,172 +332,8 @@ class _ChatPageState extends State<ChatPage> {
               ],
             ),
       bottomNavigationBar: BottomNavSection(
-        selectedModel: 'Monica',
-        aiModels: [
-          AIModel(name: 'Monica'),
-          AIModel(name: 'Genius'),
-          AIModel(name: 'Gemini'),
-          AIModel(name: 'Claude-Instant-100k'),
-          AIModel(name: 'Claude-2'),
-          AIModel(name: 'Writing Agent'),
-          AIModel(name: 'Auto Agent'),
-          AIModel(name: 'Bard'),
-          AIModel(name: 'Mistral-7b'),
-          AIModel(name: 'Llama-2-70b'),
-          AIModel(name: 'Codellama-34b'),
-          AIModel(name: 'Instagram Post Generator'),
-          AIModel(name: 'Twitter Post Generator'),
-        ],
-        selectedIndex: 0,
         onSend: (chat) => _handleSend(context, chat),
       ),
-    );
-  }
-
-  Widget welcomeSection(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Hi, welcome abroad 🚀',
-            style: TextStyle(
-              fontSize: 34,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.inversePrimary,
-            ),
-          ),
-
-          // Horizontal Divider
-          Divider(
-            color: Theme.of(context).colorScheme.primary,
-            thickness: 1,
-            height: 20,
-          ),
-
-          RichText(
-            text: TextSpan(
-              text:
-                  "Jarvis KB is a cutting-edge AI App development platform designed. With Jarvis KB, you can effortlessly create and deploy various chatbots across numerous social platforms and messaging apps like Messenger, Telegram, and Slack!",
-              style: TextStyle(
-                fontSize: 16,
-                color: Theme.of(context).colorScheme.inversePrimary,
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          Text(
-            "Why Choose Jarvis KB?",
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.inversePrimary,
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          Text(
-            "We offer robust and flexible solutions to meet your chatbot development needs. Here's what makes Jarvis KB stand out:",
-            style: TextStyle(
-              fontSize: 16,
-              color: Theme.of(context).colorScheme.inversePrimary,
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          _buildFeatureItem(
-            icon: Icons.language,
-            title: "Multi-Source Knowledge Integration 🌐",
-            description:
-                "Seamlessly integrate various types of knowledge from multiple data sources such as Websites, Google Drive, GitHub, GitLab, Notion, and more. This ensures your chatbot has access to a rich repository of information.",
-          ),
-          const SizedBox(height: 16),
-
-          _buildFeatureItem(
-            icon: Icons.code,
-            title: "Comprehensive SDK 🛠️",
-            description:
-                "Our SDK provides the tools and resources needed to integrate chatbots into your own applications with ease.",
-          ),
-          const SizedBox(height: 16),
-
-          _buildFeatureItem(
-            icon: Icons.face,
-            title: "User-Friendly Interface 🎨",
-            description:
-                "Designed with simplicity in mind, our platform allows both novice and experienced developers to create and manage chatbots without hassle.",
-          ),
-
-          const SizedBox(height: 16),
-
-          _buildFeatureItem(
-            icon: Icons.group,
-            title: "Collaboration Features 🤝",
-            description:
-                "Collaborate with other bots to enhance functionality and provide a richer user experience. Jarvis KB enables multiple bots to work together seamlessly.",
-          ),
-
-          const SizedBox(height: 16),
-
-          _buildFeatureItem(
-            icon: Icons.bar_chart,
-            title: "Scalable Solutions 📈",
-            description:
-                "Whether you're a small business or a large enterprise, our platform scales to meet your demands, ensuring reliable and efficient chatbot performance. 🌟",
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFeatureItem(
-      {required IconData icon,
-      required String title,
-      required String description}) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Bullet
-        Icon(
-          Icons.brightness_1,
-          size: 10,
-          color: Theme.of(context).colorScheme.inversePrimary,
-        ),
-
-        const SizedBox(width: 8),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.inversePrimary,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                description,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Theme.of(context).colorScheme.inversePrimary,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 
@@ -460,13 +345,22 @@ class _ChatPageState extends State<ChatPage> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
+          return const SizedBox.shrink();
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(
-              child: Text('No conversation history available.'));
+          return const SizedBox.shrink();
         } else {
           final items = snapshot.data!;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (_scrollController.hasClients &&
+                _scrollController.position.pixels !=
+                    _scrollController.position.maxScrollExtent) {
+              _scrollController.jumpTo(
+                _scrollController.position.maxScrollExtent,
+              );
+            }
+          });
           return ListView.builder(
+            controller: _scrollController,
             itemCount: items.length,
             itemBuilder: (context, index) {
               final history = items[index];
