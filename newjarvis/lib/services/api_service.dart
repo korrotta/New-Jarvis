@@ -13,7 +13,7 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   // Base URL
-  static const String _baseUrl = 'https://api.jarvis.cx';
+  static const String _baseUrl = 'https://api.dev.jarvis.cx';
 
   // Private Constructor
   ApiService._privateConstructor();
@@ -478,6 +478,7 @@ class ApiService {
   }) async {
     final token = await _getToken();
 
+
     final assistantId = assistant?.id;
     final assistantModel = assistant?.model;
 
@@ -542,5 +543,57 @@ class ApiService {
   Future<bool> isLoggedIn() async {
     final token = await _getToken();
     return token != null;
+  }
+
+  // Get Prompts
+  Future<List<Map<String, dynamic>>> getPrompts({
+    required BuildContext context,
+    String query = '',
+    int offset = 0,
+    int limit = 20,
+    bool isFavorite = false,
+    bool isPublic = true,
+    }) async {
+       final token = await _getToken();
+       if (token == null) {
+         throw Exception('No token found. Please sign in.');
+      }
+      print('==token: $token');
+
+  final url = Uri.parse(
+      '$_baseUrl/api/v1/prompts?query=$query&offset=$offset&limit=$limit&isFavorite=$isFavorite&isPublic=$isPublic');
+
+  print('Fetching prompts from URL: $url');
+
+  try {
+    final headers = {
+      'Authorization': 'Bearer $token',
+      'x-jarvis-guid': '', // Replace with a valid GUID if required
+    };
+
+    final request = http.Request('GET', url);
+    request.headers.addAll(headers);
+
+    final response = await request.send();
+
+    if (response.statusCode == 200) {
+      final responseBody = await response.stream.bytesToString();
+      print('Response body: $responseBody');
+
+      final data = jsonDecode(responseBody);
+
+      // Assuming the response contains a list of prompts
+      final prompts = List<Map<String, dynamic>>.from(data['items'] ?? []);
+      return prompts;
+    } else {
+      _showErrorSnackbar(
+          context, "Failed to fetch prompts. Status Code: ${response.statusCode}");
+      return [];
+    }
+  } catch (e) {
+    print("Error fetching prompts: $e");
+    _showErrorSnackbar(context, "Error fetching prompts: $e");
+    return [];
+  }
   }
 }

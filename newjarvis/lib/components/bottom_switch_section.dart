@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:newjarvis/components/prompt_drawer.dart';
 
 class BottomSwitchSection extends StatelessWidget {
   const BottomSwitchSection({super.key});
@@ -16,17 +17,33 @@ class BottomSwitchSection extends StatelessWidget {
               // Web Access Switch
               Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(5),
-                    margin: const EdgeInsets.only(right: 5),
-                    decoration: BoxDecoration(
-                      color: Colors.purple,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      Icons.auto_awesome_outlined,
-                      size: 14,
-                      color: Theme.of(context).colorScheme.tertiary,
+                  GestureDetector(
+                    onTap: () {
+                      showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          builder: (context) => Container(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.75,
+                                decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.vertical(
+                                        top: Radius.circular(16))),
+                                child: PromptDrawerContent(),
+                              ));
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(5),
+                      margin: const EdgeInsets.only(right: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.purple,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.auto_awesome_outlined,
+                        size: 14,
+                        color: Theme.of(context).colorScheme.tertiary,
+                      ),
                     ),
                   ),
                   Text(
