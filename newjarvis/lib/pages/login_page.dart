@@ -252,67 +252,67 @@ class _LoginPageState extends State<LoginPage> {
 
             const SizedBox(height: 10),
 
-            // -- OR --
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.only(left: 20, right: 10),
-                    child: Divider(
-                      color: Theme.of(context).colorScheme.inversePrimary,
-                    ),
-                  ),
-                ),
-                Text(
-                  "OR LOGIN WITH",
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.inversePrimary,
-                    fontSize: 16,
-                  ),
-                ),
-                Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.only(left: 10, right: 20),
-                    child: Divider(
-                      color: Theme.of(context).colorScheme.inversePrimary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            // // -- OR --
+            // Row(
+            //   children: [
+            //     Expanded(
+            //       child: Container(
+            //         margin: const EdgeInsets.only(left: 20, right: 10),
+            //         child: Divider(
+            //           color: Theme.of(context).colorScheme.inversePrimary,
+            //         ),
+            //       ),
+            //     ),
+            //     Text(
+            //       "OR LOGIN WITH",
+            //       style: TextStyle(
+            //         color: Theme.of(context).colorScheme.inversePrimary,
+            //         fontSize: 16,
+            //       ),
+            //     ),
+            //     Expanded(
+            //       child: Container(
+            //         margin: const EdgeInsets.only(left: 10, right: 20),
+            //         child: Divider(
+            //           color: Theme.of(context).colorScheme.inversePrimary,
+            //         ),
+            //       ),
+            //     ),
+            //   ],
+            // ),
 
-            const SizedBox(height: 10),
+            // const SizedBox(height: 10),
 
-            // Jarvis sign in
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 20),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.tertiary,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset(
-                    "assets/icons/icon.png",
-                    width: 30,
-                    height: 30,
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    "Jarvis",
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.inversePrimary,
-                      fontSize: 16,
-                    ),
-                  )
-                ],
-              ),
-            ),
+            // // Jarvis sign in
+            // Container(
+            //   margin: const EdgeInsets.symmetric(horizontal: 20),
+            //   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            //   decoration: BoxDecoration(
+            //     color: Theme.of(context).colorScheme.tertiary,
+            //     borderRadius: BorderRadius.circular(8),
+            //     border: Border.all(
+            //       color: Theme.of(context).colorScheme.primary,
+            //     ),
+            //   ),
+            //   child: Row(
+            //     mainAxisAlignment: MainAxisAlignment.center,
+            //     children: [
+            //       Image.asset(
+            //         "assets/icons/icon.png",
+            //         width: 30,
+            //         height: 30,
+            //       ),
+            //       const SizedBox(width: 10),
+            //       Text(
+            //         "Jarvis",
+            //         style: TextStyle(
+            //           color: Theme.of(context).colorScheme.inversePrimary,
+            //           fontSize: 16,
+            //         ),
+            //       )
+            //     ],
+            //   ),
+            // ),
 
             const SizedBox(height: 10),
 

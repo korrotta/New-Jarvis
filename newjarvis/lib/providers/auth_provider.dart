@@ -34,11 +34,6 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateUser(BasicUserModel user) {
-    _currentUser = user;
-    notifyListeners();
-  }
-
   void clearUser() {
     _currentUser = null;
     notifyListeners();
@@ -47,7 +42,7 @@ class AuthProvider extends ChangeNotifier {
   Future<void> signOut(BuildContext context) async {
     await apiService.signOut();
     _currentUser = null;
-    notifyListeners();
     Navigator.pushNamed(context, '/auth');
+    notifyListeners();
   }
 }

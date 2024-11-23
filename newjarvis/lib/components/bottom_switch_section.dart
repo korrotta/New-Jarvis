@@ -2,121 +2,64 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:newjarvis/components/prompt_drawer.dart';
 
-class BottomSwitchSection extends StatelessWidget {
-  const BottomSwitchSection({super.key});
+class PromptSection extends StatelessWidget {
+  const PromptSection({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(15),
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              // Web Access Switch
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          builder: (context) => Container(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.75,
-                                decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.vertical(
-                                        top: Radius.circular(16))),
-                                child: PromptDrawerContent(),
-                              ));
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(5),
-                      margin: const EdgeInsets.only(right: 5),
-                      decoration: BoxDecoration(
-                        color: Colors.purple,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        Icons.auto_awesome_outlined,
-                        size: 14,
-                        color: Theme.of(context).colorScheme.tertiary,
-                      ),
+          GestureDetector(
+            onTap: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (context) => Container(
+                  height: MediaQuery.of(context).size.height * 0.75,
+                  width: MediaQuery.of(context).size.width,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(16),
                     ),
                   ),
-                  Text(
-                    'Web Access',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.inversePrimary,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Transform.scale(
-                    scale: 0.6,
-                    child: CupertinoSwitch(
-                      value: false,
-                      onChanged: (value) {
-                        setState(() {
-                          value = !value;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              // GPT-4 Switch
-              Row(
-                children: [
-                  Text(
-                    'GPT-4',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.inversePrimary,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Transform.scale(
-                    scale: 0.6,
-                    child: CupertinoSwitch(
-                      value: false,
-                      onChanged: (value) {
-                        setState(() {
-                          value = !value;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-
-          // Chat with Memo Switch
-          Row(
-            children: [
-              Text(
-                'Chat with Memo',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.inversePrimary,
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
+                  child: const PromptDrawerContent(),
                 ),
-              ),
-              Transform.scale(
-                scale: 0.6,
-                child: CupertinoSwitch(
-                  value: false,
-                  onChanged: (value) {
-                    setState(() {
-                      value = !value;
-                    });
-                  },
+              );
+            },
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(5),
+                  margin: const EdgeInsets.only(right: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.purple,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.auto_awesome_outlined,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.tertiary,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(width: 5),
+                Text(
+                  'Prompt',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.inversePrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

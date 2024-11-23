@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:newjarvis/components/ai_model_selection_section.dart';
+import 'package:newjarvis/components/bottom_switch_section.dart';
 import 'package:newjarvis/components/chat_input_section.dart';
 
 class BottomNavSection extends StatefulWidget {
@@ -32,6 +32,8 @@ class _BottomNavSectionState extends State<BottomNavSection> {
         runSpacing: 10,
         alignment: WrapAlignment.start,
         children: [
+          // Prompt Section
+          const PromptSection(),
           // Chat Input Section
           ChatInputSection(
             onSend: widget.onSend,

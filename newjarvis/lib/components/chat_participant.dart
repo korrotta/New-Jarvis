@@ -12,7 +12,7 @@ final userParticipant = ChatParticipant(
   icon: const Icon(
     Icons.person_outline_outlined,
     color: Colors.black,
-    size: 14,
+    size: 18,
   ),
 );
 
@@ -21,6 +21,6 @@ final botParticipant = ChatParticipant(
   icon: const Icon(
     Icons.smart_toy_rounded,
     color: Colors.blue,
-    size: 14,
+    size: 18,
   ),
 );

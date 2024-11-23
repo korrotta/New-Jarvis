@@ -78,12 +78,26 @@ class ApiService {
   Future<void> _storeToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('auth_token', token);
+    final expirationTime = DateTime.now().add(const Duration(minutes: 1));
+    await prefs.setString('expiration_time', expirationTime.toString());
   }
 
   // Retrieve the token from SharedPreferences
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('auth_token');
+    final token = prefs.getString('auth_token');
+    final expirationTime = prefs.getString('expiration_time');
+    if (token != null && expirationTime != null) {
+      final expiration = DateTime.parse(expirationTime);
+      if (expiration.isAfter(DateTime.now())) {
+        return token;
+      } else {
+        await prefs.remove('auth_token');
+        await prefs.remove('expiration_time');
+        return null;
+      }
+    }
+    return null;
   }
 
   // API call method
@@ -169,6 +183,40 @@ class ApiService {
       final error = jsonDecode(e.toString());
       _showErrorDialog(context, "Error during sign up: $error");
       return {};
+    }
+  }
+
+  // Refresh token
+  Future<String?> refreshToken() async {
+    final token = await _getToken();
+
+    if (token == null) {
+      throw Exception('No token found. Please sign in.');
+    }
+
+    final url = Uri.parse('$_baseUrl/api/v1/auth/refresh').replace(
+      queryParameters: {
+        'refreshToken': token,
+      },
+    );
+
+    try {
+      final response = await http.post(
+        url,
+      );
+
+      if (response.statusCode == 200) {
+        // Decode and return the new token
+        final data = jsonDecode(response.body);
+        final newToken = data['accessToken'];
+        await _storeToken(newToken);
+        return newToken;
+      } else {
+        throw Exception(
+            "Failed to refresh token. Status Code: ${response.statusCode}");
+      }
+    } catch (e) {
+      return null;
     }
   }
 
