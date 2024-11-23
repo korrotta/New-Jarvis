@@ -24,19 +24,6 @@ class BottomNavSection extends StatefulWidget {
 
 class _BottomNavSectionState extends State<BottomNavSection> {
   String chat = '';
-  final List<String> filters = [
-    'All',
-    'AI Models',
-    'Agents',
-    'Social Platforms',
-    'Work Scenarios',
-    'Emotions'
-  ];
-
-  // Send chat
-  String _sendChat() {
-    return chat;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +44,14 @@ class _BottomNavSectionState extends State<BottomNavSection> {
           AiModelSelectionSection(
             selectedModel: widget.selectedModel,
             aiModels: widget.aiModels,
-            filters: filters,
+            filters: const [
+              'All',
+              'AI Models',
+              'Agents',
+              'Social Platforms',
+              'Work Scenarios',
+              'Emotions'
+            ],
           ),
 
           // Chat Input Section

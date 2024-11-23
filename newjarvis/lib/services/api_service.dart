@@ -478,7 +478,6 @@ class ApiService {
   }) async {
     final token = await _getToken();
 
-
     final assistantId = assistant?.id;
     final assistantModel = assistant?.model;
 
@@ -553,47 +552,220 @@ class ApiService {
     int limit = 20,
     bool isFavorite = false,
     bool isPublic = true,
-    }) async {
-       final token = await _getToken();
-       if (token == null) {
-         throw Exception('No token found. Please sign in.');
+  }) async {
+    final token = await _getToken();
+    if (token == null) {
+      throw Exception('No token found. Please sign in.');
+    }
+    print('==token: $token');
+
+    final url = Uri.parse(
+        '$_baseUrl/api/v1/prompts?query=$query&offset=$offset&limit=$limit&isFavorite=$isFavorite&isPublic=$isPublic');
+
+    print('Fetching prompts from URL: $url');
+
+    try {
+      final headers = {
+        'Authorization': 'Bearer $token',
+        'x-jarvis-guid': '', // Replace with a valid GUID if required
+      };
+
+      final request = http.Request('GET', url);
+      request.headers.addAll(headers);
+
+      final response = await request.send();
+
+      if (response.statusCode == 200) {
+        final responseBody = await response.stream.bytesToString();
+        print('Response body: $responseBody');
+
+        final data = jsonDecode(responseBody);
+
+        // Assuming the response contains a list of prompts
+        final prompts = List<Map<String, dynamic>>.from(data['items'] ?? []);
+        return prompts;
+      } else {
+        _showErrorSnackbar(context,
+            "Failed to fetch prompts. Status Code: ${response.statusCode}");
+        return [];
       }
-      print('==token: $token');
-
-  final url = Uri.parse(
-      '$_baseUrl/api/v1/prompts?query=$query&offset=$offset&limit=$limit&isFavorite=$isFavorite&isPublic=$isPublic');
-
-  print('Fetching prompts from URL: $url');
-
-  try {
-    final headers = {
-      'Authorization': 'Bearer $token',
-      'x-jarvis-guid': '', // Replace with a valid GUID if required
-    };
-
-    final request = http.Request('GET', url);
-    request.headers.addAll(headers);
-
-    final response = await request.send();
-
-    if (response.statusCode == 200) {
-      final responseBody = await response.stream.bytesToString();
-      print('Response body: $responseBody');
-
-      final data = jsonDecode(responseBody);
-
-      // Assuming the response contains a list of prompts
-      final prompts = List<Map<String, dynamic>>.from(data['items'] ?? []);
-      return prompts;
-    } else {
-      _showErrorSnackbar(
-          context, "Failed to fetch prompts. Status Code: ${response.statusCode}");
+    } catch (e) {
+      print("Error fetching prompts: $e");
+      _showErrorSnackbar(context, "Error fetching prompts: $e");
       return [];
     }
-  } catch (e) {
-    print("Error fetching prompts: $e");
-    _showErrorSnackbar(context, "Error fetching prompts: $e");
-    return [];
   }
+
+  // Add this method to your ApiService class
+  Future<Map<String, dynamic>> createPrompt({
+    required BuildContext context,
+    required String title,
+    required String content,
+    required String description,
+    required String category,
+    required String language,
+    required bool isPublic,
+  }) async {
+    final token = await _getToken();
+
+    if (token == null) {
+      throw Exception('No token found. Please sign in.');
+    }
+
+    final url = Uri.parse('$_baseUrl/api/v1/prompts');
+
+    print('Creating prompt at URL: $url');
+
+    try {
+      final headers = {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      };
+
+      final body = jsonEncode({
+        "title": title,
+        "content": content,
+        "description": description,
+        "category": category,
+        "language": language,
+        "isPublic": isPublic,
+      });
+
+      final response = await http.post(
+        url,
+        headers: headers,
+        body: body,
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 201) {
+        // Decode and return the response
+        final data = jsonDecode(response.body);
+        return data;
+      } else {
+        _showErrorSnackbar(context,
+            "Failed to create prompt. Status Code: ${response.statusCode}");
+        return {};
+      }
+    } catch (e) {
+      print("Error creating prompt: $e");
+      _showErrorSnackbar(context, "Error creating prompt: $e");
+      return {};
+    }
+  }
+
+  Future<Map<String, dynamic>> updatePrompt({
+    required BuildContext context,
+    required String promptId,
+    required String title,
+    required String content,
+    required String description,
+    required String category,
+    required String language,
+    required bool isPublic,
+  }) async {
+    final token = await _getToken();
+
+    if (token == null) {
+      throw Exception('No token found. Please sign in.');
+    }
+
+    final url = Uri.parse('$_baseUrl/api/v1/prompts/$promptId');
+
+    print('Updating prompt at URL: $url');
+
+    try {
+      final headers = {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      };
+
+      final body = jsonEncode({
+        "title": title,
+        "content": content,
+        "description": description,
+        "category": category,
+        "language": language,
+        "isPublic": isPublic,
+      });
+
+      final response = await http.patch(
+        url,
+        headers: headers,
+        body: body,
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        // Decode and return the response
+        final data = jsonDecode(response.body);
+        return data;
+      } else {
+        _showErrorSnackbar(context,
+            "Failed to update prompt. Status Code: ${response.statusCode}");
+        return {};
+      }
+    } catch (e) {
+      print("Error updating prompt: $e");
+      _showErrorSnackbar(context, "Error updating prompt: $e");
+      return {};
+    }
+  }
+
+  Future<void> deletePrompt({
+    required BuildContext context,
+    required String promptId,
+  }) async {
+    final String? token = await _getToken(); // Get the token dynamically
+
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Authentication token not found. Please log in again.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final String url = '$_baseUrl/api/v1/prompts/$promptId'; // Construct URL
+
+    try {
+      final response = await http.delete(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Prompt deleted successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Failed to delete prompt. Error: ${response.reasonPhrase}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error deleting prompt: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }

@@ -4,7 +4,10 @@ import 'package:newjarvis/components/prompt_list_item.dart';
 class PublicPromptsView extends StatelessWidget {
   final List<Map<String, dynamic>> prompts;
 
-  const PublicPromptsView({required this.prompts});
+  const PublicPromptsView({
+    super.key, 
+    required this.prompts
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -12,8 +15,8 @@ class PublicPromptsView extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Categories (Chips)
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.0),
           child: Wrap(
             spacing: 8,
             children: [
@@ -24,7 +27,7 @@ class PublicPromptsView extends StatelessWidget {
             ],
           ),
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         // Public Prompts List
         Expanded(
           child: ListView.builder(
@@ -33,8 +36,12 @@ class PublicPromptsView extends StatelessWidget {
             itemBuilder: (context, index) {
               final prompt = prompts[index];
               return PromptListItem(
-                title: prompt['name'] ?? 'No Title',
+                promptId: prompt['_id'] ?? '0',
+                title: prompt['title'] ?? 'No Title',
                 subtitle: prompt['description'] ?? '',
+                category: prompt['category'] ?? 'Other',
+                author: prompt['userName'] ?? 'Anonymous',
+                promptContent: prompt['content'] ?? 'No Content',
               );
             },
           ),
@@ -48,7 +55,7 @@ class CategoryChip extends StatelessWidget {
   final String text;
   final bool isSelected;
 
-  const CategoryChip({required this.text, required this.isSelected});
+  const CategoryChip({super.key, required this.text, required this.isSelected});
 
   @override
   Widget build(BuildContext context) {

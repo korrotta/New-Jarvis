@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:newjarvis/states/chat_state.dart';
 
-class ChatInputSection extends StatefulWidget {
+import 'package:provider/provider.dart';
+
+class ChatInputSection extends StatelessWidget {
   final String Function(String) onSend;
 
   const ChatInputSection({
@@ -9,32 +12,9 @@ class ChatInputSection extends StatefulWidget {
   });
 
   @override
-  State<ChatInputSection> createState() => _ChatInputSectionState();
-}
-
-class _ChatInputSectionState extends State<ChatInputSection> {
-  // Text controller for the chat input
-  final TextEditingController _chatController = TextEditingController();
-
-  // Send chat
-  void _sendChat(BuildContext context) {
-    final chat = _chatController.text.trim();
-    if (chat.isNotEmpty) {
-      widget.onSend(chat);
-      _chatController.clear();
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please type a message'),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 2),
-        ),
-      );
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final chatState = Provider.of<ChatState>(context);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 5.0),
       child: Container(
@@ -49,7 +29,13 @@ class _ChatInputSectionState extends State<ChatInputSection> {
           children: [
             Expanded(
               child: TextField(
-                controller: _chatController,
+                controller: TextEditingController(text: chatState.chatInput)
+                  ..selection = TextSelection.fromPosition(
+                    TextPosition(offset: chatState.chatInput.length),
+                  ),
+                onChanged: (value) {
+                  chatState.updateChatInput(value); // Update chat input state
+                },
                 minLines: 1,
                 maxLines: 5,
                 decoration: InputDecoration(
@@ -58,7 +44,6 @@ class _ChatInputSectionState extends State<ChatInputSection> {
                     color: Theme.of(context).colorScheme.primary,
                     fontSize: 14,
                   ),
-                  // Transparent border
                   border: const OutlineInputBorder(
                     borderSide: BorderSide.none,
                   ),
@@ -69,7 +54,18 @@ class _ChatInputSectionState extends State<ChatInputSection> {
               icon: Icon(Icons.send_sharp,
                   color: Theme.of(context).colorScheme.primary),
               onPressed: () {
-                _sendChat(context);
+                if (chatState.chatInput.isNotEmpty) {
+                  onSend(chatState.chatInput);
+                  chatState.clearChatInput(); // Clear chat input after sending
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please type a message'),
+                      backgroundColor: Colors.red,
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
               },
             ),
           ],

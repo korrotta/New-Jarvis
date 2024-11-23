@@ -14,8 +14,12 @@ class MyPromptsView extends StatelessWidget {
       itemBuilder: (context, index) {
         final prompt = prompts[index];
         return PromptListItem(
-          title: prompt['name'] ?? 'No Title',
+          promptId: prompt['_id'] ?? '0',
+          title: prompt['title'] ?? 'No Title',
           subtitle: prompt['description'] ?? '',
+          category: prompt['category'] ?? 'Other',
+          author: prompt['userName'] ?? 'Anonymous',
+          promptContent: prompt['content'] ?? 'No Content',
         );
       },
     );

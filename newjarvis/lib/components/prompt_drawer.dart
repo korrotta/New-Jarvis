@@ -2,67 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:newjarvis/components/my_prompt_view.dart';
 import 'package:newjarvis/components/new_prompt_dialog.dart';
 import 'package:newjarvis/components/public_prompt_view.dart';
-import 'package:newjarvis/services/api_service.dart';
+import 'package:newjarvis/states/prompts_state.dart';
+import 'package:provider/provider.dart';
 
-class PromptDrawerContent extends StatefulWidget {
-  @override
-  _PromptDrawerContentState createState() => _PromptDrawerContentState();
-}
-
-class _PromptDrawerContentState extends State<PromptDrawerContent> {
-  bool isPublicPromptSelected = true; // Track the selected view
-  List<Map<String, dynamic>> publicPrompts = []; // List to store public prompts
-  List<Map<String, dynamic>> privatePrompts =
-      []; // List to store private prompts
-  bool isLoading = true; // Track loading state
-
-  @override
-  void initState() {
-    super.initState();
-    fetchPrompts(); // Fetch prompts on initialization
-  }
-
-  Future<void> fetchPrompts() async {
-    setState(() {
-      isLoading = true;
-    });
-
-    try {
-      // Fetch public prompts
-      final fetchedPublicPrompts = await ApiService().getPrompts(
-        context: context,
-        isPublic: true,
-        isFavorite: false,
-        limit: 20,
-      );
-
-      print('fetchedPublicPrompts: $fetchedPublicPrompts');
-
-      // Fetch private prompts
-      final fetchedPrivatePrompts = await ApiService().getPrompts(
-        context: context,
-        isPublic: false,
-        isFavorite: false,
-        limit: 20,
-      );
-
-      setState(() {
-        publicPrompts = fetchedPublicPrompts;
-        privatePrompts = fetchedPrivatePrompts;
-        isLoading = false;
-      });
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          isLoading = false;
-        });
-      }
-      print("Error fetching prompts: $e");
-    }
-  }
-
+class PromptDrawerContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final promptState = Provider.of<PromptState>(context, listen: false);
+
+    // Trigger fetching prompts when the widget is initialized
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      promptState.fetchPrompts(context);
+    });
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -72,7 +24,7 @@ class _PromptDrawerContentState extends State<PromptDrawerContent> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
+              const Text(
                 "Prompt",
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
@@ -83,29 +35,35 @@ class _PromptDrawerContentState extends State<PromptDrawerContent> {
                     height: 35,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                        shape: BoxShape.rectangle,
-                        borderRadius: BorderRadius.circular(8),
-                        gradient: LinearGradient(
-                            colors: [
-                              Colors.blue[900]!,
-                              Colors.lightBlueAccent,
-                            ], // Gradient colors
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight)),
+                      shape: BoxShape.rectangle,
+                      borderRadius: BorderRadius.circular(8),
+                      gradient: const LinearGradient(
+                        colors: [
+                          Color(0xFF00008B),
+                          Colors.lightBlueAccent,
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                    ),
                     child: IconButton(
-                      padding: EdgeInsets.zero, // Remove default padding
-                      constraints: BoxConstraints(), // Shrink to fit
-                      icon: Icon(Icons.add, color: Colors.white),
-                      onPressed: () => {
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      icon: const Icon(Icons.add, color: Colors.white),
+                      onPressed: () {
                         showDialog(
                           context: context,
-                          builder: (context) => NewPromptDialog(),
-                        )
+                          builder: (context) => NewPromptDialog(
+                            refresh: () {
+                              promptState.fetchPrompts(context);
+                            },
+                          ),
+                        );
                       },
                     ),
                   ),
                   IconButton(
-                    icon: Icon(Icons.close),
+                    icon: const Icon(Icons.close),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -119,45 +77,53 @@ class _PromptDrawerContentState extends State<PromptDrawerContent> {
           child: Row(
             children: [
               Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      isPublicPromptSelected = false; // Switch to My Prompts
-                    });
+                child: Consumer<PromptState>(
+                  builder: (context, promptState, _) {
+                    return GestureDetector(
+                      onTap: () {
+                        promptState.isPublicPromptSelected = false;
+                        promptState.notifyListeners();
+                      },
+                      child: TabButton(
+                        text: "My Prompts",
+                        isSelected: !promptState.isPublicPromptSelected,
+                      ),
+                    );
                   },
-                  child: TabButton(
-                    text: "My Prompts",
-                    isSelected: !isPublicPromptSelected,
-                  ),
                 ),
               ),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      isPublicPromptSelected = true; // Switch to Public Prompts
-                    });
+                child: Consumer<PromptState>(
+                  builder: (context, promptState, _) {
+                    return GestureDetector(
+                      onTap: () {
+                        promptState.isPublicPromptSelected = true;
+                        promptState.notifyListeners();
+                      },
+                      child: TabButton(
+                        text: "Public Prompts",
+                        isSelected: promptState.isPublicPromptSelected,
+                      ),
+                    );
                   },
-                  child: TabButton(
-                    text: "Public Prompts",
-                    isSelected: isPublicPromptSelected,
-                  ),
                 ),
               ),
             ],
           ),
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         // Display the content based on the selected tab
         Expanded(
-          child: isLoading
-              ? Center(child: CircularProgressIndicator()) // Show loader
-              : isPublicPromptSelected
-                  ? PublicPromptsView(
-                      prompts: publicPrompts) // Public Prompts Content
-                  : MyPromptsView(
-                      prompts: privatePrompts), // My Prompts Content
+          child: Consumer<PromptState>(
+            builder: (context, state, _) {
+              return state.isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : state.isPublicPromptSelected
+                      ? PublicPromptsView(prompts: state.publicPrompts)
+                      : MyPromptsView(prompts: state.privatePrompts);
+            },
+          ),
         ),
       ],
     );
