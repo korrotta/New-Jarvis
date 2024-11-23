@@ -162,9 +162,12 @@ class _RegisterPageState extends State<RegisterPage> {
                   obscureText: false,
                   controller: _usernameController,
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
+                    if (value == null ||
+                        value.isEmpty ||
+                        value.trim().isEmpty) {
                       return "Please enter a username";
                     }
+
                     return null;
                   },
                 ),
@@ -200,6 +203,10 @@ class _RegisterPageState extends State<RegisterPage> {
                     }
                     if (value.length < 6) {
                       return "Password must be at least 6 characters";
+                    }
+                    if (!RegExp(r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{6,}$')
+                        .hasMatch(value)) {
+                      return "Password must contain at least one uppercase letter, one lowercase letter, one number";
                     }
                     return null;
                   },

@@ -3,9 +3,7 @@ import 'package:newjarvis/components/bottom_nav_section.dart';
 import 'package:newjarvis/enums/id.dart';
 import 'package:newjarvis/enums/model.dart';
 import 'package:newjarvis/models/ai_chat_model.dart';
-import 'package:newjarvis/models/ai_model.dart';
 import 'package:newjarvis/models/assistant_model.dart';
-import 'package:newjarvis/models/basic_user_model.dart';
 import 'package:newjarvis/models/chat_response_model.dart';
 import 'package:newjarvis/models/conversation_history_item_model.dart';
 import 'package:newjarvis/models/conversation_item_model.dart';
@@ -130,35 +128,8 @@ class _ChatPageState extends State<ChatPage> {
                     welcomeSection(context),
                     const SizedBox(height: 20),
                     // Test get conversations
-                    ElevatedButton(
-                      onPressed: () async {
-                        conversations = await apiService.getConversations(
-                          context: context,
-                          cursor: null,
-                          limit: 15,
-                          assistant: assistant,
-                        );
-                      },
-                      child: Text('Get Conversations'),
-                    ),
                     const SizedBox(height: 20),
-
                     // Test get latest conversation
-                    ElevatedButton(
-                      onPressed: () async {
-                        print('Conversations: $conversations');
-                        print('Latest Conversation: ${conversations.first}');
-                        conversationHistory =
-                            await apiService.getConversationHistory(
-                          context: context,
-                          conversationId: conversations.first.id,
-                          cursor: null,
-                          limit: 100,
-                          assistant: assistant,
-                        );
-                      },
-                      child: Text('Get Latest Conversation'),
-                    ),
                     const SizedBox(height: 20),
 
                     signOutButton(context),
@@ -169,23 +140,6 @@ class _ChatPageState extends State<ChatPage> {
               ),
             ),
       bottomNavigationBar: BottomNavSection(
-        selectedModel: 'Monica',
-        aiModels: [
-          AIModel(name: 'Monica'),
-          AIModel(name: 'Genius'),
-          AIModel(name: 'Gemini'),
-          AIModel(name: 'Claude-Instant-100k'),
-          AIModel(name: 'Claude-2'),
-          AIModel(name: 'Writing Agent'),
-          AIModel(name: 'Auto Agent'),
-          AIModel(name: 'Bard'),
-          AIModel(name: 'Mistral-7b'),
-          AIModel(name: 'Llama-2-70b'),
-          AIModel(name: 'Codellama-34b'),
-          AIModel(name: 'Instagram Post Generator'),
-          AIModel(name: 'Twitter Post Generator'),
-        ],
-        selectedIndex: 0,
         onSend: (chat) => _handleSend(context, chat),
       ),
     );

@@ -1,6 +1,3 @@
-import 'package:newjarvis/enums/id.dart';
-import 'package:newjarvis/enums/model.dart';
-
 class AssistantModel {
   String? id;
   String model;

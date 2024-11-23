@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:newjarvis/models/basic_user_model.dart';
 import 'package:newjarvis/services/api_service.dart';
-import 'package:newjarvis/services/auth_gate.dart';
 
 class AuthProvider extends ChangeNotifier {
   final ApiService apiService = ApiService();
@@ -30,7 +29,6 @@ class AuthProvider extends ChangeNotifier {
       }
     } else {
       _currentUser = null;
-      print('User is not logged in');
     }
     _isLoading = false;
     notifyListeners();
@@ -50,6 +48,6 @@ class AuthProvider extends ChangeNotifier {
     await apiService.signOut();
     _currentUser = null;
     notifyListeners();
-    Navigator.pushNamed(context, '/login');
+    Navigator.pushNamed(context, '/auth');
   }
 }

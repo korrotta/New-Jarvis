@@ -7,7 +7,6 @@ import 'package:newjarvis/models/basic_user_model.dart';
 import 'package:newjarvis/models/chat_response_model.dart';
 import 'package:newjarvis/models/conversation_history_item_model.dart';
 import 'package:newjarvis/models/conversation_item_model.dart';
-import 'package:newjarvis/models/geo_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
@@ -92,6 +91,7 @@ class ApiService {
   Future<Map<String, dynamic>> signIn({
     required String email,
     required String password,
+    required BuildContext context,
   }) async {
     final url = Uri.parse('$_baseUrl/api/v1/auth/sign-in');
 
@@ -107,13 +107,11 @@ class ApiService {
       print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
-        print('Signed in successfully');
         // Decode and return JSON response
         final data = jsonDecode(response.body);
 
         // Get token
         final token = data['token'];
-        print('Token: $token');
 
         // Format the token into access and refresh tokens
         final accessToken = token['accessToken'];
@@ -124,8 +122,11 @@ class ApiService {
 
         return data;
       } else {
-        throw Exception(
-            "Failed to sign in. Status Code: ${response.statusCode}");
+        // Format the error message to get issue
+        var error = (jsonDecode(response.body)["details"]);
+        error = error.toString().substring(9, error.toString().length - 2);
+        _showErrorSnackbar(context, "Failed to sign in. \n$error");
+        return {};
       }
     } catch (e) {
       print("Error during sign in: $e");
@@ -152,13 +153,9 @@ class ApiService {
         },
       );
 
-      print('Response body: ${response.body}');
-
       if (response.statusCode == 201) {
         // Decode and return JSON response
         final data = jsonDecode(response.body);
-        print('Data: ${data["user"]}');
-
         return data;
       } else {
         // Format the error message to get issue
@@ -168,7 +165,6 @@ class ApiService {
         return {};
       }
     } catch (e) {
-      print("Error during sign up: $e");
       // Format the error message to get issue
       final error = jsonDecode(e.toString());
       _showErrorDialog(context, "Error during sign up: $error");
@@ -184,10 +180,6 @@ class ApiService {
       id: '',
       email: '',
       username: '',
-      geo: Geo(
-        city: '',
-        region: '',
-      ),
       roles: [],
     );
 
@@ -207,8 +199,6 @@ class ApiService {
           'Content-Type': 'application/json',
         },
       );
-
-      print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         // Decode and return the current user data
@@ -236,9 +226,6 @@ class ApiService {
 
     final url = Uri.parse('$_baseUrl/api/v1/auth/sign-out');
 
-    print('Signing out');
-    print('Parsed URL: $url');
-
     try {
       final response = await http.get(
         url,
@@ -247,9 +234,6 @@ class ApiService {
           'Content-Type': 'application/json',
         },
       );
-
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         // Remove token from SharedPreferences
@@ -262,7 +246,6 @@ class ApiService {
 
       return response;
     } catch (e) {
-      print("Error signing out: $e");
       return http.Response('Error signing out', 500);
     }
   }
@@ -277,9 +260,6 @@ class ApiService {
 
     final url = Uri.parse('$_baseUrl/api/v1/tokens/usage');
 
-    print('Getting token usage');
-    print('Parsed URL: $url');
-
     try {
       final response = await http.get(
         url,
@@ -289,20 +269,15 @@ class ApiService {
         },
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
       if (response.statusCode == 200) {
         // Decode and return the token usage data
         final data = jsonDecode(response.body);
-
         return data;
       } else {
         throw Exception(
             "Failed to get token usage. Status Code: ${response.statusCode}");
       }
     } catch (e) {
-      print("Error getting token usage: $e");
       return {};
     }
   }
@@ -319,9 +294,6 @@ class ApiService {
 
     final url = Uri.parse('$_baseUrl/api/v1/ai-chat');
 
-    print('Chatting with AI');
-    print('Parsed URL: $url');
-
     try {
       final response = await http.post(
         url,
@@ -334,9 +306,6 @@ class ApiService {
         },
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
       if (response.statusCode == 200) {
         // Decode and return the AI chat response
         final data = jsonDecode(response.body);
@@ -346,7 +315,6 @@ class ApiService {
             "Failed to chat with AI. Status Code: ${response.statusCode}");
       }
     } catch (e) {
-      print("Error chatting with AI: $e");
       return {};
     }
   }
@@ -382,13 +350,13 @@ class ApiService {
         body: jsonEncode(aiChat.toJson()),
       );
 
-      print('Response body: ${response.body}');
+      print('Response body send message: ${response.body}');
 
       if (response.statusCode == 200) {
         // Decode and return the message response
         final data = jsonDecode(response.body);
-
         chatResponse = ChatResponseModel.fromJson(data);
+        print('Chat response api: $chatResponse');
 
         return chatResponse;
       } else {
@@ -442,15 +410,7 @@ class ApiService {
         // Decode and return the conversation
         final data = jsonDecode(response.body);
 
-        String cursor = data['cursor'];
-        bool hasMore = data['has_more'];
-        int limit = data['limit'];
         final List<dynamic> items = data['items'] ?? [];
-
-        print('Cursor: $cursor');
-        print('Has more: $hasMore');
-        print('Limit: $limit');
-        print('Items: $items');
 
         List<ConversationItemModel> conversations = items.map((item) {
           return ConversationItemModel.fromJson(item);
@@ -469,13 +429,20 @@ class ApiService {
   }
 
   // Get conversation history /api/v1/ai-chat/conversations/{conversationId}/messages
-  Future<List<ConversationHistoryItemModel>> getConversationHistory({
+  Future<ConversationHistoryItemModel> getConversationHistory({
     required BuildContext context,
     required String conversationId,
     required String? cursor,
     required int? limit,
     required AssistantModel? assistant,
   }) async {
+    ConversationHistoryItemModel conversationHistory =
+        ConversationHistoryItemModel(
+      answer: '',
+      createdAt: 0,
+      files: [],
+      query: '',
+    );
     final token = await _getToken();
 
     final assistantId = assistant?.id;
@@ -511,32 +478,20 @@ class ApiService {
         // Decode and return the conversation history
         final data = jsonDecode(response.body);
 
-        String cursor = data['cursor'];
-        bool hasMore = data['has_more'];
-        int limit = data['limit'];
         final items = data['items'];
 
-        print('Cursor: $cursor');
-        print('Has more: $hasMore');
-        print('Limit: $limit');
-        print('Items: $items');
-
-        List<ConversationHistoryItemModel> conversationHistory = [];
-        conversationHistory = items
-            .map<ConversationHistoryItemModel>(
-                (item) => ConversationHistoryItemModel.fromJson(item))
-            .toList();
+        conversationHistory = ConversationHistoryItemModel.fromJson(items[0]);
 
         return conversationHistory;
       } else {
         _showErrorSnackbar(context,
             "Failed to get conversation history. Status Code: ${response.statusCode}");
-        return [];
       }
     } catch (e) {
       _showErrorSnackbar(context, "Error getting conversation history: $e");
-      return [];
     }
+
+    return conversationHistory;
   }
 
   Future<bool> isLoggedIn() async {

@@ -1,24 +1,20 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
-import 'package:newjarvis/models/geo_model.dart';
 
 class BasicUserModel {
-  String id, email, username;
-  Geo geo;
+  String? id, email, username;
   List<String> roles;
 
   BasicUserModel({
     required this.id,
     required this.email,
     required this.username,
-    required this.geo,
     required this.roles,
   });
 
-  String get getId => id;
-  String get getEmail => email;
-  String get getUsername => username;
-  Geo get getGeo => geo;
+  String get getId => id!;
+  String get getEmail => email!;
+  String get getUsername => username!;
   List<String> get getRoles => roles;
 
   Map<String, dynamic> toMap() {
@@ -26,7 +22,6 @@ class BasicUserModel {
       'id': id,
       'email': email,
       'username': username,
-      'geo': geo.toMap(),
       'roles': roles,
     };
   }
@@ -36,7 +31,6 @@ class BasicUserModel {
       id: map['id'] as String,
       email: map['email'] as String,
       username: map['username'] as String,
-      geo: Geo.fromMap(map['geo'] as Map<String, dynamic>),
       roles: List<String>.from(
           (map['roles'] as List).map((item) => item as String)),
     );
@@ -46,7 +40,7 @@ class BasicUserModel {
 
   @override
   String toString() {
-    return 'BasicUserModel(id: $id, email: $email, username: $username, geo: $geo, roles: $roles)';
+    return 'BasicUserModel(id: $id, email: $email, username: $username, roles: $roles)';
   }
 
   factory BasicUserModel.fromJson(String source) =>

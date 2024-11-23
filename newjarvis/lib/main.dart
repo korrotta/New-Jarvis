@@ -25,9 +25,8 @@ class MyApp extends StatelessWidget {
         title: 'New Jarvis',
         debugShowCheckedModeBanner: false,
         theme: lightTheme,
-        navigatorKey: RouteController.navigatorKey,
-        initialRoute: RouteController.auth,
         onGenerateRoute: RouteController.generateRoute,
+        initialRoute: '/auth',
       ),
     );
   }
