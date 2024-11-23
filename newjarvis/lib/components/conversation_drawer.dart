@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:newjarvis/models/conversation_item_model.dart';
 import 'package:intl/intl.dart';
+import 'package:newjarvis/services/api_service.dart';
+import 'package:provider/provider.dart';
 
 class ConversationDrawer extends StatefulWidget {
   final List<ConversationItemModel> conversations;
   final Function(String) onSelectedConversation;
   final Function() onToggleDrawer;
+  final String remainingTokens;
+  final String totalTokens;
 
   const ConversationDrawer({
     super.key,
     required this.conversations,
     required this.onSelectedConversation,
     required this.onToggleDrawer,
+    required this.remainingTokens,
+    required this.totalTokens,
   });
 
   @override
@@ -119,6 +125,28 @@ class _ConversationDrawerState extends State<ConversationDrawer> {
                     },
                   );
                 }),
+              ),
+
+            // Drawer Footer (Remaining Usage Token)
+            if (!_isCollapsed)
+              Container(
+                padding: const EdgeInsets.all(8.0),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      'Remaining Usage Token: ${widget.remainingTokens} / ${widget.totalTokens}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Theme.of(context).colorScheme.inversePrimary,
+                      ),
+                    ),
+                  ],
+                ),
               ),
           ],
         ),
