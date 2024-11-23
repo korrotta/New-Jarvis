@@ -7,6 +7,7 @@ import 'package:newjarvis/models/basic_user_model.dart';
 import 'package:newjarvis/models/chat_response_model.dart';
 import 'package:newjarvis/models/conversation_history_item_model.dart';
 import 'package:newjarvis/models/conversation_item_model.dart';
+import 'package:newjarvis/models/token_usage_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
@@ -22,6 +23,9 @@ class ApiService {
 
   // Factory Constructor
   factory ApiService() => instance;
+
+  // Refresh Token timer
+  Timer? _refreshTokenTimer;
 
   // Show error dialog
   void _showErrorDialog(BuildContext context, String message) {
@@ -75,11 +79,29 @@ class ApiService {
   }
 
   // Store the token in SharedPreferences
-  Future<void> _storeToken(String token) async {
+  Future<void> _storeToken(String token, int expiresIn) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('auth_token', token);
     final expirationTime = DateTime.now().add(const Duration(minutes: 1));
     await prefs.setString('expiration_time', expirationTime.toString());
+
+    _setUpRefreshTokenTimer(expiresIn);
+  }
+
+  // Set up a timer to refresh the token before it expires
+  void _setUpRefreshTokenTimer(int expiresIn) {
+    _refreshTokenTimer?.cancel(); // Cancel any existing timer
+    final refreshDuration = Duration(
+        seconds: expiresIn - 30); // Refresh 30 seconds before expiration
+    _refreshTokenTimer = Timer(refreshDuration, () async {
+      await refreshToken();
+    });
+  }
+
+  // Store the refresh token in SharedPreferences
+  Future<void> _storeRefreshToken(String refreshToken) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('refresh_token', refreshToken);
   }
 
   // Retrieve the token from SharedPreferences
@@ -98,6 +120,21 @@ class ApiService {
       }
     }
     return null;
+  }
+
+  // Get refreshToken
+  Future<String?> _getRefreshToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('refresh_token');
+  }
+
+  // Get token with refresh
+  Future<String?> _getTokenWithRefresh() async {
+    String? token = await _getToken();
+    if (token == null) {
+      token = await refreshToken();
+    }
+    return token;
   }
 
   // API call method
@@ -130,9 +167,11 @@ class ApiService {
         // Format the token into access and refresh tokens
         final accessToken = token['accessToken'];
         final refreshToken = token['refreshToken'];
+        final expiresIn = 60;
 
         // Store accessToken in SharedPreferences for future use
-        await _storeToken(accessToken);
+        await _storeToken(accessToken, expiresIn);
+        await _storeRefreshToken(refreshToken);
 
         return data;
       } else {
@@ -188,7 +227,7 @@ class ApiService {
 
   // Refresh token
   Future<String?> refreshToken() async {
-    final token = await _getToken();
+    final token = await _getRefreshToken();
 
     if (token == null) {
       throw Exception('No token found. Please sign in.');
@@ -201,17 +240,20 @@ class ApiService {
     );
 
     try {
-      final response = await http.post(
+      final response = await http.get(
         url,
       );
 
       if (response.statusCode == 200) {
         // Decode and return the new token
         final data = jsonDecode(response.body);
-        final newToken = data['accessToken'];
-        await _storeToken(newToken);
+        final newToken = data['token']['accessToken'];
+        final expiresIn = 60;
+        await _storeToken(newToken, expiresIn);
+        print('Token refreshed successfully');
         return newToken;
       } else {
+        print('Failed to refresh token. Code: ${jsonDecode(response.body)}');
         throw Exception(
             "Failed to refresh token. Status Code: ${response.statusCode}");
       }
@@ -231,7 +273,7 @@ class ApiService {
       roles: [],
     );
 
-    final token = await _getToken();
+    final token = await _getTokenWithRefresh();
 
     if (token == null) {
       throw Exception('No token found. Please sign in.');
@@ -266,7 +308,7 @@ class ApiService {
 
   // Sign out
   Future<http.Response> signOut() async {
-    final token = await _getToken();
+    final token = await _getTokenWithRefresh();
 
     if (token == null) {
       throw Exception('No token found. Please sign in.');
@@ -287,6 +329,8 @@ class ApiService {
         // Remove token from SharedPreferences
         final prefs = await SharedPreferences.getInstance();
         await prefs.remove('auth_token');
+        await prefs.remove('expiration_time');
+        await prefs.remove('refresh_token');
       } else {
         throw Exception(
             "Failed to sign out. Status Code: ${response.statusCode}");
@@ -299,8 +343,8 @@ class ApiService {
   }
 
   // Get token usage
-  Future<Map<String, dynamic>> getTokenUsage() async {
-    final token = await _getToken();
+  Future<TokenUsageModel> getTokenUsage() async {
+    final token = await _getTokenWithRefresh();
 
     if (token == null) {
       throw Exception('No token found. Please sign in.');
@@ -320,13 +364,30 @@ class ApiService {
       if (response.statusCode == 200) {
         // Decode and return the token usage data
         final data = jsonDecode(response.body);
-        return data;
+        final availableTokens = data['availableTokens'];
+        final totalTokens = data['totalTokens'];
+        final unlimited = data['unlimited'];
+        final date = data['date'];
+
+        TokenUsageModel tokenUsage = TokenUsageModel(
+          remainingTokens: availableTokens.toString(),
+          totalTokens: totalTokens.toString(),
+          unlimited: unlimited,
+          date: date,
+        );
+
+        return tokenUsage;
       } else {
         throw Exception(
             "Failed to get token usage. Status Code: ${response.statusCode}");
       }
     } catch (e) {
-      return {};
+      return TokenUsageModel(
+        remainingTokens: '0',
+        totalTokens: '0',
+        unlimited: false,
+        date: '',
+      );
     }
   }
 
@@ -334,7 +395,7 @@ class ApiService {
   Future<Map<String, dynamic>> doAIChat({
     required AiChatModel aiChat,
   }) async {
-    final token = await _getToken();
+    final token = await _getTokenWithRefresh();
 
     if (token == null) {
       throw Exception('No token found. Please sign in.');
@@ -378,7 +439,7 @@ class ApiService {
       remainingUsage: 0,
     );
 
-    final token = await _getToken();
+    final token = await _getTokenWithRefresh();
 
     if (token == null) {
       throw Exception('No token found. Please sign in.');
@@ -425,7 +486,7 @@ class ApiService {
     required int? limit,
     required AssistantModel? assistant,
   }) async {
-    final token = await _getToken();
+    final token = await _getTokenWithRefresh();
 
     final assistantId = assistant?.id;
     final assistantModel = assistant?.model;
@@ -491,7 +552,7 @@ class ApiService {
       files: [],
       query: '',
     );
-    final token = await _getToken();
+    final token = await _getTokenWithRefresh();
 
     final assistantId = assistant?.id;
     final assistantModel = assistant?.model;

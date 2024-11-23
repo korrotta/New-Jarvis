@@ -11,6 +11,7 @@ import 'package:newjarvis/models/ai_chat_model.dart';
 import 'package:newjarvis/models/assistant_model.dart';
 import 'package:newjarvis/models/conversation_history_item_model.dart';
 import 'package:newjarvis/models/conversation_item_model.dart';
+import 'package:newjarvis/models/token_usage_model.dart';
 import 'package:newjarvis/providers/auth_provider.dart';
 import 'package:newjarvis/services/api_service.dart';
 import 'package:provider/provider.dart';
@@ -35,6 +36,8 @@ class _ChatPageState extends State<ChatPage> {
   bool isDrawerVisible = false;
   double dragOffset = 200.0;
   final ScrollController _scrollController = ScrollController();
+  String remainingUsage = '0';
+  String totalUsage = '0';
 
   @override
   void initState() {
@@ -53,6 +56,8 @@ class _ChatPageState extends State<ChatPage> {
     await _checkLoginStatus();
     await _fetchAllConversations();
     _conversationHistoryFuture = _getAllConversationHistory(_conversations);
+    await _fetchRemainingUsage();
+    await _fetchTotalTokens();
     await _scrollToBottom();
   }
 
@@ -173,6 +178,30 @@ class _ChatPageState extends State<ChatPage> {
 
     _scrollToBottom(); // Scroll to bottom after receiving the response
     return chat;
+  }
+
+  // Fetch remaining usage
+  Future<void> _fetchRemainingUsage() async {
+    try {
+      final TokenUsageModel tokenUsage = await apiService.getTokenUsage();
+      setState(() {
+        remainingUsage = tokenUsage.remainingTokens;
+      });
+    } catch (e) {
+      print('Error fetching remaining usage: $e');
+    }
+  }
+
+  // Fetch total tokens
+  Future<void> _fetchTotalTokens() async {
+    try {
+      final TokenUsageModel tokenUsage = await apiService.getTokenUsage();
+      setState(() {
+        totalUsage = tokenUsage.totalTokens;
+      });
+    } catch (e) {
+      print('Error fetching total tokens: $e');
+    }
   }
 
   // Check login status
@@ -300,6 +329,8 @@ class _ChatPageState extends State<ChatPage> {
                           isDrawerVisible = !isDrawerVisible;
                         });
                       },
+                      remainingTokens: remainingUsage,
+                      totalTokens: totalUsage,
                     ),
                   ),
 
