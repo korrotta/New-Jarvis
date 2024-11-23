@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:newjarvis/services/theme_provider.dart';
-import 'package:provider/provider.dart';
 
 class ChatBubble extends StatelessWidget {
   final String message;

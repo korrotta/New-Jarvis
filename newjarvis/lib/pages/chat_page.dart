@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:newjarvis/components/bottom_nav_section.dart';
 import 'package:newjarvis/components/chat_bubble.dart';
 import 'package:newjarvis/components/chat_participant.dart';
+import 'package:newjarvis/components/conversation_drawer.dart';
 import 'package:newjarvis/components/floating_button.dart';
 import 'package:newjarvis/components/side_bar.dart';
 import 'package:newjarvis/enums/id.dart';
@@ -31,6 +32,7 @@ class _ChatPageState extends State<ChatPage> {
   int selectedIndex = 0;
   bool isExpanded = false;
   bool isSidebarVisible = false;
+  bool isDrawerVisible = false;
   double dragOffset = 200.0;
   final ScrollController _scrollController = ScrollController();
 
@@ -245,76 +247,115 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
+  void _handleConversationSelect(String id) {
+    print('Selected conversation ID: $id');
+    // Get from the first match and the rest of the list
+    final List<ConversationItemModel> matchingAndRemaining = _conversations
+        .where((conversation) => conversation.id == id)
+        .followedBy(
+          _conversations.where((conversation) => conversation.id != id),
+        )
+        .toList();
+
+    setState(() {
+      _conversationHistoryFuture =
+          _getAllConversationHistory(matchingAndRemaining);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
-    return Scaffold(
-      body: authProvider.currentUser == null
-          ? const Center(child: CircularProgressIndicator())
-          : Stack(
-              children: [
-                AnimatedContainer(
-                  padding: const EdgeInsets.only(top: 20, left: 20, right: 20),
-                  duration: const Duration(milliseconds: 300),
-                  margin: EdgeInsets.only(
-                    right: isSidebarVisible ? (isExpanded ? 180 : 98) : 0,
+    return SafeArea(
+      top: true,
+      bottom: false,
+      minimum: const EdgeInsets.only(top: 20),
+      child: Scaffold(
+        body: authProvider.currentUser == null
+            ? const Center(child: CircularProgressIndicator())
+            : Stack(
+                children: [
+                  AnimatedContainer(
+                    padding:
+                        const EdgeInsets.only(top: 20, left: 20, right: 20),
+                    duration: const Duration(milliseconds: 300),
+                    margin: EdgeInsets.only(
+                      left: isDrawerVisible ? 250 : 0,
+                      right: isSidebarVisible ? (isExpanded ? 180 : 98) : 0,
+                    ),
+                    width: double.infinity,
+                    child: _buildChatList(context),
                   ),
-                  width: double.infinity,
-                  child: _buildChatList(context),
-                ),
 
-                // Sidebar
-                if (isSidebarVisible)
+                  // Conversation Drawer
                   Positioned(
                     top: 0,
                     bottom: 0,
-                    right: 0,
-                    child: SideBar(
-                      isExpanded: isExpanded,
-                      selectedIndex: selectedIndex,
-                      onItemSelected: _onItemTapped,
-                      onExpandToggle: () {
+                    left: 0,
+                    child: ConversationDrawer(
+                      conversations: _conversations,
+                      onSelectedConversation: _handleConversationSelect,
+                      onToggleDrawer: () {
                         setState(() {
-                          isExpanded = !isExpanded;
-                        });
-                      },
-                      onClose: () {
-                        setState(() {
-                          isSidebarVisible = false;
+                          isDrawerVisible = !isDrawerVisible;
                         });
                       },
                     ),
                   ),
 
-                // Nửa hình tròn khi sidebar bị ẩn (Floating Button)
-                if (!isSidebarVisible)
-                  FloatingButton(
-                    dragOffset: dragOffset,
-                    onDragUpdate: (delta) {
-                      setState(
-                        () {
-                          dragOffset += delta;
-                          if (dragOffset < 0) dragOffset = 0;
-                          if (dragOffset >
-                              MediaQuery.of(context).size.height - 100) {
-                            dragOffset =
-                                MediaQuery.of(context).size.height - 100;
-                          }
+                  // Sidebar
+                  if (isSidebarVisible)
+                    Positioned(
+                      top: 0,
+                      bottom: 0,
+                      right: 0,
+                      child: SideBar(
+                        isExpanded: isExpanded,
+                        selectedIndex: selectedIndex,
+                        onItemSelected: _onItemTapped,
+                        onExpandToggle: () {
+                          setState(() {
+                            isExpanded = !isExpanded;
+                          });
                         },
-                      );
-                    },
-                    onTap: () {
-                      setState(
-                        () {
-                          isSidebarVisible = true;
+                        onClose: () {
+                          setState(() {
+                            isSidebarVisible = false;
+                          });
                         },
-                      );
-                    },
-                  ),
-              ],
-            ),
-      bottomNavigationBar: BottomNavSection(
-        onSend: (chat) => _handleSend(context, chat),
+                      ),
+                    ),
+
+                  // Nửa hình tròn khi sidebar bị ẩn (Floating Button)
+                  if (!isSidebarVisible)
+                    FloatingButton(
+                      dragOffset: dragOffset,
+                      onDragUpdate: (delta) {
+                        setState(
+                          () {
+                            dragOffset += delta;
+                            if (dragOffset < 0) dragOffset = 0;
+                            if (dragOffset >
+                                MediaQuery.of(context).size.height - 100) {
+                              dragOffset =
+                                  MediaQuery.of(context).size.height - 100;
+                            }
+                          },
+                        );
+                      },
+                      onTap: () {
+                        setState(
+                          () {
+                            isSidebarVisible = true;
+                          },
+                        );
+                      },
+                    ),
+                ],
+              ),
+        bottomNavigationBar: BottomNavSection(
+          onSend: (chat) => _handleSend(context, chat),
+        ),
       ),
     );
   }
@@ -358,6 +399,7 @@ class _ChatPageState extends State<ChatPage> {
                   ),
                   const SizedBox(height: 10),
                   Container(
+                    margin: const EdgeInsets.only(left: 10),
                     alignment: Alignment.centerLeft,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -367,6 +409,7 @@ class _ChatPageState extends State<ChatPage> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             botParticipant.icon,
+                            const SizedBox(width: 5),
                             Text(
                               botParticipant.name,
                               style: TextStyle(

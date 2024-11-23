@@ -6,6 +6,8 @@ import 'package:newjarvis/states/prompts_state.dart';
 import 'package:provider/provider.dart';
 
 class PromptDrawerContent extends StatelessWidget {
+  const PromptDrawerContent({super.key});
+
   @override
   Widget build(BuildContext context) {
     final promptState = Provider.of<PromptState>(context, listen: false);
