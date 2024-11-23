@@ -1,21 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:newjarvis/components/bottom_nav_section.dart';
 import 'package:newjarvis/components/chat_bubble.dart';
+import 'package:newjarvis/components/chat_participant.dart';
 import 'package:newjarvis/components/floating_button.dart';
 import 'package:newjarvis/components/side_bar.dart';
 import 'package:newjarvis/enums/id.dart';
 import 'package:newjarvis/enums/model.dart';
 import 'package:newjarvis/models/ai_chat_model.dart';
-import 'package:newjarvis/models/ai_model.dart';
 import 'package:newjarvis/models/assistant_model.dart';
-import 'package:newjarvis/models/basic_user_model.dart';
-import 'package:newjarvis/models/chat_response_model.dart';
 import 'package:newjarvis/models/conversation_history_item_model.dart';
 import 'package:newjarvis/models/conversation_item_model.dart';
 import 'package:newjarvis/providers/auth_provider.dart';
 import 'package:newjarvis/services/api_service.dart';
-import 'package:newjarvis/services/auth_gate.dart';
-import 'package:newjarvis/services/auth_state.dart';
 import 'package:provider/provider.dart';
 
 class ChatPage extends StatefulWidget {
@@ -47,6 +43,7 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void dispose() {
     _scrollController.dispose();
+    apiService.signOut();
     super.dispose();
   }
 
@@ -257,28 +254,13 @@ class _ChatPageState extends State<ChatPage> {
           : Stack(
               children: [
                 AnimatedContainer(
+                  padding: const EdgeInsets.only(top: 20, left: 20, right: 20),
                   duration: const Duration(milliseconds: 300),
                   margin: EdgeInsets.only(
                     right: isSidebarVisible ? (isExpanded ? 180 : 98) : 0,
                   ),
                   width: double.infinity,
                   child: _buildChatList(context),
-                ),
-
-                // Scroll to bottom button
-                Positioned(
-                  bottom: 20,
-                  right: 20,
-                  child: FloatingActionButton(
-                    onPressed: _scrollToBottom,
-                    backgroundColor: Colors.blue,
-                    shape: const CircleBorder(),
-                    elevation: 4,
-                    child: const Icon(
-                      Icons.arrow_downward,
-                      color: Colors.white,
-                    ),
-                  ),
                 ),
 
                 // Sidebar
@@ -377,9 +359,30 @@ class _ChatPageState extends State<ChatPage> {
                   const SizedBox(height: 10),
                   Container(
                     alignment: Alignment.centerLeft,
-                    child: ChatBubble(
-                      message: history.answer,
-                      isQuery: false,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            botParticipant.icon,
+                            Text(
+                              botParticipant.name,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .inversePrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        ChatBubble(
+                          message: history.answer,
+                          isQuery: false,
+                        ),
+                      ],
                     ),
                   ),
                 ],
