@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:newjarvis/components/ai_model_selection_section.dart';
 import 'package:newjarvis/components/chat_input_section.dart';
 
 class BottomNavSection extends StatefulWidget {
@@ -15,11 +16,6 @@ class BottomNavSection extends StatefulWidget {
 
 class _BottomNavSectionState extends State<BottomNavSection> {
   String chat = '';
-
-  // Send chat
-  String _sendChat() {
-    return chat;
-  }
 
   @override
   Widget build(BuildContext context) {

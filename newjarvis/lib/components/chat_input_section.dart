@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:newjarvis/states/chat_state.dart';
+import 'package:provider/provider.dart';
 
 class ChatInputSection extends StatefulWidget {
   final Function(String) onSend;
@@ -14,18 +16,15 @@ class ChatInputSection extends StatefulWidget {
 }
 
 class _ChatInputSectionState extends State<ChatInputSection> {
-  // Text controller for the chat input
-  final TextEditingController _chatController = TextEditingController();
-
-  // Focus node
   final FocusNode _focusNode = FocusNode();
 
   // Send chat
   void _sendChat(BuildContext context) {
-    final chat = _chatController.text.trim();
+    final chatState = Provider.of<ChatState>(context, listen: false);
+    final chat = chatState.chatInput.trim();
     if (chat.isNotEmpty) {
       widget.onSend(chat);
-      _chatController.clear();
+      chatState.updateChatInput(''); // Clear the chat input in state
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -39,6 +38,8 @@ class _ChatInputSectionState extends State<ChatInputSection> {
 
   @override
   Widget build(BuildContext context) {
+    final chatState = Provider.of<ChatState>(context);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 5.0),
       child: Container(
@@ -56,10 +57,8 @@ class _ChatInputSectionState extends State<ChatInputSection> {
                 (pressedKey == LogicalKeyboardKey.shift ||
                     pressedKey == LogicalKeyboardKey.control ||
                     pressedKey == LogicalKeyboardKey.alt)) {
-              _chatController.text += '\n';
-              _chatController.selection = TextSelection.fromPosition(
-                TextPosition(offset: _chatController.text.length),
-              );
+              // Add a newline if Shift/Alt/Ctrl + Enter is pressed
+              chatState.updateChatInput(chatState.chatInput + '\n');
             }
           },
           child: Row(
@@ -68,8 +67,9 @@ class _ChatInputSectionState extends State<ChatInputSection> {
             children: [
               Expanded(
                 child: TextField(
-                  onSubmitted: (value) => _sendChat(context),
-                  controller: _chatController,
+                  onSubmitted: (_) => _sendChat(context),
+                  onChanged:
+                      chatState.updateChatInput, // Update chat input in state
                   minLines: 1,
                   maxLines: 5,
                   decoration: InputDecoration(
@@ -78,9 +78,16 @@ class _ChatInputSectionState extends State<ChatInputSection> {
                       color: Theme.of(context).colorScheme.primary,
                       fontSize: 14,
                     ),
-                    // Transparent border
                     border: const OutlineInputBorder(
                       borderSide: BorderSide.none,
+                    ),
+                  ),
+                  // Use the value from ChatState
+                  controller: TextEditingController.fromValue(
+                    TextEditingValue(
+                      text: chatState.chatInput,
+                      selection: TextSelection.collapsed(
+                          offset: chatState.chatInput.length),
                     ),
                   ),
                 ),
