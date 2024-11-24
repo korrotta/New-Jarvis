@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 class ConversationDrawer extends StatefulWidget {
   final List<ConversationItemModel> conversations;
   final Function(String) onSelectedConversation;
-  final Function() onToggleDrawer;
   final String remainingTokens;
   final String totalTokens;
 
@@ -15,7 +14,6 @@ class ConversationDrawer extends StatefulWidget {
     super.key,
     required this.conversations,
     required this.onSelectedConversation,
-    required this.onToggleDrawer,
     required this.remainingTokens,
     required this.totalTokens,
   });
@@ -37,120 +35,137 @@ class _ConversationDrawerState extends State<ConversationDrawer> {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      width: _isCollapsed ? 70 : 250,
-      child: Drawer(
-        backgroundColor: _isCollapsed
-            ? Colors.transparent
-            : Theme.of(context).colorScheme.surface,
-        elevation: 0,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Drawer Header
-            Container(
-              padding: const EdgeInsets.all(8.0),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: Row(
-                children: [
-                  if (!_isCollapsed) ...[
-                    const SizedBox(width: 10),
-                    Text(
-                      'Conversations',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: Theme.of(context).colorScheme.inversePrimary,
-                      ),
-                    ),
-                  ],
-                  const Spacer(),
-                  IconButton(
-                    icon: Icon(
-                      _isCollapsed ? Icons.menu_rounded : Icons.close,
-                      color: Theme.of(context).colorScheme.inversePrimary,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _isCollapsed = !_isCollapsed;
-                        widget.onToggleDrawer();
-                      });
-                    },
-                  ),
-                ],
-              ),
-            ),
-
-            // List of Conversations
-            if (!_isCollapsed)
-              Expanded(
-                child: LayoutBuilder(builder: (context, constraints) {
-                  return ListView.builder(
-                    itemCount: widget.conversations.length,
-                    itemBuilder: (context, index) {
-                      final conversation = widget.conversations[index];
-                      return ListTile(
-                        title: constraints.maxWidth > 100
-                            ? Text(
-                                '${conversation.title[0].toUpperCase()}${conversation.title.substring(1)}',
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .inversePrimary,
-                                ),
-                              )
-                            : null,
-                        subtitle: constraints.maxWidth > 100
-                            ? Text(
-                                _formatDate(conversation.createdAt.toString()),
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .inversePrimary,
-                                ),
-                              )
-                            : null,
-                        onTap: () {
-                          widget.onSelectedConversation(conversation.id);
-                        },
-                      );
-                    },
-                  );
-                }),
-              ),
-
-            // Drawer Footer (Remaining Usage Token)
-            if (!_isCollapsed)
+    if (_isCollapsed) {
+      // Collapsed State: Only the Icon Button
+      return Align(
+        alignment: Alignment.topLeft,
+        child: IconButton(
+          padding: EdgeInsets.zero,
+          icon: Icon(
+            Icons.menu_rounded,
+            size: 32,
+            color: Theme.of(context).colorScheme.inversePrimary,
+          ),
+          onPressed: () {
+            setState(() {
+              _isCollapsed = !_isCollapsed;
+            });
+          },
+        ),
+      );
+    } else {
+      // Expanded State: Full Drawer
+      return SizedBox(
+        width: 250,
+        child: Drawer(
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          elevation: 4,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Drawer Header
               Container(
-                padding: const EdgeInsets.all(8.0),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surface,
-                  borderRadius: BorderRadius.circular(30),
+                  borderRadius: const BorderRadius.only(
+                    bottomRight: Radius.circular(20),
+                  ),
                 ),
                 child: Row(
                   children: [
-                    Text(
-                      'Remaining Usage Token: ${widget.remainingTokens} / ${widget.totalTokens}',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                    Expanded(
+                      child: Text(
+                        'Conversations',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Theme.of(context).colorScheme.inversePrimary,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      padding: EdgeInsets.zero,
+                      icon: Icon(
+                        Icons.close,
                         color: Theme.of(context).colorScheme.inversePrimary,
                       ),
+                      onPressed: () {
+                        setState(() {
+                          _isCollapsed = !_isCollapsed;
+                        });
+                      },
                     ),
                   ],
                 ),
               ),
-          ],
+
+              // List of Conversations
+              Expanded(
+                child: ListView.builder(
+                  itemCount: widget.conversations.length,
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  itemBuilder: (context, index) {
+                    final conversation = widget.conversations[index];
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: Colors.blueAccent,
+                        child: const Icon(
+                          Icons.chat,
+                          color: Colors.white,
+                        ),
+                      ),
+                      title: Text(
+                        conversation.title[0].toUpperCase() +
+                            conversation.title.substring(1),
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                      subtitle: Text(
+                        _formatDate(conversation.createdAt.toString()),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withOpacity(0.7),
+                        ),
+                      ),
+                      onTap: () {
+                        widget.onSelectedConversation(conversation.id);
+                      },
+                    );
+                  },
+                ),
+              ),
+
+              // Drawer Footer (Remaining Tokens)
+              Container(
+                padding: const EdgeInsets.all(12.0),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                  ),
+                ),
+                child: Text(
+                  'Remaining Tokens: ${widget.remainingTokens} / ${widget.totalTokens}',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    }
   }
 }

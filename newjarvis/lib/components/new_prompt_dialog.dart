@@ -101,7 +101,7 @@ class _NewPromptDialogState extends State<NewPromptDialog> {
                         },
                         title: const Text(
                           "Private Prompt",
-                          style: TextStyle(fontSize: 14),
+                          style: TextStyle(fontSize: 10),
                         ),
                       ),
                     ),
@@ -116,7 +116,7 @@ class _NewPromptDialogState extends State<NewPromptDialog> {
                         },
                         title: const Text(
                           "Public Prompt",
-                          style: TextStyle(fontSize: 14),
+                          style: TextStyle(fontSize: 10),
                         ),
                       ),
                     ),
