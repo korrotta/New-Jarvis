@@ -50,7 +50,8 @@ class _PromptDetailBottomSheetState extends State<PromptDetailBottomSheet> {
         promptId: widget.promptId, // Pass the prompt ID
         title: widget.title,
         content: latestValue,
-        description: "Updated via Prompt Detail", // Adjust description as needed
+        description:
+            "Updated via Prompt Detail", // Adjust description as needed
         category: widget.category,
         language: "English", // Assume language is English, adjust as needed
         isPublic: true, // Adjust visibility as needed
@@ -156,10 +157,19 @@ class _PromptDetailBottomSheetState extends State<PromptDetailBottomSheet> {
                         .updateChatInput(latestValue);
 
                     // Call updatePrompt when Send is clicked
-                    await _updatePrompt(context);
+                    // await _updatePrompt(context);
 
-                    // Close the bottom sheet
-                    Navigator.of(context).popUntil((route) => route.isFirst);
+                    // Close the current drawer or bottom sheet
+                    if (Navigator.of(context).canPop()) {
+                      Navigator.of(context)
+                          .pop(); // Close the current drawer or sheet
+                    }
+
+                    // Close the parent drawer or bottom sheet
+                    if (Navigator.of(context).canPop()) {
+                      Navigator.of(context)
+                          .pop(); // Close the parent drawer or sheet
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
