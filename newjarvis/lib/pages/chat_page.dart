@@ -300,6 +300,8 @@ class _ChatPageState extends State<ChatPage> {
       bottom: false,
       minimum: const EdgeInsets.only(top: 20),
       child: Scaffold(
+        resizeToAvoidBottomInset:
+            true, // Ensures the layout adjusts for the keyboard
         body: authProvider.currentUser == null
             ? const Center(child: CircularProgressIndicator())
             : Stack(
