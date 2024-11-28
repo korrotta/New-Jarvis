@@ -5,6 +5,7 @@ import 'package:newjarvis/components/chat_participant.dart';
 import 'package:newjarvis/components/conversation_drawer.dart';
 import 'package:newjarvis/components/floating_button.dart';
 import 'package:newjarvis/components/side_bar.dart';
+import 'package:newjarvis/components/welcome_chat_section.dart';
 import 'package:newjarvis/enums/id.dart';
 import 'package:newjarvis/enums/model.dart';
 import 'package:newjarvis/models/ai_chat_model.dart';
@@ -242,7 +243,6 @@ class _ChatPageState extends State<ChatPage> {
       final item = await _getConversationHistory(conversation.id);
       history.add(item);
     }
-    _scrollToBottom();
     return history;
   }
 
@@ -403,7 +403,9 @@ class _ChatPageState extends State<ChatPage> {
         } else if (snapshot.hasError) {
           return const SizedBox.shrink();
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const SizedBox.shrink();
+          return const Center(
+            child: WelcomeChatSection(),
+          );
         } else {
           final items = snapshot.data!;
           WidgetsBinding.instance.addPostFrameCallback((_) {

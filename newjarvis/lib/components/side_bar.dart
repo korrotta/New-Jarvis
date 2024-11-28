@@ -25,7 +25,7 @@ class SideBar extends StatelessWidget {
     return Container(
       width: sidebarWidth,
       decoration: BoxDecoration(
-        color: Color(0xFF608BC1), // Light blue background
+        color: const Color(0xFF608BC1), // Light blue background
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
@@ -52,7 +52,11 @@ class SideBar extends StatelessWidget {
                 ),
                 if (isExpanded)
                   IconButton(
-                    icon: Icon(Icons.close, color: Colors.redAccent, size: 22),
+                    icon: const Icon(
+                      Icons.close,
+                      color: Colors.redAccent,
+                      size: 22,
+                    ),
                     onPressed: () => onClose(),
                   ),
               ],
@@ -150,7 +154,7 @@ class SideBar extends StatelessWidget {
       },
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 10),
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.redAccent,
         ),
         child: Row(
@@ -185,12 +189,8 @@ const List<IconData> menuIcons = [
   Icons.edit_outlined,
   Icons.translate_outlined,
   Icons.brush_outlined,
-  Icons.home_repair_service_outlined,
-  Icons.bookmark_add_outlined,
-  Icons.devices_outlined,
   Icons.help_outline,
   Icons.settings_outlined,
-  Icons.card_giftcard_outlined,
 ];
 
 const List<String> menuLabels = [
@@ -200,10 +200,6 @@ const List<String> menuLabels = [
   'Write',
   'Translate',
   'Art',
-  'Toolkit',
-  'Memo',
-  'Devices',
   'Help',
   'Settings',
-  'Gifts',
 ];

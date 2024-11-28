@@ -41,7 +41,8 @@ class _ChatInputSectionState extends State<ChatInputSection> {
     final chatState = Provider.of<ChatState>(context);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 5.0),
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         decoration: BoxDecoration(

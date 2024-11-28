@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:newjarvis/components/chat_participant.dart';
 
 class WelcomeChatSection extends StatefulWidget {
   const WelcomeChatSection({super.key});
@@ -20,6 +21,20 @@ class _WelcomeChatSectionState extends State<WelcomeChatSection> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              botParticipant.icon,
+              const SizedBox(width: 5),
+              Text(
+                botParticipant.name,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                ),
+              ),
+            ],
+          ),
           Text(
             'Hi, welcome abroad 🚀',
             style: TextStyle(
