@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:newjarvis/models/conversation_item_model.dart';
 import 'package:intl/intl.dart';
-import 'package:newjarvis/services/api_service.dart';
-import 'package:provider/provider.dart';
 
 class ConversationDrawer extends StatefulWidget {
   final List<ConversationItemModel> conversations;

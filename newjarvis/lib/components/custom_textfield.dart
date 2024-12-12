@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-class CustomTextfield extends StatelessWidget {
+class CustomTextfield extends StatefulWidget {
   final String hintText;
-  final bool obscureText;
+  final bool initialObscureText;
   final TextEditingController controller;
   final String? Function(String?)? validator;
   final FocusNode? focusNode;
@@ -10,20 +10,33 @@ class CustomTextfield extends StatelessWidget {
   const CustomTextfield({
     super.key,
     required this.hintText,
-    required this.obscureText,
+    required this.initialObscureText,
     required this.controller,
     this.validator,
     this.focusNode,
   });
 
   @override
+  State<CustomTextfield> createState() => _CustomTextfieldState();
+}
+
+class _CustomTextfieldState extends State<CustomTextfield> {
+  late bool _obscureText = widget.initialObscureText;
+
+  void _toggleVisibility() {
+    setState(() {
+      _obscureText = !_obscureText;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 25.0),
       child: TextFormField(
-        obscureText: obscureText,
-        controller: controller,
-        validator: validator,
+        obscureText: _obscureText, // Use local state
+        controller: widget.controller,
+        validator: widget.validator,
         autovalidateMode: AutovalidateMode.onUserInteraction,
         decoration: InputDecoration(
           contentPadding: const EdgeInsets.symmetric(horizontal: 20),
@@ -53,10 +66,22 @@ class CustomTextfield extends StatelessWidget {
           ),
           fillColor: Theme.of(context).colorScheme.tertiary,
           filled: true,
-          hintText: hintText,
+          hintText: widget.hintText,
           hintStyle: TextStyle(
             color: Theme.of(context).colorScheme.primary,
           ),
+          suffixIcon: widget.initialObscureText
+              ? Container(
+                  padding: const EdgeInsets.only(right: 10),
+                  child: IconButton(
+                    icon: Icon(
+                      _obscureText ? Icons.visibility : Icons.visibility_off,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    onPressed: _toggleVisibility,
+                  ),
+                )
+              : null,
         ),
       ),
     );

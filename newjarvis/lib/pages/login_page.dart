@@ -83,9 +83,10 @@ class _LoginPageState extends State<LoginPage> {
       if (response.isNotEmpty) {
         Navigator.pushReplacementNamed(context, '/chat');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login failed')),
-        );
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   const SnackBar(content: Text('Invalid email or password')),
+        // );
+        return;
       }
     } catch (e) {
       if (!mounted) return;
@@ -169,7 +170,7 @@ class _LoginPageState extends State<LoginPage> {
                   // Email textfield
                   CustomTextfield(
                     hintText: "Email",
-                    obscureText: false,
+                    initialObscureText: false,
                     controller: _emailController,
                     validator: (email) {
                       if (email == null || email.isEmpty) {
@@ -187,7 +188,7 @@ class _LoginPageState extends State<LoginPage> {
                   // Password textfield
                   CustomTextfield(
                     hintText: "Password",
-                    obscureText: true,
+                    initialObscureText: true,
                     controller: _passwordController,
                     validator: (password) {
                       if (password == null || password.isEmpty) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:newjarvis/components/floating_button.dart';
 import 'package:newjarvis/components/side_bar.dart';
+import 'package:newjarvis/pages/bots_page.dart';
 import 'package:newjarvis/pages/chat_page.dart';
 import 'package:newjarvis/pages/screen_art.dart';
 import 'package:newjarvis/pages/screen_email.dart';
@@ -23,6 +24,15 @@ class _HomePageState extends State<HomePage> {
 
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
 
+  final List<Widget> _pages = [
+    const ChatPage(),
+    const BotsPage(),
+    const ScreenEmail(),
+    const SearchPage(),
+    const ScreenWrite(),
+    const TranslatePage(),
+  ];
+
   // Hàm để render nội dung dựa trên selectedIndex
   void _onItemTapped(int index) {
     setState(() {
@@ -32,25 +42,28 @@ class _HomePageState extends State<HomePage> {
 
     switch (index) {
       case 0:
-        _navigatorKey.currentState?.pushReplacementNamed('/chat');
+        _navigatorKey.currentState?.popAndPushNamed('/chat');
         break;
       case 1:
-        _navigatorKey.currentState?.pushReplacementNamed('/email');
+        _navigatorKey.currentState?.popAndPushNamed('/bots');
         break;
       case 2:
-        _navigatorKey.currentState?.pushReplacementNamed('/search');
+        _navigatorKey.currentState?.pushReplacementNamed('/email');
         break;
       case 3:
-        _navigatorKey.currentState?.pushReplacementNamed('/write');
+        _navigatorKey.currentState?.pushReplacementNamed('/search');
         break;
       case 4:
-        _navigatorKey.currentState?.pushReplacementNamed('/translate');
+        _navigatorKey.currentState?.pushReplacementNamed('/write');
         break;
       case 5:
+        _navigatorKey.currentState?.pushReplacementNamed('/translate');
+        break;
+      case 6:
         _navigatorKey.currentState?.pushReplacementNamed('/art');
         break;
       default:
-        _navigatorKey.currentState?.pushReplacementNamed('/home');
+        _navigatorKey.currentState?.pop();
         break;
     }
   }
@@ -67,36 +80,8 @@ class _HomePageState extends State<HomePage> {
               right: isSidebarVisible ? (isExpanded ? 180 : 98) : 0,
             ),
             width: double.infinity,
-            child: Navigator(
-              key: _navigatorKey,
-              initialRoute: '/chat',
-              onGenerateRoute: (RouteSettings settings) {
-                WidgetBuilder builder;
-                switch (settings.name) {
-                  case '/chat':
-                    builder = (BuildContext _) => const ChatPage();
-                    break;
-                  case '/email':
-                    builder = (BuildContext _) => const ScreenEmail();
-                    break;
-                  case '/search':
-                    builder = (BuildContext _) => const SearchPage();
-                    break;
-                  case '/write':
-                    builder = (BuildContext _) => const ScreenWrite();
-                    break;
-                  case '/translate':
-                    builder = (BuildContext _) => const TranslatePage();
-                    break;
-                  case '/art':
-                    builder = (BuildContext _) => const ScreenArt();
-                    break;
-                  default:
-                    builder = (BuildContext _) => const ChatPage();
-                    break;
-                }
-                return MaterialPageRoute(builder: builder, settings: settings);
-              },
+            child: Scaffold(
+              body: _pages[selectedIndex],
             ),
           ),
 

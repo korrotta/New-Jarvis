@@ -4,6 +4,7 @@ import 'package:newjarvis/components/chat_bubble.dart';
 import 'package:newjarvis/components/chat_participant.dart';
 import 'package:newjarvis/components/conversation_drawer.dart';
 import 'package:newjarvis/components/floating_button.dart';
+import 'package:newjarvis/components/route_controller.dart';
 import 'package:newjarvis/components/side_bar.dart';
 import 'package:newjarvis/components/welcome_chat_section.dart';
 import 'package:newjarvis/enums/id.dart';
@@ -29,7 +30,6 @@ class _ChatPageState extends State<ChatPage> {
 
   // State variables
   List<ConversationItemModel> _conversations = [];
-  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
   Future<List<ConversationHistoryItemModel>>? _conversationHistoryFuture;
   int selectedIndex = 0;
   bool isExpanded = false;
@@ -63,15 +63,13 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Future<void> _scrollToBottom() async {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.fastOutSlowIn,
-        );
-      }
-    });
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeOut,
+      );
+    }
   }
 
   void _onItemTapped(int index) {
@@ -80,29 +78,8 @@ class _ChatPageState extends State<ChatPage> {
       isSidebarVisible = false;
     });
 
-    switch (index) {
-      case 0:
-        _navigatorKey.currentState?.pushReplacementNamed('/chat');
-        break;
-      case 1:
-        _navigatorKey.currentState?.pushReplacementNamed('/email');
-        break;
-      case 2:
-        _navigatorKey.currentState?.pushReplacementNamed('/search');
-        break;
-      case 3:
-        _navigatorKey.currentState?.pushReplacementNamed('/write');
-        break;
-      case 4:
-        _navigatorKey.currentState?.pushReplacementNamed('/translate');
-        break;
-      case 5:
-        _navigatorKey.currentState?.pushReplacementNamed('/art');
-        break;
-      default:
-        _navigatorKey.currentState?.pushReplacementNamed('/chat');
-        break;
-    }
+    // Navigate to the selected page
+    RouteController.navigateTo(index);
   }
 
   Future<String> _handleSend(BuildContext context, String chat) async {
@@ -134,6 +111,8 @@ class _ChatPageState extends State<ChatPage> {
           .then((history) => [...history, tempConversation]);
     });
 
+    await _scrollToBottom();
+
     try {
       // Call API to send the message and receive a response
       final response = await apiService.sendMessage(
@@ -163,10 +142,11 @@ class _ChatPageState extends State<ChatPage> {
             files: [],
             createdAt: tempConversation.createdAt,
           );
-          _scrollToBottom(); // Scroll to bottom after receiving the response
           return updatedHistory;
         });
       });
+
+      await _scrollToBottom();
     } catch (e) {
       print('Error sending message: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -177,7 +157,6 @@ class _ChatPageState extends State<ChatPage> {
       );
     }
 
-    _scrollToBottom(); // Scroll to bottom after receiving the response
     return chat;
   }
 
@@ -408,15 +387,7 @@ class _ChatPageState extends State<ChatPage> {
           );
         } else {
           final items = snapshot.data!;
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (_scrollController.hasClients &&
-                _scrollController.position.pixels !=
-                    _scrollController.position.maxScrollExtent) {
-              _scrollController.jumpTo(
-                _scrollController.position.maxScrollExtent,
-              );
-            }
-          });
+          _scrollToBottom();
           return ListView.builder(
             controller: _scrollController,
             itemCount: items.length,
