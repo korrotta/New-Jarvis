@@ -2,16 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:newjarvis/components/floating_button.dart';
 import 'package:newjarvis/components/side_bar.dart';
 import 'package:newjarvis/pages/chat_page.dart';
-import 'package:newjarvis/pages/device_page.dart';
-import 'package:newjarvis/pages/help_page.dart';
-import 'package:newjarvis/pages/memo_page.dart';
 import 'package:newjarvis/pages/screen_art.dart';
 import 'package:newjarvis/pages/screen_email.dart';
 import 'package:newjarvis/pages/search/search_page.dart';
 import 'package:newjarvis/pages/translate/translate_page.dart';
-import 'package:newjarvis/pages/settings_page.dart';
-import 'package:newjarvis/pages/toolkit_page.dart';
-import 'package:newjarvis/pages/voucher_page.dart';
 import 'package:newjarvis/pages/screen_write.dart';
 
 class HomePage extends StatefulWidget {
@@ -27,35 +21,37 @@ class _HomePageState extends State<HomePage> {
   bool isSidebarVisible = false;
   double dragOffset = 200.0;
 
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+
   // Hàm để render nội dung dựa trên selectedIndex
-  Widget _getScreenContent() {
-    switch (selectedIndex) {
+  void _onItemTapped(int index) {
+    setState(() {
+      selectedIndex = index;
+      isSidebarVisible = false;
+    });
+
+    switch (index) {
       case 0:
-        return const ChatPage(); // Chat Page
+        _navigatorKey.currentState?.pushReplacementNamed('/chat');
+        break;
       case 1:
-        return const ScreenEmail(); // Email Page
+        _navigatorKey.currentState?.pushReplacementNamed('/email');
+        break;
       case 2:
-        return const SearchPage(); // Search Page
+        _navigatorKey.currentState?.pushReplacementNamed('/search');
+        break;
       case 3:
-        return const ScreenWrite(); // Write Page
+        _navigatorKey.currentState?.pushReplacementNamed('/write');
+        break;
       case 4:
-        return const TranslatePage(); // Translate Page
+        _navigatorKey.currentState?.pushReplacementNamed('/translate');
+        break;
       case 5:
-        return const ScreenArt(); // Art Page
-      case 6:
-        return const ToolkitPage(); // Toolkit Page
-      case 7:
-        return const MemoPage(); // Memo Page
-      case 8:
-        return const DevicePage(); // Devices Page
-      case 9:
-        return const HelpPage(); // Question Page
-      case 10:
-        return const SettingsPage(); // Settings Page
-      case 11:
-        return const VoucherPage(); // Voucher Page
+        _navigatorKey.currentState?.pushReplacementNamed('/art');
+        break;
       default:
-        return const HomePage(); // Home Page
+        _navigatorKey.currentState?.pushReplacementNamed('/home');
+        break;
     }
   }
 
@@ -70,8 +66,37 @@ class _HomePageState extends State<HomePage> {
             margin: EdgeInsets.only(
               right: isSidebarVisible ? (isExpanded ? 180 : 98) : 0,
             ),
-            child: Scaffold(
-              body: _getScreenContent(),
+            width: double.infinity,
+            child: Navigator(
+              key: _navigatorKey,
+              initialRoute: '/chat',
+              onGenerateRoute: (RouteSettings settings) {
+                WidgetBuilder builder;
+                switch (settings.name) {
+                  case '/chat':
+                    builder = (BuildContext _) => const ChatPage();
+                    break;
+                  case '/email':
+                    builder = (BuildContext _) => const ScreenEmail();
+                    break;
+                  case '/search':
+                    builder = (BuildContext _) => const SearchPage();
+                    break;
+                  case '/write':
+                    builder = (BuildContext _) => const ScreenWrite();
+                    break;
+                  case '/translate':
+                    builder = (BuildContext _) => const TranslatePage();
+                    break;
+                  case '/art':
+                    builder = (BuildContext _) => const ScreenArt();
+                    break;
+                  default:
+                    builder = (BuildContext _) => const ChatPage();
+                    break;
+                }
+                return MaterialPageRoute(builder: builder, settings: settings);
+              },
             ),
           ),
 
@@ -83,12 +108,7 @@ class _HomePageState extends State<HomePage> {
               child: SideBar(
                 isExpanded: isExpanded,
                 selectedIndex: selectedIndex,
-                onItemSelected: (index) {
-                  setState(() {
-                    selectedIndex = index;
-                    isSidebarVisible = false;
-                  });
-                },
+                onItemSelected: _onItemTapped,
                 onExpandToggle: () {
                   setState(() {
                     isExpanded = !isExpanded;

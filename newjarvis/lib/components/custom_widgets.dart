@@ -6,11 +6,11 @@ class CustomButton extends StatelessWidget {
   final VoidCallback? onPressed;
 
   const CustomButton({
-    Key? key,
+    super.key,
     required this.label,
     required this.icon,
     this.onPressed,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -37,13 +37,13 @@ class LanguageDropdown extends StatefulWidget {
   final ValueChanged<String> onSelect;
 
   const LanguageDropdown({
-    Key? key,
+    super.key,
     required this.initialSelection,
     required this.onSelect,
-  }) : super(key: key);
+  });
 
   @override
-  _LanguageDropdownState createState() => _LanguageDropdownState();
+  State<LanguageDropdown> createState() => _LanguageDropdownState();
 }
 
 class _LanguageDropdownState extends State<LanguageDropdown> {
@@ -103,11 +103,10 @@ class _LanguageDropdownState extends State<LanguageDropdown> {
 class LanguageSelectionDialog extends StatefulWidget {
   final ValueChanged<String> onSelect;
 
-  const LanguageSelectionDialog({Key? key, required this.onSelect})
-      : super(key: key);
+  const LanguageSelectionDialog({super.key, required this.onSelect});
 
   @override
-  _LanguageSelectionDialogState createState() =>
+  State<LanguageSelectionDialog> createState() =>
       _LanguageSelectionDialogState();
 }
 
@@ -126,8 +125,7 @@ class _LanguageSelectionDialogState extends State<LanguageSelectionDialog> {
   @override
   Widget build(BuildContext context) {
     final filteredLanguages = languages
-        .where((lang) =>
-            lang.toLowerCase().contains(searchQuery.toLowerCase()))
+        .where((lang) => lang.toLowerCase().contains(searchQuery.toLowerCase()))
         .toList();
 
     return Dialog(
@@ -184,13 +182,13 @@ class CustomTextArea extends StatelessWidget {
   final Color backgroundColor;
 
   const CustomTextArea({
-    Key? key,
+    super.key,
     required this.hintText,
     required this.icon,
     required this.onChanged,
     required this.height,
     required this.backgroundColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -205,7 +203,8 @@ class CustomTextArea extends StatelessWidget {
         children: [
           // Text Field
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
             child: TextField(
               maxLines: null,
               decoration: InputDecoration(
@@ -216,7 +215,7 @@ class CustomTextArea extends StatelessWidget {
               onChanged: onChanged,
             ),
           ),
-          
+
           // Bottom Left Icons
           Positioned(
             bottom: 8,
@@ -246,7 +245,7 @@ class CustomTextArea extends StatelessWidget {
 }
 
 class PdfTranslationDialog extends StatelessWidget {
-  const PdfTranslationDialog({Key? key}) : super(key: key);
+  const PdfTranslationDialog({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -284,17 +283,18 @@ class PdfTranslationDialog extends StatelessWidget {
                   border: Border.all(color: Colors.grey.shade300),
                   borderRadius: BorderRadius.circular(12.0),
                 ),
-                child: Column(
+                child: const Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.cloud_upload_outlined, size: 50, color: Colors.grey),
-                    const SizedBox(height: 10),
-                    const Text(
+                    Icon(Icons.cloud_upload_outlined,
+                        size: 50, color: Colors.grey),
+                    SizedBox(height: 10),
+                    Text(
                       'Click or drag and drop here to upload',
                       style: TextStyle(fontSize: 14, color: Colors.black54),
                     ),
-                    const SizedBox(height: 5),
-                    const Text(
+                    SizedBox(height: 5),
+                    Text(
                       'File types supported: PDF | Max file size: 50MB',
                       style: TextStyle(fontSize: 12, color: Colors.grey),
                     ),
@@ -310,7 +310,7 @@ class PdfTranslationDialog extends StatelessWidget {
 }
 
 class WebTranslationDialog extends StatelessWidget {
-  const WebTranslationDialog({Key? key}) : super(key: key);
+  const WebTranslationDialog({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -388,4 +388,3 @@ class WebTranslationDialog extends StatelessWidget {
     );
   }
 }
-

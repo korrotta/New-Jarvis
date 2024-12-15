@@ -1,7 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:newjarvis/pages/home_page.dart';
-import 'package:newjarvis/services/auth_provider.dart';
+import 'package:newjarvis/pages/chat_page.dart';
+import 'package:newjarvis/services/api_service.dart';
+import 'package:newjarvis/services/auth_state.dart';
 
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
@@ -9,19 +9,20 @@ class AuthGate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: StreamBuilder(
-          stream: FirebaseAuth.instance.authStateChanges(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasData) {
-              return const HomePage();
-            } else if (snapshot.hasError) {
-              return const Center(child: Text("An error occurred"));
-            } else {
-              return const Authentication();
-            }
-          }),
+      body: FutureBuilder(
+        future: ApiService().isLoggedIn(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasData && snapshot.data == true) {
+            return const ChatPage();
+          } else if (snapshot.hasError) {
+            return const Center(child: Text("An error occurred"));
+          } else {
+            return const Authentication();
+          }
+        },
+      ),
     );
   }
 }

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:newjarvis/providers/auth_provider.dart';
+import 'package:provider/provider.dart';
 
 class SideBar extends StatelessWidget {
   final bool isExpanded;
@@ -18,14 +20,23 @@ class SideBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double sidebarWidth = isExpanded ? 180 : 98;
+    double sidebarWidth = isExpanded ? 220 : 80;
 
     return Container(
       width: sidebarWidth,
-      color: const Color.fromARGB(207, 238, 235, 235),
+      decoration: BoxDecoration(
+        color: Color(0xFF608BC1), // Light blue background
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Column(
         children: [
-          const SizedBox(height: 5),
+          const SizedBox(height: 10),
           Align(
             alignment: Alignment.centerLeft,
             child: Row(
@@ -34,187 +45,135 @@ class SideBar extends StatelessWidget {
                 IconButton(
                   icon: Icon(
                     isExpanded ? Icons.arrow_forward_ios : Icons.arrow_back_ios,
-                    color: Colors.grey[600],
-                    size: 16,
+                    color: Colors.white,
+                    size: 18,
                   ),
                   onPressed: () => onExpandToggle(),
                 ),
-                IconButton(
-                  icon: Icon(Icons.close, color: Colors.grey[600], size: 21),
-                  onPressed: () => onClose(),
-                ),
+                if (isExpanded)
+                  IconButton(
+                    icon: Icon(Icons.close, color: Colors.redAccent, size: 22),
+                    onPressed: () => onClose(),
+                  ),
               ],
             ),
           ),
-          const SizedBox(height: 15),
+          const SizedBox(height: 20),
           Expanded(
-            child: isExpanded ? _buildExpandedMenu() : _buildCollapsedMenu(),
+            child: isExpanded
+                ? _buildExpandedMenu(context)
+                : _buildCollapsedMenu(context),
           ),
+          const SizedBox(height: 10),
+          _buildSignOutButton(context),
         ],
       ),
     );
   }
 
-  Widget _buildExpandedMenu() {
-    return Column(
-      children: [
-        Expanded(
-          child: ListView.builder(
-            itemCount: menuIcons.length,
-            itemBuilder: (context, index) {
-              bool isSelected = selectedIndex == index;
-              return Column(
-                children: [
-                  if (index == 7)
-                    const Divider(
-                      color: Colors.grey,
-                      thickness: 1,
-                      indent: 10,
-                      endIndent: 10,
-                    ),
-                  if (index == 8) const SizedBox(height: 90.0),
-                  GestureDetector(
-                    onTap: () => onItemSelected(index),
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(vertical: 2.0),
-                      decoration: BoxDecoration(
-                        color: isSelected ? Colors.white : Colors.transparent,
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(0),
-                          bottomLeft: Radius.circular(0),
-                          topRight: Radius.circular(300),
-                          bottomRight: Radius.circular(300),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            child: Icon(
-                              menuIcons[index],
-                              color: isSelected
-                                  ? const Color.fromARGB(255, 0, 4, 131)
-                                  : Colors.grey[600],
-                              size: 28,
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 7),
-                            child: Text(
-                              menuLabels[index],
-                              style: TextStyle(
-                                color: isSelected
-                                    ? const Color.fromARGB(255, 0, 4, 131)
-                                    : Colors.grey[600],
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+  Widget _buildExpandedMenu(BuildContext context) {
+    return ListView.builder(
+      itemCount: menuIcons.length,
+      itemBuilder: (context, index) {
+        bool isSelected = selectedIndex == index;
+        return GestureDetector(
+          onTap: () => onItemSelected(index),
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 10),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? Colors.blue[200] // Highlight for selected menu
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Icon(
+                    menuIcons[index],
+                    color: isSelected ? Colors.blue[800] : Colors.white,
+                    size: 24,
+                  ),
+                ),
+                if (isExpanded)
+                  Text(
+                    menuLabels[index],
+                    style: TextStyle(
+                      color: isSelected ? Colors.blue[800] : Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
                     ),
                   ),
-                ],
-              );
-            },
-          ),
-        ),
-        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          const SizedBox(height: 20),
-          Align(
-            alignment: Alignment.center,
-            child: ClipOval(
-              child: Image.asset(
-                "assets/icons/icon.png",
-                width: 26,
-                height: 26,
-                fit: BoxFit.cover,
-              ),
+              ],
             ),
           ),
-        ]),
-      ],
+        );
+      },
     );
   }
 
-  Widget _buildCollapsedMenu() {
-    return Column(
-      children: [
-        Expanded(
-          child: ListView.builder(
-            itemCount: menuIcons.length,
-            itemBuilder: (context, index) {
-              bool isSelected = selectedIndex == index;
-              return Column(
-                children: [
-                  if (index == 7)
-                    const Divider(
-                      color: Colors.grey,
-                      thickness: 1,
-                      indent: 10,
-                      endIndent: 10,
-                    ),
-                  if (index == 8) const SizedBox(height: 70.0),
-                  GestureDetector(
-                    onTap: () => onItemSelected(index),
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 5.0),
-                      decoration: BoxDecoration(
-                        color: isSelected ? Colors.white : Colors.transparent,
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(0),
-                          bottomLeft: Radius.circular(0),
-                          topRight: Radius.circular(360),
-                          bottomRight: Radius.circular(360),
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          Icon(
-                            menuIcons[index],
-                            color: isSelected
-                                ? const Color.fromARGB(255, 0, 4, 131)
-                                : Colors.grey[600],
-                            size: 26,
-                          ),
-                          const SizedBox(height: 3.5),
-                          if (index < 8)
-                            Text(
-                              menuLabels[index],
-                              style: TextStyle(
-                                color: isSelected
-                                    ? const Color.fromARGB(255, 0, 4, 131)
-                                    : Colors.grey[600],
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(bottom: 20.0),
-          child: Align(
-            alignment: Alignment.center,
-            child: ClipOval(
-              child: Image.asset(
-                "assets/icons/icon.png",
-                width: 28,
-                height: 28,
-                fit: BoxFit.cover,
+  Widget _buildCollapsedMenu(BuildContext context) {
+    return ListView.builder(
+      itemCount: menuIcons.length,
+      itemBuilder: (context, index) {
+        bool isSelected = selectedIndex == index;
+        return GestureDetector(
+          onTap: () => onItemSelected(index),
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 5.0),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? Colors.blue[200] // Highlight for selected menu
+                  : Colors.transparent,
+              shape: BoxShape.circle,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Icon(
+                menuIcons[index],
+                color: isSelected ? Colors.blue[800] : Colors.white,
+                size: 28,
               ),
             ),
           ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSignOutButton(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).pop();
+        Provider.of<AuthProvider>(context, listen: false).signOut(context);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 10),
+        decoration: BoxDecoration(
+          color: Colors.redAccent,
         ),
-      ],
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.logout,
+              color: Colors.white,
+              size: 20,
+            ),
+            if (isExpanded) const SizedBox(width: 10),
+            if (isExpanded)
+              const Text(
+                'Sign out',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -244,7 +203,7 @@ const List<String> menuLabels = [
   'Toolkit',
   'Memo',
   'Devices',
-  'Question - Ask',
+  'Help',
   'Settings',
-  'Voucher - Gift',
+  'Gifts',
 ];

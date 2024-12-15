@@ -132,47 +132,57 @@ class _ScreenEmailState extends State<ScreenEmail> {
   Widget _buildOptionEmail() {
     return // Length
         Align(
-            alignment: Alignment.centerLeft,
-            child: LayoutBuilder(builder: (context, constraints) {
-              return Wrap(
-                spacing: 8.0,
-                runSpacing: 8.0,
-                children: List.generate(6, (index) {
-                  return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          selectedSmallIndexLength =
-                              (index >= 0 && index < listLength.length)
-                                  ? index
-                                  : -1;
-                        });
+      alignment: Alignment.centerLeft,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Wrap(
+            spacing: 8.0,
+            runSpacing: 8.0,
+            children: List.generate(
+              6,
+              (index) {
+                return GestureDetector(
+                  onTap: () {
+                    setState(
+                      () {
+                        selectedSmallIndexLength =
+                            (index >= 0 && index < listLength.length)
+                                ? index
+                                : -1;
                       },
-                      child: IntrinsicWidth(
-                          child: Container(
-                        alignment: Alignment.center,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8.0, vertical: 8.0),
-                        decoration: BoxDecoration(
+                    );
+                  },
+                  child: IntrinsicWidth(
+                    child: Container(
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8.0, vertical: 8.0),
+                      decoration: BoxDecoration(
+                        color: selectedSmallIndexLength == index
+                            ? const Color.fromARGB(255, 202, 172, 241)
+                            : Colors.grey[300],
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      child: Text(
+                        listLength[index],
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          fontFamily: "Arial",
                           color: selectedSmallIndexLength == index
-                              ? const Color.fromARGB(255, 202, 172, 241)
-                              : Colors.grey[300],
-                          borderRadius: BorderRadius.circular(8.0),
+                              ? const Color.fromARGB(255, 0, 0, 0)
+                              : Colors.black,
                         ),
-                        child: Text(
-                          listLength[index],
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                            fontFamily: "Arial",
-                            color: selectedSmallIndexLength == index
-                                ? const Color.fromARGB(255, 0, 0, 0)
-                                : Colors.black,
-                          ),
-                        ),
-                      )));
-                }),
-              );
-            }));
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          );
+        },
+      ),
+    );
   }
 
   Widget _buildBottomChat() {
