@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:newjarvis/pages/bots_page.dart';
+import 'package:newjarvis/pages/personal_page.dart';
 import 'package:newjarvis/pages/chat_page.dart';
 import 'package:newjarvis/services/auth_gate.dart';
 
@@ -9,7 +9,7 @@ class RouteController {
 
   static const String auth = '/auth';
   static const String chat = '/chat';
-  static const String bots = '/bots';
+  static const String personal = '/personal';
   static const String email = '/email';
   static const String search = '/search';
   static const String write = '/write';
@@ -22,8 +22,8 @@ class RouteController {
         return MaterialPageRoute(builder: (_) => const AuthGate());
       case chat:
         return MaterialPageRoute(builder: (_) => const ChatPage());
-      case bots:
-        return MaterialPageRoute(builder: (_) => const BotsPage());
+      case personal:
+        return MaterialPageRoute(builder: (_) => const PersonalPage());
       default:
         return MaterialPageRoute(builder: (_) => const AuthGate());
     }
@@ -35,11 +35,8 @@ class RouteController {
         navigatorKey.currentState!.pushNamed(chat);
         break;
       case 1:
-        navigatorKey.currentState!.pushNamed(bots);
+        navigatorKey.currentState!.pushNamed(personal);
         break;
-
-      default:
-        navigatorKey.currentState!.pushNamed(auth);
     }
   }
 
@@ -47,7 +44,7 @@ class RouteController {
     return {
       auth: (context) => const AuthGate(),
       chat: (context) => const ChatPage(),
-      bots: (context) => const BotsPage(),
+      personal: (context) => const PersonalPage(),
     };
   }
 
@@ -58,9 +55,9 @@ class RouteController {
       'route': chat,
     },
     {
-      'icon': Icons.smart_toy_rounded,
-      'label': 'AI Bots',
-      'route': bots,
+      'icon': Icons.person_rounded,
+      'label': 'Personal',
+      'route': personal,
     },
   ];
 }

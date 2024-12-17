@@ -148,7 +148,6 @@ class _ChatPageState extends State<ChatPage> {
 
       await _scrollToBottom();
     } catch (e) {
-      print('Error sending message: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error sending message: $e'),
@@ -168,7 +167,7 @@ class _ChatPageState extends State<ChatPage> {
         remainingUsage = tokenUsage.remainingTokens;
       });
     } catch (e) {
-      print('Error fetching remaining usage: $e');
+      // Error fetching remaining tokens
     }
   }
 
@@ -180,7 +179,7 @@ class _ChatPageState extends State<ChatPage> {
         totalUsage = tokenUsage.totalTokens;
       });
     } catch (e) {
-      print('Error fetching total tokens: $e');
+      // Error fetching total tokens
     }
   }
 
@@ -209,7 +208,7 @@ class _ChatPageState extends State<ChatPage> {
         _conversations = conversations;
       });
     } catch (e) {
-      print('Error fetching conversation history: $e');
+      // Error fetching conversations
     }
   }
 
@@ -244,7 +243,7 @@ class _ChatPageState extends State<ChatPage> {
       _scrollToBottom();
       return history;
     } catch (e) {
-      print('Error fetching conversation history: $e');
+      // Error fetching conversation history
     }
 
     return ConversationHistoryItemModel(
@@ -256,7 +255,6 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void _handleConversationSelect(String id) {
-    print('Selected conversation ID: $id');
     // Get from the first match and the rest of the list
     final List<ConversationItemModel> matchingAndRemaining = _conversations
         .where((conversation) => conversation.id == id)

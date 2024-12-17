@@ -105,7 +105,7 @@ class ApiService {
   }
 
   // Retrieve the token from SharedPreferences
-  Future<String?> _getToken() async {
+  Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
     final expirationTime = prefs.getString('expiration_time');
@@ -129,11 +129,9 @@ class ApiService {
   }
 
   // Get token with refresh
-  Future<String?> _getTokenWithRefresh() async {
-    String? token = await _getToken();
-    if (token == null) {
-      token = await refreshToken();
-    }
+  Future<String?> getTokenWithRefresh() async {
+    String? token = await getToken();
+    token ??= await refreshToken();
     return token;
   }
 
@@ -155,8 +153,6 @@ class ApiService {
         },
       );
 
-      print('Response body: ${response.body}');
-
       if (response.statusCode == 200) {
         // Decode and return JSON response
         final data = jsonDecode(response.body);
@@ -167,7 +163,7 @@ class ApiService {
         // Format the token into access and refresh tokens
         final accessToken = token['accessToken'];
         final refreshToken = token['refreshToken'];
-        final expiresIn = 60;
+        final expiresIn = 60; // Could be different
 
         // Store accessToken in SharedPreferences for future use
         await _storeToken(accessToken, expiresIn);
@@ -182,7 +178,7 @@ class ApiService {
         return {};
       }
     } catch (e) {
-      print("Error during sign in: $e");
+      // Error during sign in
       return {};
     }
   }
@@ -273,7 +269,7 @@ class ApiService {
       roles: [],
     );
 
-    final token = await _getTokenWithRefresh();
+    final token = await getTokenWithRefresh();
 
     if (token == null) {
       throw Exception('No token found. Please sign in.');
@@ -308,7 +304,7 @@ class ApiService {
 
   // Sign out
   Future<http.Response> signOut() async {
-    final token = await _getTokenWithRefresh();
+    final token = await getTokenWithRefresh();
 
     if (token == null) {
       throw Exception('No token found. Please sign in.');
@@ -344,7 +340,7 @@ class ApiService {
 
   // Get token usage
   Future<TokenUsageModel> getTokenUsage() async {
-    final token = await _getTokenWithRefresh();
+    final token = await getTokenWithRefresh();
 
     if (token == null) {
       throw Exception('No token found. Please sign in.');
@@ -395,7 +391,7 @@ class ApiService {
   Future<Map<String, dynamic>> doAIChat({
     required AiChatModel aiChat,
   }) async {
-    final token = await _getTokenWithRefresh();
+    final token = await getTokenWithRefresh();
 
     if (token == null) {
       throw Exception('No token found. Please sign in.');
@@ -439,15 +435,13 @@ class ApiService {
       remainingUsage: 0,
     );
 
-    final token = await _getTokenWithRefresh();
+    final token = await getTokenWithRefresh();
 
     if (token == null) {
       throw Exception('No token found. Please sign in.');
     }
 
     final url = Uri.parse('$_baseUrl/api/v1/ai-chat/messages');
-
-    print('Message: $aiChat');
 
     try {
       final response = await http.post(
@@ -459,13 +453,10 @@ class ApiService {
         body: jsonEncode(aiChat.toJson()),
       );
 
-      print('Response body send message: ${response.body}');
-
       if (response.statusCode == 200) {
         // Decode and return the message response
         final data = jsonDecode(response.body);
         chatResponse = ChatResponseModel.fromJson(data);
-        print('Chat response api: $chatResponse');
 
         return chatResponse;
       } else {
@@ -486,7 +477,7 @@ class ApiService {
     required int? limit,
     required AssistantModel? assistant,
   }) async {
-    final token = await _getTokenWithRefresh();
+    final token = await getTokenWithRefresh();
 
     final assistantId = assistant?.id;
     final assistantModel = assistant?.model;
@@ -512,8 +503,6 @@ class ApiService {
           'Content-Type': 'application/json',
         },
       );
-
-      print('Response body conversations: ${response.body}');
 
       if (response.statusCode == 200) {
         // Decode and return the conversation
@@ -552,7 +541,7 @@ class ApiService {
       files: [],
       query: '',
     );
-    final token = await _getTokenWithRefresh();
+    final token = await getTokenWithRefresh();
 
     final assistantId = assistant?.id;
     final assistantModel = assistant?.model;
@@ -581,8 +570,6 @@ class ApiService {
         },
       );
 
-      print('Response body: ${response.body}');
-
       if (response.statusCode == 200) {
         // Decode and return the conversation history
         final data = jsonDecode(response.body);
@@ -604,7 +591,7 @@ class ApiService {
   }
 
   Future<bool> isLoggedIn() async {
-    final token = await _getToken();
+    final token = await getToken();
     return token != null;
   }
 
@@ -617,11 +604,11 @@ class ApiService {
     bool isFavorite = false,
     bool isPublic = true,
   }) async {
-    final token = await _getToken();
+    final token = await getToken();
     if (token == null) {
       throw Exception('No token found. Please sign in.');
     }
-    print('==token: $token');
+    print('token: $token');
 
     final url = Uri.parse(
         '$_baseUrl/api/v1/prompts?query=$query&offset=$offset&limit=$limit&isFavorite=$isFavorite&isPublic=$isPublic');
@@ -670,7 +657,7 @@ class ApiService {
     required String language,
     required bool isPublic,
   }) async {
-    final token = await _getToken();
+    final token = await getToken();
 
     if (token == null) {
       throw Exception('No token found. Please sign in.');
@@ -730,7 +717,7 @@ class ApiService {
     required String language,
     required bool isPublic,
   }) async {
-    final token = await _getToken();
+    final token = await getToken();
 
     if (token == null) {
       throw Exception('No token found. Please sign in.');
@@ -784,7 +771,7 @@ class ApiService {
     required BuildContext context,
     required String promptId,
   }) async {
-    final String? token = await _getToken(); // Get the token dynamically
+    final String? token = await getToken(); // Get the token dynamically
 
     if (token == null) {
       ScaffoldMessenger.of(context).showSnackBar(
