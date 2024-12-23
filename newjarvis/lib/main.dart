@@ -14,20 +14,20 @@ class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (context) => AuthProvider(context)),
-        ChangeNotifierProvider(create: (context) => ChatState()),
-        ChangeNotifierProvider(create: (context) => PromptState()),
-      ],
-      child: MaterialApp(
-        title: 'New Jarvis',
-        debugShowCheckedModeBanner: false,
-        theme: lightTheme,
-        onGenerateRoute: RouteController.generateRoute,
-        initialRoute: '/auth',
-      ),
-    );
-  }
+    Widget build(BuildContext context) {
+      return MultiProvider(
+          providers: [
+          ChangeNotifierProvider(create: (context) => AuthProvider(context)),
+          ChangeNotifierProvider(create: (context) => ChatState()),
+          ChangeNotifierProvider(create: (context) => PromptState()),
+          ],
+          child: MaterialApp(
+            title: 'New Jarvis',
+            debugShowCheckedModeBanner: false,
+            theme: lightTheme,
+            onGenerateRoute: RouteController.generateRoute,
+            initialRoute: '/auth',
+            ),
+          );
+    }
 }
