@@ -1,171 +1,162 @@
 import 'package:flutter/material.dart';
-import 'package:newjarvis/models/conversation_item_model.dart';
 import 'package:intl/intl.dart';
-import 'package:newjarvis/services/api_service.dart';
-import 'package:provider/provider.dart';
+import 'package:newjarvis/models/conversation_item_model.dart';
 
-class ConversationDrawer extends StatefulWidget {
+class ConversationSidebar extends StatefulWidget {
   final List<ConversationItemModel> conversations;
   final Function(String) onSelectedConversation;
   final String remainingTokens;
   final String totalTokens;
 
-  const ConversationDrawer({
-    super.key,
-    required this.conversations,
-    required this.onSelectedConversation,
-    required this.remainingTokens,
-    required this.totalTokens,
-  });
+  const ConversationSidebar({
+      super.key,
+      required this.conversations,
+      required this.onSelectedConversation,
+      required this.remainingTokens,
+      required this.totalTokens,
+      });
 
   @override
-  State<ConversationDrawer> createState() => _ConversationDrawerState();
+    State<ConversationSidebar> createState() => _ConversationSidebarState();
 }
 
-class _ConversationDrawerState extends State<ConversationDrawer> {
-  bool _isCollapsed = true;
+class _ConversationSidebarState extends State<ConversationSidebar> {
+  bool _isSidebarVisible = false;
 
   String _formatDate(String timestamp) {
     final dateTime = DateTime.fromMillisecondsSinceEpoch(
-      int.parse(timestamp) * 1000,
-    );
+        int.parse(timestamp) * 1000,
+        );
     final dateFormat = DateFormat('dd/MM/yyyy HH:mm');
     return dateFormat.format(dateTime);
   }
 
   @override
-  Widget build(BuildContext context) {
-    if (_isCollapsed) {
-      // Collapsed State: Only the Icon Button
-      return Align(
-        alignment: Alignment.topLeft,
-        child: IconButton(
-          padding: EdgeInsets.zero,
-          icon: Icon(
-            Icons.menu_rounded,
-            size: 32,
-            color: Theme.of(context).colorScheme.inversePrimary,
-          ),
-          onPressed: () {
-            setState(() {
-              _isCollapsed = !_isCollapsed;
-            });
-          },
-        ),
-      );
-    } else {
-      // Expanded State: Full Drawer
-      return SizedBox(
-        width: 250,
-        child: Drawer(
-          backgroundColor: Theme.of(context).colorScheme.surface,
-          elevation: 4,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Drawer Header
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
-                decoration: BoxDecoration(
+    Widget build(BuildContext context) {
+      return Stack(
+          children: [
+          // Top-Left Button to Open Sidebar
+          Align(
+            alignment: Alignment.topLeft,
+            child: IconButton(
+              icon: const Icon(Icons.menu_rounded, size: 32),
+              color: Theme.of(context).colorScheme.inversePrimary,
+              onPressed: () {
+              setState(() {
+                  _isSidebarVisible = true;
+                  });
+              },
+              ),
+            ),
+          // Sidebar
+          if (_isSidebarVisible)
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 300),
+            top: 0,
+            bottom: 0,
+            left: _isSidebarVisible ? 0 : -250,
+            child: Container(
+              width: 250,
+              color: Theme.of(context).colorScheme.surface,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                // Sidebar Header
+                Container(
+                  padding: const EdgeInsets.all(12.0),
                   color: Theme.of(context).colorScheme.surface,
-                  borderRadius: const BorderRadius.only(
-                    bottomRight: Radius.circular(20),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Conversations',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: Theme.of(context).colorScheme.inversePrimary,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                    const Text(
+                      'Conversations',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
                         ),
                       ),
-                    ),
                     IconButton(
-                      padding: EdgeInsets.zero,
-                      icon: Icon(
-                        Icons.close,
-                        color: Theme.of(context).colorScheme.inversePrimary,
-                      ),
+                      icon: const Icon(Icons.close),
                       onPressed: () {
-                        setState(() {
-                          _isCollapsed = !_isCollapsed;
-                        });
+                      setState(() {
+                          _isSidebarVisible = false;
+                          });
                       },
+                      ),
+                    ],
                     ),
-                  ],
-                ),
-              ),
-
-              // List of Conversations
-              Expanded(
-                child: ListView.builder(
-                  itemCount: widget.conversations.length,
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  itemBuilder: (context, index) {
-                    final conversation = widget.conversations[index];
-                    return ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: Colors.blueAccent,
-                        child: const Icon(
-                          Icons.chat,
-                          color: Colors.white,
-                        ),
-                      ),
-                      title: Text(
-                        conversation.title[0].toUpperCase() +
-                            conversation.title.substring(1),
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                      ),
-                      subtitle: Text(
-                        _formatDate(conversation.createdAt.toString()),
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withOpacity(0.7),
-                        ),
-                      ),
-                      onTap: () {
-                        widget.onSelectedConversation(conversation.id);
-                      },
-                    );
-                  },
-                ),
-              ),
-
-              // Drawer Footer (Remaining Tokens)
-              Container(
-                padding: const EdgeInsets.all(12.0),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(20),
                   ),
-                ),
-                child: Text(
-                  'Remaining Tokens: ${widget.remainingTokens} / ${widget.totalTokens}',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
+                  // Conversation List
+                  Expanded(
+                      child: widget.conversations.isNotEmpty
+                      ? ListView.builder(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        itemCount: widget.conversations.length,
+                        itemBuilder: (context, index) {
+                        final conversation =
+                        widget.conversations[index];
+                        return ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: Colors.blueAccent,
+                              child: const Icon(
+                                Icons.chat,
+                                color: Colors.white,
+                                ),
+                              ),
+                            title: Text(
+                              conversation.title[0].toUpperCase() +
+                              conversation.title.substring(1),
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                ),
+                              ),
+                            subtitle: Text(
+                              _formatDate(
+                                conversation.createdAt.toString()),
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withOpacity(0.7),
+                                ),
+                              ),
+                            onTap: () {
+                              widget
+                                .onSelectedConversation(conversation.id);
+                              setState(() {
+                                  _isSidebarVisible = false;
+                                  });
+                            },
+                            );
+                        },
+                        )
+                          : const Center(
+                              child: Text(
+                                'No conversations available.',
+                                style: TextStyle(fontSize: 14),
+                                ),
+                              ),
+                          ),
+                          // Sidebar Footer (Remaining Tokens)
+                          Container(
+                              padding: const EdgeInsets.all(12.0),
+                              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                              child: Text(
+                                'Remaining Tokens: ${widget.remainingTokens} / ${widget.totalTokens}',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                          ],
+                          ),
+                          ),
+                          ),
+                          ],
+                          );
     }
-  }
 }
