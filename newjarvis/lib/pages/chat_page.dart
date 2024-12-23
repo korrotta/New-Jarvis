@@ -326,11 +326,6 @@ class _ChatPageState extends State<ChatPage> {
                     child: ConversationDrawer(
                       conversations: _conversations,
                       onSelectedConversation: _handleConversationSelect,
-                      // onToggleDrawer: () {
-                      //   setState(() {
-                      //     isDrawerVisible = !isDrawerVisible;
-                      //   });
-                      // },
                       remainingTokens: remainingUsage,
                       totalTokens: totalUsage,
                     ),

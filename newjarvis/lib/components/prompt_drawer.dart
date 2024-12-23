@@ -5,17 +5,21 @@ import 'package:newjarvis/components/public_prompt_view.dart';
 import 'package:newjarvis/states/prompts_state.dart';
 import 'package:provider/provider.dart';
 
+import '../states/category_state.dart';
+
 class PromptDrawerContent extends StatelessWidget {
   const PromptDrawerContent({super.key});
 
   @override
   Widget build(BuildContext context) {
     final promptState = Provider.of<PromptState>(context, listen: false);
+    final selectedCategory = Provider.of<CategoryState>(context).selectedCategory;
 
-    // Trigger fetching prompts when the widget is initialized
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      promptState.fetchPrompts(context);
-    });
+    // // Trigger fetching prompts when the widget is initialized
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   promptState.fetchPrivatePrompts(context);
+    //   promptState.fetchPublicPrompts(context);
+    // });
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -57,7 +61,8 @@ class PromptDrawerContent extends StatelessWidget {
                           context: context,
                           builder: (context) => NewPromptDialog(
                             refresh: () {
-                              promptState.fetchPrompts(context);
+                              promptState.fetchPrivatePrompts(context);
+                              promptState.fetchPublicPrompts(context, selectedCategory);
                             },
                           ),
                         );
@@ -122,8 +127,8 @@ class PromptDrawerContent extends StatelessWidget {
               return state.isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : state.isPublicPromptSelected
-                      ? PublicPromptsView(prompts: state.publicPrompts)
-                      : MyPromptsView(prompts: state.privatePrompts);
+                      ? PublicPromptsView()
+                      : MyPromptsView();
             },
           ),
         ),

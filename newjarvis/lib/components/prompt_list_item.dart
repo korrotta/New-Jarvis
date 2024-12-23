@@ -52,7 +52,7 @@ class PromptListItem extends StatelessWidget {
     if (confirm) {
       await apiService.deletePrompt(context: context, promptId: promptId);
       // refresh list
-      Provider.of<PromptState>(context, listen: false).fetchPrompts(context);
+      Provider.of<PromptState>(context, listen: false).fetchPrivatePrompts(context);
     }
   }
 

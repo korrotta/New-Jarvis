@@ -62,7 +62,7 @@ class _PromptDetailBottomSheetState extends State<PromptDetailBottomSheet> {
           const SnackBar(content: Text('Prompt updated successfully!')),
         );
         // refresh the prompt list
-        Provider.of<PromptState>(context, listen: false).fetchPrompts(context);
+        Provider.of<PromptState>(context, listen: false).fetchPrivatePrompts(context);
         print('Prompt updated: $response');
       }
     } catch (e) {

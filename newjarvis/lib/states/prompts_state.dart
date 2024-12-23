@@ -13,19 +13,32 @@ class PromptState with ChangeNotifier {
     notifyListeners(); // Notify listeners of the change
   }
 
-  Future<void> fetchPrompts(BuildContext context) async {
+  Future<void> fetchPublicPrompts(BuildContext context,[String? category]) async {
     isLoading = true;
     notifyListeners(); // Notify listeners of state change
-
+  
     try {
       // Fetch public prompts
       publicPrompts = await ApiService().getPrompts(
         context: context,
+        category: category == '' ? 'business' : category,
         isPublic: true,
         isFavorite: false,
         limit: 20,
       );
-
+    } catch (e) {
+      print("Error fetching public prompts: $e");
+    } finally {
+      isLoading = false;
+      notifyListeners(); // Notify listeners of state change
+    }
+  }
+  
+  Future<void> fetchPrivatePrompts(BuildContext context, [String? category]) async {
+    isLoading = true;
+    notifyListeners(); // Notify listeners of state change
+  
+    try {
       // Fetch private prompts
       privatePrompts = await ApiService().getPrompts(
         context: context,
@@ -34,7 +47,7 @@ class PromptState with ChangeNotifier {
         limit: 20,
       );
     } catch (e) {
-      print("Error fetching prompts: $e");
+      print("Error fetching private prompts: $e");
     } finally {
       isLoading = false;
       notifyListeners(); // Notify listeners of state change
