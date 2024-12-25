@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:newjarvis/components/custom_textfield.dart';
 import 'package:newjarvis/components/floating_button.dart';
 import 'package:newjarvis/components/route_controller.dart';
 import 'package:newjarvis/components/side_bar.dart';
+import 'package:newjarvis/models/basic_user_model.dart';
 import 'package:newjarvis/providers/auth_provider.dart';
 import 'package:newjarvis/services/api_service.dart';
 import 'package:newjarvis/services/knowledge_api_service.dart';
@@ -127,74 +129,195 @@ class _PersonalPageState extends State<PersonalPage> {
   }
 
   Widget _buildPageContent(BuildContext context) {
+    final BasicUserModel? currentUser =
+        Provider.of<AuthProvider>(context).currentUser;
+
+    TextEditingController assistantNameController = TextEditingController();
+    TextEditingController assistantDescriptionController =
+        TextEditingController();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              "Personal",
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.inversePrimary,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Icon(
+                  Icons.person,
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                ),
+                Text(
+                  "Personal",
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.inversePrimary,
+                  ),
+                ),
+              ],
             ),
-            CircleAvatar(
-              child: Text('T'),
-              backgroundColor: Colors.blue.shade100,
+            // Display current user name
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                CircleAvatar(
+                  backgroundColor: Colors.blue.shade100,
+                  child: currentUser?.username != null
+                      ? Text(currentUser!.username![0].toUpperCase())
+                      : const Icon(Icons.person),
+                ),
+                const SizedBox(width: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      currentUser?.username ?? "Unknown",
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.inversePrimary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      currentUser?.email ?? "Unknown",
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.inversePrimary,
+                      ),
+                    ),
+                  ],
+                )
+              ],
             ),
           ],
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            TextButton(
-              onPressed: () {},
-              child: Text(
-                "Bots",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
+            // Dropdown and Search Bar
+            Row(
+              children: [
+                DropdownButton<String>(
+                  value: "All",
+                  items: const [
+                    DropdownMenuItem(
+                      value: "All",
+                      child: Text("All"),
+                    ),
+                    DropdownMenuItem(
+                      value: "Favorites",
+                      child: Text("Favorites"),
+                    ),
+                  ],
+                  onChanged: (value) {},
+                ),
+                const SizedBox(
+                    width: 16), // Add space between dropdown and search bar
+                Container(
+                  width: 300,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: "Search",
+                      prefixIcon: const Icon(Icons.search),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            TextButton(
-              onPressed: () {},
-              child: Text(
-                "Knowledge",
-                style: TextStyle(color: Colors.grey, fontSize: 16),
+
+            // Spacer to push the Create button to the far right
+            ElevatedButton.icon(
+              onPressed: () {
+                // Show the create bot dialog
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    // Dialog include (title, assistant name*, assistant description, create button, cancel button)
+                    return AlertDialog(
+                      title: const Text("Create Assistant"),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 15),
+                          const Text("Assistant name"),
+                          const SizedBox(height: 5),
+                          CustomTextfield(
+                            validator: (p0) =>
+                                p0!.isEmpty ? "Name is required" : null,
+                            hintText: "",
+                            initialObscureText: false,
+                            controller: assistantNameController,
+                          ),
+                          const SizedBox(height: 15),
+                          const Text("Assistant description"),
+                          const SizedBox(height: 5),
+                          CustomTextfield(
+                            hintText: "",
+                            initialObscureText: false,
+                            controller: assistantDescriptionController,
+                          ),
+                          const SizedBox(height: 5),
+                        ],
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text("Cancel"),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            _knowledgeApiService.createAssistant(
+                              assistantNameController.text,
+                            );
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text("Create"),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+              icon: const Icon(Icons.add),
+              label: const Text("Create bot"),
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(120, 48),
               ),
             ),
           ],
         ),
-        Divider(),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: TextField(
-            decoration: InputDecoration(
-              hintText: "Search",
-              prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
-        ),
-        SizedBox(height: 16),
+
+        const SizedBox(height: 16),
+
+        // List of assistants
         Expanded(
           child: ListView(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             children: [
               Card(
                 elevation: 2,
                 child: ListTile(
                   leading: CircleAvatar(
                     backgroundColor: Colors.blue.shade100,
-                    child: Icon(Icons.smart_toy, color: Colors.blue),
+                    child: const Icon(Icons.smart_toy, color: Colors.blue),
                   ),
-                  title: Text("tent"),
-                  subtitle: Text("Software engineer"),
-                  trailing: Row(
+                  title: const Text("tent"),
+                  subtitle: const Text("Software engineer"),
+                  trailing: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.star_border),
@@ -207,14 +330,17 @@ class _PersonalPageState extends State<PersonalPage> {
             ],
           ),
         ),
+
         Padding(
           padding: const EdgeInsets.all(16.0),
           child: ElevatedButton.icon(
-            onPressed: () {},
-            icon: Icon(Icons.add),
-            label: Text("Create bot"),
+            onPressed: () {
+              _knowledgeApiService.getAssistants();
+            },
+            icon: const Icon(Icons.refresh),
+            label: const Text("Get Assistants"),
             style: ElevatedButton.styleFrom(
-              minimumSize: Size(double.infinity, 48), // Full-width button
+              minimumSize: const Size(double.infinity, 48),
             ),
           ),
         ),

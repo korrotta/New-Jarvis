@@ -226,7 +226,11 @@ class ApiService {
     final token = await _getRefreshToken();
 
     if (token == null) {
-      throw Exception('No token found. Please sign in.');
+      // Delete the token from SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('auth_token');
+      await prefs.remove('expiration_time');
+      return null;
     }
 
     final url = Uri.parse('$_baseUrl/api/v1/auth/refresh').replace(

@@ -130,6 +130,8 @@ class _ChatPageState extends State<ChatPage> {
 
       // Update the last message with AI's response
       setState(() {
+        _fetchRemainingUsage();
+        _fetchTotalTokens();
         _conversationHistoryFuture =
             _conversationHistoryFuture!.then((history) {
           // Replace the placeholder with the final response
