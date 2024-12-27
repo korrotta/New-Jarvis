@@ -17,17 +17,37 @@ class PersonalPage extends StatefulWidget {
 }
 
 class _PersonalPageState extends State<PersonalPage> {
+  List<dynamic> assistants = []; // Fetched assistants
   final KnowledgeApiService _knowledgeApiService = KnowledgeApiService();
   int selectedIndex = 1;
   bool isExpanded = false;
   bool isSidebarVisible = false;
   bool isDrawerVisible = false;
   double dragOffset = 200.0;
+  bool isLoading = false;
 
   @override
   void initState() {
     super.initState();
     _loginKnowledgeApi();
+    _getAssistants();
+  }
+
+  Future<void> _getAssistants() async {
+    try {
+      final fetchedAssistants = await _knowledgeApiService.getAssistants();
+      setState(() {
+        assistants = fetchedAssistants['data'];
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load assistants: $e')),
+      );
+    }
   }
 
   void _onItemTapped(int index) {
@@ -279,13 +299,27 @@ class _PersonalPageState extends State<PersonalPage> {
                           child: const Text("Cancel"),
                         ),
                         ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blueAccent,
+                          ),
                           onPressed: () {
+                            final assistantName =
+                                assistantNameController.text.trim();
+                            final assistantDescription =
+                                assistantDescriptionController.text.trim();
+
+                            print('Assistant Name: $assistantName');
+                            print(
+                                'Assistant Description: $assistantDescription');
+
                             _knowledgeApiService.createAssistant(
-                              assistantNameController.text,
-                            );
+                                assistantName, assistantDescription);
                             Navigator.of(context).pop();
                           },
-                          child: const Text("Create"),
+                          child: const Text(
+                            "Create",
+                            style: TextStyle(color: Colors.white),
+                          ),
                         ),
                       ],
                     );
@@ -305,29 +339,52 @@ class _PersonalPageState extends State<PersonalPage> {
 
         // List of assistants
         Expanded(
-          child: ListView(
+          child: ListView.builder(
             padding: const EdgeInsets.all(16),
-            children: [
-              Card(
+            itemCount: assistants.length,
+            itemBuilder: (context, index) {
+              final assistant = assistants[index];
+              return Card(
                 elevation: 2,
                 child: ListTile(
                   leading: CircleAvatar(
                     backgroundColor: Colors.blue.shade100,
                     child: const Icon(Icons.smart_toy, color: Colors.blue),
                   ),
-                  title: const Text("tent"),
-                  subtitle: const Text("Software engineer"),
-                  trailing: const Row(
+                  title: Text(assistant['assistantName'] ?? 'Unknown Name'),
+                  subtitle: Text(
+                      assistant['description'] ?? 'No description available'),
+                  trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.star_border),
-                      SizedBox(width: 16),
-                      Icon(Icons.delete_outline),
+                      IconButton(
+                        icon: Icon(
+                          assistant['isFavorite'] == true
+                              ? Icons.star
+                              : Icons.star_border,
+                          color: assistant['isFavorite'] == true
+                              ? Colors.yellow
+                              : null,
+                        ),
+                        onPressed: () {
+                          // Add your logic to toggle favorite status
+                          print(
+                              'Favorite toggled for: ${assistant['assistantName']}');
+                        },
+                      ),
+                      const SizedBox(width: 16),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline),
+                        onPressed: () {
+                          // Add your logic to delete the assistant
+                          print('Deleted: ${assistant['assistantName']}');
+                        },
+                      ),
                     ],
                   ),
                 ),
-              ),
-            ],
+              );
+            },
           ),
         ),
 

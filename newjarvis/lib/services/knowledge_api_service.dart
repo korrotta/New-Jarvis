@@ -101,7 +101,7 @@ class KnowledgeApiService {
   }
 
   // Create a new Assistant
-  Future<Map<String, dynamic>> createAssistant(String name) async {
+  Future<Map<String, dynamic>> createAssistant(String name, String desc) async {
     final url = Uri.parse('$_baseUrl/kb-core/v1/ai-assistant');
     final token = await _getToken();
     final response = await http.post(
@@ -110,11 +110,12 @@ class KnowledgeApiService {
         'Authorization': 'Bearer $token',
       },
       body: {
-        'name': name,
+        'assistantName': name,
+        'description': desc,
       },
     );
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 201) {
       final result = jsonDecode(response.body);
       print(result);
       return result;

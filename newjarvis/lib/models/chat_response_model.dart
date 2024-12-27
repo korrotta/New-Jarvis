@@ -24,4 +24,9 @@ class ChatResponseModel {
     data['remainingUsage'] = remainingUsage;
     return data;
   }
+
+  @override
+  String toString() {
+    return 'ChatResponseModel{id: $id, message: $message, remainingUsage: $remainingUsage}';
+  }
 }

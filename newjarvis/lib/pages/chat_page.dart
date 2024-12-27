@@ -39,6 +39,7 @@ class _ChatPageState extends State<ChatPage> {
   final ScrollController _scrollController = ScrollController();
   String remainingUsage = '0';
   String totalUsage = '0';
+  String AiAgent = Id.CLAUDE_3_HAIKU_20240307.value; // Default AI Agent
 
   @override
   void initState() {
@@ -119,7 +120,7 @@ class _ChatPageState extends State<ChatPage> {
         context: context,
         aiChat: AiChatModel(
           assistant: AssistantModel(
-            id: Id.GPT_4_O.value,
+            id: AiAgent,
             model: Model.dify.name,
           ),
           content: chat,
@@ -194,7 +195,7 @@ class _ChatPageState extends State<ChatPage> {
   // Fetch all conversations
   Future<void> _fetchAllConversations() async {
     final assistant = AssistantModel(
-      id: Id.GPT_4_O.value,
+      id: AiAgent,
       model: Model.dify.name,
     );
 
@@ -203,7 +204,7 @@ class _ChatPageState extends State<ChatPage> {
           await apiService.getConversations(
         context: context,
         cursor: null,
-        limit: 15,
+        limit: 100,
         assistant: assistant,
       );
       setState(() {
@@ -230,7 +231,7 @@ class _ChatPageState extends State<ChatPage> {
   Future<ConversationHistoryItemModel> _getConversationHistory(
       String conversationId) async {
     final assistant = AssistantModel(
-      id: Id.GPT_4_O.value,
+      id: AiAgent,
       model: Model.dify.name,
     );
 
@@ -254,6 +255,18 @@ class _ChatPageState extends State<ChatPage> {
       files: [],
       createdAt: 0,
     );
+  }
+
+  void _handleSelectedAI(BuildContext context, String aiId) {
+    setState(() {
+      AiAgent = aiId;
+    });
+
+    // Fetch all conversations
+    _fetchAllConversations();
+    // Fetch token usage
+    _fetchRemainingUsage();
+    _fetchTotalTokens();
   }
 
   void _handleConversationSelect(String id) {
@@ -367,6 +380,7 @@ class _ChatPageState extends State<ChatPage> {
               ),
         bottomNavigationBar: BottomNavSection(
           onSend: (chat) => _handleSend(context, chat),
+          onAiSelected: (aiId) => _handleSelectedAI(context, aiId),
         ),
       ),
     );

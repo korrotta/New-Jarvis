@@ -462,6 +462,8 @@ class ApiService {
         final data = jsonDecode(response.body);
         chatResponse = ChatResponseModel.fromJson(data);
 
+        print('response ai id: ${data['aiId']}');
+
         return chatResponse;
       } else {
         _showErrorSnackbar(context,

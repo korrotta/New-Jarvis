@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:newjarvis/components/custom_button.dart';
 import 'package:newjarvis/components/custom_textfield.dart';
 import 'package:newjarvis/services/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   // Page navigation
@@ -27,6 +28,65 @@ class _LoginPageState extends State<LoginPage> {
 
   // Loading state
   bool isLoading = false;
+
+  // Remember me state
+  bool rememberMe = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkRememberMe();
+  }
+
+  // Check if user credentials are stored
+  Future<void> _checkRememberMe() async {
+    final prefs = await SharedPreferences.getInstance();
+    print(prefs.getKeys());
+    final email = prefs.getString('email');
+    final password = prefs.getString('password');
+    if (email != null && password != null) {
+      _emailController.text = email;
+      _passwordController.text = password;
+      setState(() {
+        rememberMe = true;
+      });
+      _autoLogin(email, password);
+    }
+  }
+
+  // Auto login
+  Future<void> _autoLogin(String email, String password) async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final response = await apiService.signIn(
+        email: email,
+        password: password,
+        context: context,
+      );
+
+      if (!mounted) return;
+
+      print("Auto login response: $response");
+
+      if (response.isNotEmpty) {
+        Navigator.pushReplacementNamed(context, '/chat');
+      } else {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
 
   // Check network connectivity
   Future<bool> checkNetworkConnectivity() async {
@@ -60,6 +120,7 @@ class _LoginPageState extends State<LoginPage> {
       setState(() {
         isLoading = false;
       });
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No internet connection')),
       );
@@ -81,6 +142,14 @@ class _LoginPageState extends State<LoginPage> {
       });
 
       if (response.isNotEmpty) {
+        print("Remember me: $rememberMe");
+        if (rememberMe) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('email', email);
+          await prefs.setString('password', password);
+          print(prefs.getKeys());
+        }
+        if (!mounted) return;
         Navigator.pushReplacementNamed(context, '/chat');
       } else {
         // ScaffoldMessenger.of(context).showSnackBar(
@@ -216,11 +285,32 @@ class _LoginPageState extends State<LoginPage> {
                       children: [
                         Row(
                           children: [
-                            Checkbox(value: false, onChanged: (value) {}),
-                            Text(
-                              "Remember me",
-                              style: TextStyle(
-                                  color: Theme.of(context).colorScheme.primary),
+                            Checkbox(
+                              activeColor: Colors.blueAccent,
+                              checkColor: Colors.white,
+                              value: rememberMe,
+                              onChanged: (value) {
+                                setState(() {
+                                  rememberMe = value!;
+                                });
+                              },
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  rememberMe = !rememberMe;
+                                });
+                              },
+                              child: MouseRegion(
+                                cursor: SystemMouseCursors.click,
+                                child: Text(
+                                  "Remember me",
+                                  style: TextStyle(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primary),
+                                ),
+                              ),
                             ),
                           ],
                         ),
