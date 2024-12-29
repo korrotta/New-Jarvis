@@ -18,6 +18,9 @@ dependencies:
   firebase_core: ^3.9.0
   firebase_auth: ^5.3.4
   google_sign_in: ^6.2.2
+  mime: ^2.0.0
+  http_parser: ^4.0.2
+  file_picker: ^8.1.7
 
 flutter_launcher_icons:
   android: "launcher_icon"
@@ -46,6 +49,9 @@ flutter:
     - assets/icons/gemini.png
     - assets/icons/gpt.png
     - assets/icons/google.png
+    - assets/icons/iconDrive.png
+    - assets/icons/iconSlack.png
+    - assets/icons/iconConfluence.png
 
   # fonts:
   #   - family: Schyler

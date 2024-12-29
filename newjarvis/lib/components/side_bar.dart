@@ -186,11 +186,14 @@ class SideBar extends StatelessWidget {
 const List<IconData> menuIcons = [
   Icons.chat_bubble_rounded,
   Icons.person_rounded,
+  Icons.book_rounded,
   Icons.settings_outlined,
+  
 ];
 
 const List<String> menuLabels = [
   'Chat',
   'Personal',
+  'Knowledge Base',
   'Settings',
 ];
