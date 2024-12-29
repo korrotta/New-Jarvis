@@ -41,7 +41,6 @@ class _ChatInputSectionState extends State<ChatInputSection> {
     void _onTextChanged(BuildContext context, String value) {
         final chatState = Provider.of<ChatState>(context, listen: false);
         chatState.updateChatInput(value);
-
         if (_debounceTimer?.isActive ?? false) {
             _debounceTimer!.cancel();
         }

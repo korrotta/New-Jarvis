@@ -42,7 +42,7 @@ class AuthProvider extends ChangeNotifier {
   Future<void> signOut(BuildContext context) async {
     await apiService.signOut();
     _currentUser = null;
-    Navigator.pushNamed(context, '/auth');
+
     notifyListeners();
   }
 }

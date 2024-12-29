@@ -1,8 +1,12 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:newjarvis/components/custom_button.dart';
 import 'package:newjarvis/components/custom_textfield.dart';
 import 'package:newjarvis/services/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginPage extends StatefulWidget {
   // Page navigation
@@ -25,8 +29,70 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  // Firebase Auth instance (for Google Sign in)
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
   // Loading state
   bool isLoading = false;
+
+  // Remember me state
+  bool rememberMe = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkRememberMe();
+  }
+
+  // Check if user credentials are stored
+  Future<void> _checkRememberMe() async {
+    final prefs = await SharedPreferences.getInstance();
+    print(prefs.getKeys());
+    final email = prefs.getString('email');
+    final password = prefs.getString('password');
+    if (email != null && password != null) {
+      _emailController.text = email;
+      _passwordController.text = password;
+      setState(() {
+        rememberMe = true;
+      });
+      _autoLogin(email, password);
+    }
+  }
+
+  // Auto login
+  Future<void> _autoLogin(String email, String password) async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final response = await apiService.signIn(
+        email: email,
+        password: password,
+        context: context,
+      );
+
+      if (!mounted) return;
+
+      print("Auto login response: $response");
+
+      if (response.isNotEmpty) {
+        Navigator.pushReplacementNamed(context, '/chat');
+      } else {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
 
   // Check network connectivity
   Future<bool> checkNetworkConnectivity() async {
@@ -60,6 +126,7 @@ class _LoginPageState extends State<LoginPage> {
       setState(() {
         isLoading = false;
       });
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No internet connection')),
       );
@@ -81,11 +148,103 @@ class _LoginPageState extends State<LoginPage> {
       });
 
       if (response.isNotEmpty) {
+        print("Remember me: $rememberMe");
+        if (rememberMe) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('email', email);
+          await prefs.setString('password', password);
+          print(prefs.getKeys());
+        }
+        if (!mounted) return;
         Navigator.pushReplacementNamed(context, '/chat');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login failed')),
-        );
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   const SnackBar(content: Text('Invalid email or password')),
+        // );
+        return;
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      // Set loading state
+      setState(() {
+        isLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
+  // Google Sign in
+  void googleSignIn() async {
+    // Set loading state
+    setState(() {
+      isLoading = true;
+    });
+
+    if (!mounted) return;
+
+    // Check network connectivity
+    bool isConnected = await checkNetworkConnectivity();
+    if (!isConnected) {
+      setState(() {
+        isLoading = false;
+      });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No internet connection')),
+      );
+      return;
+    }
+
+    if (!mounted) return;
+
+    try {
+      await Firebase.initializeApp();
+
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+      if (googleUser == null) {
+        setState(() {
+          isLoading = false;
+        });
+        return;
+      }
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final UserCredential userCredential =
+          await _auth.signInWithCredential(credential);
+
+      print('User: ${userCredential.user}');
+      print('Google sign in token: ${googleAuth.idToken}');
+
+      final googleToken = googleAuth.idToken;
+
+      // Await the response from the googleSignIn API
+      final response = await apiService.googleSignIn(
+          idToken: googleToken!, context: context);
+
+      if (!mounted) return;
+
+      // Set loading state
+      setState(() {
+        isLoading = false;
+      });
+
+      if (response != null) {
+        if (!mounted) return;
+        Navigator.pushReplacementNamed(context, '/chat');
+      } else {
+        return;
       }
     } catch (e) {
       if (!mounted) return;
@@ -169,7 +328,7 @@ class _LoginPageState extends State<LoginPage> {
                   // Email textfield
                   CustomTextfield(
                     hintText: "Email",
-                    obscureText: false,
+                    initialObscureText: false,
                     controller: _emailController,
                     validator: (email) {
                       if (email == null || email.isEmpty) {
@@ -187,7 +346,7 @@ class _LoginPageState extends State<LoginPage> {
                   // Password textfield
                   CustomTextfield(
                     hintText: "Password",
-                    obscureText: true,
+                    initialObscureText: true,
                     controller: _passwordController,
                     validator: (password) {
                       if (password == null || password.isEmpty) {
@@ -215,11 +374,32 @@ class _LoginPageState extends State<LoginPage> {
                       children: [
                         Row(
                           children: [
-                            Checkbox(value: false, onChanged: (value) {}),
-                            Text(
-                              "Remember me",
-                              style: TextStyle(
-                                  color: Theme.of(context).colorScheme.primary),
+                            Checkbox(
+                              activeColor: Colors.blueAccent,
+                              checkColor: Colors.white,
+                              value: rememberMe,
+                              onChanged: (value) {
+                                setState(() {
+                                  rememberMe = value!;
+                                });
+                              },
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  rememberMe = !rememberMe;
+                                });
+                              },
+                              child: MouseRegion(
+                                cursor: SystemMouseCursors.click,
+                                child: Text(
+                                  "Remember me",
+                                  style: TextStyle(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primary),
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -252,67 +432,71 @@ class _LoginPageState extends State<LoginPage> {
 
             const SizedBox(height: 10),
 
-            // // -- OR --
-            // Row(
-            //   children: [
-            //     Expanded(
-            //       child: Container(
-            //         margin: const EdgeInsets.only(left: 20, right: 10),
-            //         child: Divider(
-            //           color: Theme.of(context).colorScheme.inversePrimary,
-            //         ),
-            //       ),
-            //     ),
-            //     Text(
-            //       "OR LOGIN WITH",
-            //       style: TextStyle(
-            //         color: Theme.of(context).colorScheme.inversePrimary,
-            //         fontSize: 16,
-            //       ),
-            //     ),
-            //     Expanded(
-            //       child: Container(
-            //         margin: const EdgeInsets.only(left: 10, right: 20),
-            //         child: Divider(
-            //           color: Theme.of(context).colorScheme.inversePrimary,
-            //         ),
-            //       ),
-            //     ),
-            //   ],
-            // ),
+            // -- OR --
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    margin: const EdgeInsets.only(left: 20, right: 10),
+                    child: Divider(
+                      color: Theme.of(context).colorScheme.inversePrimary,
+                    ),
+                  ),
+                ),
+                Text(
+                  "OR",
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.inversePrimary,
+                    fontSize: 16,
+                  ),
+                ),
+                Expanded(
+                  child: Container(
+                    margin: const EdgeInsets.only(left: 10, right: 20),
+                    child: Divider(
+                      color: Theme.of(context).colorScheme.inversePrimary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
 
-            // const SizedBox(height: 10),
+            const SizedBox(height: 10),
 
-            // // Jarvis sign in
-            // Container(
-            //   margin: const EdgeInsets.symmetric(horizontal: 20),
-            //   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            //   decoration: BoxDecoration(
-            //     color: Theme.of(context).colorScheme.tertiary,
-            //     borderRadius: BorderRadius.circular(8),
-            //     border: Border.all(
-            //       color: Theme.of(context).colorScheme.primary,
-            //     ),
-            //   ),
-            //   child: Row(
-            //     mainAxisAlignment: MainAxisAlignment.center,
-            //     children: [
-            //       Image.asset(
-            //         "assets/icons/icon.png",
-            //         width: 30,
-            //         height: 30,
-            //       ),
-            //       const SizedBox(width: 10),
-            //       Text(
-            //         "Jarvis",
-            //         style: TextStyle(
-            //           color: Theme.of(context).colorScheme.inversePrimary,
-            //           fontSize: 16,
-            //         ),
-            //       )
-            //     ],
-            //   ),
-            // ),
+            // Google sign in
+            GestureDetector(
+              onTap: googleSignIn,
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.tertiary,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      "assets/icons/google.png",
+                      width: 30,
+                      height: 30,
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      "Sign in with Google",
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.inversePrimary,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
 
             const SizedBox(height: 10),
 

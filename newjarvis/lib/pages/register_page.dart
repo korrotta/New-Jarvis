@@ -159,7 +159,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 // Username textfield with validation
                 CustomTextfield(
                   hintText: "Username",
-                  obscureText: false,
+                  initialObscureText: false,
                   controller: _usernameController,
                   validator: (value) {
                     if (value == null ||
@@ -177,7 +177,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 // Email textfield with validation
                 CustomTextfield(
                   hintText: "Email",
-                  obscureText: false,
+                  initialObscureText: false,
                   controller: _emailController,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -195,7 +195,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 // Password textfield with validation
                 CustomTextfield(
                   hintText: "Password",
-                  obscureText: true,
+                  initialObscureText: true,
                   controller: _passwordController,
                   validator: (value) {
                     if (value == null || value.isEmpty) {

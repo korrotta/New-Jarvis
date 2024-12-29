@@ -25,7 +25,7 @@ class SideBar extends StatelessWidget {
     return Container(
       width: sidebarWidth,
       decoration: BoxDecoration(
-        color: Color(0xFF608BC1), // Light blue background
+        color: const Color(0xFF608BC1), // Light blue background
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
@@ -41,6 +41,7 @@ class SideBar extends StatelessWidget {
             alignment: Alignment.centerLeft,
             child: Row(
               mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 IconButton(
                   icon: Icon(
@@ -52,7 +53,11 @@ class SideBar extends StatelessWidget {
                 ),
                 if (isExpanded)
                   IconButton(
-                    icon: Icon(Icons.close, color: Colors.redAccent, size: 22),
+                    icon: const Icon(
+                      Icons.close,
+                      color: Colors.redAccent,
+                      size: 22,
+                    ),
                     onPressed: () => onClose(),
                   ),
               ],
@@ -150,7 +155,7 @@ class SideBar extends StatelessWidget {
       },
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 10),
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.redAccent,
         ),
         child: Row(
@@ -180,30 +185,12 @@ class SideBar extends StatelessWidget {
 
 const List<IconData> menuIcons = [
   Icons.chat_bubble_rounded,
-  Icons.email_outlined,
-  Icons.search_outlined,
-  Icons.edit_outlined,
-  Icons.translate_outlined,
-  Icons.brush_outlined,
-  Icons.home_repair_service_outlined,
-  Icons.bookmark_add_outlined,
-  Icons.devices_outlined,
-  Icons.help_outline,
+  Icons.person_rounded,
   Icons.settings_outlined,
-  Icons.card_giftcard_outlined,
 ];
 
 const List<String> menuLabels = [
   'Chat',
-  'Email',
-  'Search',
-  'Write',
-  'Translate',
-  'Art',
-  'Toolkit',
-  'Memo',
-  'Devices',
-  'Help',
+  'Personal',
   'Settings',
-  'Gifts',
 ];

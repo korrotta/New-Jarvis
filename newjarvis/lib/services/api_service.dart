@@ -105,7 +105,7 @@ class ApiService {
   }
 
   // Retrieve the token from SharedPreferences
-  Future<String?> _getToken() async {
+  Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
     final expirationTime = prefs.getString('expiration_time');
@@ -129,11 +129,9 @@ class ApiService {
   }
 
   // Get token with refresh
-  Future<String?> _getTokenWithRefresh() async {
-    String? token = await _getToken();
-    if (token == null) {
-      token = await refreshToken();
-    }
+  Future<String?> getTokenWithRefresh() async {
+    String? token = await getToken();
+    token ??= await refreshToken();
     return token;
   }
 
@@ -155,8 +153,6 @@ class ApiService {
         },
       );
 
-      print('Response body: ${response.body}');
-
       if (response.statusCode == 200) {
         // Decode and return JSON response
         final data = jsonDecode(response.body);
@@ -164,10 +160,12 @@ class ApiService {
         // Get token
         final token = data['token'];
 
+        print('token response: $token');
+
         // Format the token into access and refresh tokens
         final accessToken = token['accessToken'];
         final refreshToken = token['refreshToken'];
-        final expiresIn = 60;
+        final expiresIn = 60; // Could be different
 
         // Store accessToken in SharedPreferences for future use
         await _storeToken(accessToken, expiresIn);
@@ -182,7 +180,7 @@ class ApiService {
         return {};
       }
     } catch (e) {
-      print("Error during sign in: $e");
+      // Error during sign in
       return {};
     }
   }
@@ -230,7 +228,11 @@ class ApiService {
     final token = await _getRefreshToken();
 
     if (token == null) {
-      throw Exception('No token found. Please sign in.');
+      // Delete the token from SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('auth_token');
+      await prefs.remove('expiration_time');
+      return null;
     }
 
     final url = Uri.parse('$_baseUrl/api/v1/auth/refresh').replace(
@@ -273,7 +275,7 @@ class ApiService {
       roles: [],
     );
 
-    final token = await _getTokenWithRefresh();
+    final token = await getTokenWithRefresh();
 
     if (token == null) {
       throw Exception('No token found. Please sign in.');
@@ -306,9 +308,56 @@ class ApiService {
     }
   }
 
+  // Google sign in
+  Future<Map<String, dynamic>> googleSignIn({
+    required String idToken,
+    required BuildContext context,
+  }) async {
+    final url = Uri.parse('$_baseUrl/api/v1/auth/google-sign-in');
+
+    try {
+      final response = await http.post(
+        url,
+        body: {
+          'token': idToken,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        // Decode and return JSON response
+        final data = jsonDecode(response.body);
+
+        // Get token
+        final token = data['token'];
+
+        print('token response: $token');
+
+        // // Format the token into access and refresh tokens
+        // final accessToken = token['accessToken'];
+        // final refreshToken = token['refreshToken'];
+        // final expiresIn = 60; // Could be different
+
+        // // Store accessToken in SharedPreferences for future use
+        // await _storeToken(accessToken, expiresIn);
+        // await _storeRefreshToken(refreshToken);
+
+        return data;
+      } else {
+        // Format the error message to get issue
+        var error = (jsonDecode(response.body)["details"]);
+        error = error.toString().substring(9, error.toString().length - 2);
+        _showErrorSnackbar(context, "Failed to sign in. \n$error");
+        return {};
+      }
+    } catch (e) {
+      // Error during sign in
+      return {};
+    }
+  }
+
   // Sign out
   Future<http.Response> signOut() async {
-    final token = await _getTokenWithRefresh();
+    final token = await getTokenWithRefresh();
 
     if (token == null) {
       throw Exception('No token found. Please sign in.');
@@ -344,7 +393,7 @@ class ApiService {
 
   // Get token usage
   Future<TokenUsageModel> getTokenUsage() async {
-    final token = await _getTokenWithRefresh();
+    final token = await getTokenWithRefresh();
 
     if (token == null) {
       throw Exception('No token found. Please sign in.');
@@ -395,7 +444,7 @@ class ApiService {
   Future<Map<String, dynamic>> doAIChat({
     required AiChatModel aiChat,
   }) async {
-    final token = await _getTokenWithRefresh();
+    final token = await getTokenWithRefresh();
 
     if (token == null) {
       throw Exception('No token found. Please sign in.');
@@ -439,15 +488,13 @@ class ApiService {
       remainingUsage: 0,
     );
 
-    final token = await _getTokenWithRefresh();
+    final token = await getTokenWithRefresh();
 
     if (token == null) {
       throw Exception('No token found. Please sign in.');
     }
 
     final url = Uri.parse('$_baseUrl/api/v1/ai-chat/messages');
-
-    print('Message: $aiChat');
 
     try {
       final response = await http.post(
@@ -459,13 +506,12 @@ class ApiService {
         body: jsonEncode(aiChat.toJson()),
       );
 
-      print('Response body send message: ${response.body}');
-
       if (response.statusCode == 200) {
         // Decode and return the message response
         final data = jsonDecode(response.body);
         chatResponse = ChatResponseModel.fromJson(data);
-        print('Chat response api: $chatResponse');
+
+        print('response ai id: ${data['aiId']}');
 
         return chatResponse;
       } else {
@@ -486,7 +532,7 @@ class ApiService {
     required int? limit,
     required AssistantModel? assistant,
   }) async {
-    final token = await _getTokenWithRefresh();
+    final token = await getTokenWithRefresh();
 
     final assistantId = assistant?.id;
     final assistantModel = assistant?.model;
@@ -512,8 +558,6 @@ class ApiService {
           'Content-Type': 'application/json',
         },
       );
-
-      print('Response body conversations: ${response.body}');
 
       if (response.statusCode == 200) {
         // Decode and return the conversation
@@ -552,7 +596,7 @@ class ApiService {
       files: [],
       query: '',
     );
-    final token = await _getTokenWithRefresh();
+    final token = await getTokenWithRefresh();
 
     final assistantId = assistant?.id;
     final assistantModel = assistant?.model;
@@ -581,8 +625,6 @@ class ApiService {
         },
       );
 
-      print('Response body: ${response.body}');
-
       if (response.statusCode == 200) {
         // Decode and return the conversation history
         final data = jsonDecode(response.body);
@@ -604,7 +646,7 @@ class ApiService {
   }
 
   Future<bool> isLoggedIn() async {
-    final token = await _getToken();
+    final token = await getToken();
     return token != null;
   }
 
@@ -690,7 +732,7 @@ class ApiService {
     required String language,
     required bool isPublic,
   }) async {
-    final token = await _getToken();
+    final token = await getToken();
 
     if (token == null) {
       throw Exception('No token found. Please sign in.');
@@ -750,7 +792,7 @@ class ApiService {
     required String language,
     required bool isPublic,
   }) async {
-    final token = await _getToken();
+    final token = await getToken();
 
     if (token == null) {
       throw Exception('No token found. Please sign in.');
@@ -804,7 +846,7 @@ class ApiService {
     required BuildContext context,
     required String promptId,
   }) async {
-    final String? token = await _getToken(); // Get the token dynamically
+    final String? token = await getToken(); // Get the token dynamically
 
     if (token == null) {
       ScaffoldMessenger.of(context).showSnackBar(

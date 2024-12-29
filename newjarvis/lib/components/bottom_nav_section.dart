@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:newjarvis/components/ai_model_selection_section.dart';
 import 'package:newjarvis/components/bottom_switch_section.dart';
 import 'package:newjarvis/components/chat_input_section.dart';
 
 class BottomNavSection extends StatefulWidget {
   final Function(String) onSend;
+  final Function(String) onAiSelected;
 
   const BottomNavSection({
     super.key,
     required this.onSend,
+    required this.onAiSelected,
   });
 
   @override
@@ -15,8 +18,6 @@ class BottomNavSection extends StatefulWidget {
 }
 
 class _BottomNavSectionState extends State<BottomNavSection> {
-  String chat = '';
-
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -36,8 +37,16 @@ class _BottomNavSectionState extends State<BottomNavSection> {
           runSpacing: 10,
           alignment: WrapAlignment.start,
           children: [
-            // Prompt Section
-            const PromptSection(),
+            Row(
+            children: [
+                // Ai Switch Section
+                AiModelSelectionSection(
+                  onAiSelected: widget.onAiSelected,
+                ),
+                // Prompt Section
+                const PromptSection(),
+              ],
+            ),
             // Chat Input Section
             ChatInputSection(
               onSend: widget.onSend,
