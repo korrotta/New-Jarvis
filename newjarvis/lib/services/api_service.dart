@@ -852,4 +852,49 @@ class ApiService {
       );
     }
   }
+
+
+Future<Map<String, dynamic>> addPromptToFavorites({
+        required BuildContext context,
+        required String promptId,
+        }) async {
+    final token = await _getToken();
+
+    if (token == null) {
+        throw Exception('No token found. Please sign in.');
+    }
+
+    final url = Uri.parse('$_baseUrl/api/v1/prompts/$promptId/favorite');
+
+    print('Adding prompt to favorites at URL: $url');
+
+    try {
+        final headers = {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+        };
+
+        final response = await http.post(
+                url,
+                headers: headers,
+                );
+
+        print('Response status: ${response.statusCode}');
+        print('Response body: ${response.body}');
+
+        if (response.statusCode == 200) {
+            // Decode and return the response
+            final data = jsonDecode(response.body);
+            return data;
+        } else {
+            _showErrorSnackbar(context,
+                    "Failed to add prompt to favorites. Status Code: ${response.statusCode}");
+            return {};
+        }
+    } catch (e) {
+        print("Error adding prompt to favorites: $e");
+        _showErrorSnackbar(context, "Error adding prompt to favorites: $e");
+        return {};
+    }
+}
 }

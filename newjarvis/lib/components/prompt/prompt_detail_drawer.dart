@@ -5,14 +5,14 @@ import 'package:newjarvis/states/prompts_state.dart';
 import 'package:provider/provider.dart';
 
 class PromptDetailBottomSheet extends StatefulWidget {
-  final String promptId; // Add prompt ID
+  final String promptId; 
   final String title;
   final String category;
   final String author;
   final String promptContent;
 
   const PromptDetailBottomSheet({
-    required this.promptId, // Include prompt ID as a parameter
+    required this.promptId, 
     required this.title,
     required this.category,
     required this.author,
@@ -30,44 +30,45 @@ class _PromptDetailBottomSheetState extends State<PromptDetailBottomSheet> {
   @override
   void initState() {
     super.initState();
-    // Initialize the TextEditingController with the promptContent
     _textController = TextEditingController(text: widget.promptContent);
   }
 
   @override
   void dispose() {
-    // Dispose of the controller to avoid memory leaks
     _textController.dispose();
     super.dispose();
   }
 
   Future<void> _updatePrompt(BuildContext context) async {
     final latestValue = _textController.text.trim();
+    final promptState = Provider.of<PromptState>(context, listen: false);
+    final scallfoldMessenger = ScaffoldMessenger.of(context);
 
     try {
       final response = await ApiService.instance.updatePrompt(
         context: context,
-        promptId: widget.promptId, // Pass the prompt ID
+        promptId: widget.promptId,
         title: widget.title,
         content: latestValue,
         description:
-            "Updated via Prompt Detail", // Adjust description as needed
+            "Updated via Prompt Detail", 
         category: widget.category,
-        language: "English", // Assume language is English, adjust as needed
-        isPublic: true, // Adjust visibility as needed
+        language: "English", 
+        isPublic: true, 
       );
 
       if (response.isNotEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        scallfoldMessenger.showSnackBar(
           const SnackBar(content: Text('Prompt updated successfully!')),
         );
-        // refresh the prompt list
-        Provider.of<PromptState>(context, listen: false).fetchPrivatePrompts(context);
+        
+        promptState.fetchPrompts(context, isPublic: promptState.selectedCategory == 'public');
+
         print('Prompt updated: $response');
       }
     } catch (e) {
       print("Error updating prompt: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
+      scallfoldMessenger.showSnackBar(
         const SnackBar(content: Text('Failed to update the prompt.')),
       );
     }
@@ -75,6 +76,9 @@ class _PromptDetailBottomSheetState extends State<PromptDetailBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final chatState = Provider.of<ChatState>(context, listen: false);
+    final promptState = Provider.of<PromptState>(context, listen: false);
+
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -136,7 +140,6 @@ class _PromptDetailBottomSheetState extends State<PromptDetailBottomSheet> {
               children: [
                 TextButton(
                   onPressed: () async {
-                    // Call updatePrompt when Save is clicked
                     await _updatePrompt(context);
                   },
                   child: const Text(
@@ -149,26 +152,19 @@ class _PromptDetailBottomSheetState extends State<PromptDetailBottomSheet> {
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    // Get the latest value from the controller
                     final latestValue = _textController.text.trim();
+                    chatState.updateChatInput(latestValue);
 
-                    // Update the chat input state
-                    Provider.of<ChatState>(context, listen: false)
-                        .updateChatInput(latestValue);
-
-                    // Call updatePrompt when Send is clicked
                     // await _updatePrompt(context);
 
-                    // Close the current drawer or bottom sheet
                     if (Navigator.of(context).canPop()) {
                       Navigator.of(context)
-                          .pop(); // Close the current drawer or sheet
+                          .pop(); 
                     }
 
-                    // Close the parent drawer or bottom sheet
                     if (Navigator.of(context).canPop()) {
                       Navigator.of(context)
-                          .pop(); // Close the parent drawer or sheet
+                          .pop(); 
                     }
                   },
                   style: ElevatedButton.styleFrom(

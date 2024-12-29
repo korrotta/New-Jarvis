@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:newjarvis/components/prompt_detail_drawer.dart';
+import 'package:newjarvis/components/prompt/prompt_detail_drawer.dart';
 import 'package:newjarvis/services/api_service.dart';
 import 'package:newjarvis/states/prompts_state.dart';
 import 'package:provider/provider.dart';
@@ -13,11 +13,13 @@ class PromptListItem extends StatelessWidget {
   final String author;
   final String promptContent;
   final String promptId;
+  final bool isFavorite;
   final ApiService apiService = ApiService();
 
   PromptListItem({
     super.key,
     required this.promptId,
+    required this.isFavorite,
     required this.title,
     required this.subtitle,
     required this.category,
@@ -26,6 +28,7 @@ class PromptListItem extends StatelessWidget {
   });
 
   void _onDelete(BuildContext context) async {
+    final promptState = Provider.of<PromptState>(context, listen: false);
     bool confirm = await showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -52,21 +55,37 @@ class PromptListItem extends StatelessWidget {
     if (confirm) {
       await apiService.deletePrompt(context: context, promptId: promptId);
       // refresh list
-      Provider.of<PromptState>(context, listen: false).fetchPrivatePrompts(context);
+      Provider.of<PromptState>(context, listen: false).fetchPrompts(context, isPublic: promptState.selectedCategory == 'public');
     }
   }
+
+void _onAddToFavorites(BuildContext context) async {
+    final promptState = Provider.of<PromptState>(context, listen: false);
+    await apiService.addPromptToFavorites(context: context, promptId: promptId);
+    // refresh list
+    promptState.fetchPrompts(context, isPublic: promptState.selectedCategory == 'public');
+}
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
+      leading: IconButton(
+        icon: Icon(
+          Icons.favorite_border,
+          color: isFavorite ? Colors.pink : Colors.grey,
+        ),
+        onPressed: () => _onAddToFavorites(context),
+      ),
       title: Text(
         title,
         style: const TextStyle(fontWeight: FontWeight.bold),
+        overflow: TextOverflow.ellipsis,
       ),
       subtitle: subtitle.isNotEmpty
           ? Text(
               subtitle,
               style: const TextStyle(color: Colors.grey),
+              overflow: TextOverflow.ellipsis,
             )
           : null,
       trailing: Row(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:newjarvis/states/prompts_state.dart';
 import 'package:provider/provider.dart';
-import '../states/prompts_state.dart';
 import 'prompt_list_item.dart';
 
 class MyPromptsView extends StatefulWidget {
@@ -21,7 +21,7 @@ class _MyPromptsViewState extends State<MyPromptsView> {
     final promptState = Provider.of<PromptState>(context, listen: false);
 
     // Fetch private prompts if not already fetched
-    await promptState.fetchPrivatePrompts(context);
+    await promptState.fetchPrompts(context, isPublic: false);
   }
 
   @override
@@ -44,6 +44,7 @@ class _MyPromptsViewState extends State<MyPromptsView> {
               itemBuilder: (context, index) {
               final prompt = prompts[index];
               return PromptListItem(
+                isFavorite: prompt['isFavorite'] ?? false,
                   promptId: prompt['_id'] ?? '0',
                   title: prompt['title'] ?? 'No Title',
                   subtitle: prompt['description'] ?? '',

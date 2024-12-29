@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:newjarvis/components/prompt_drawer.dart';
+import 'package:newjarvis/components/prompt/prompt_drawer.dart';
 
 class PromptSection extends StatelessWidget {
   const PromptSection({super.key});

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:newjarvis/components/prompt_list_item.dart';
+import 'package:newjarvis/components/prompt/prompt_list_item.dart';
+import 'package:newjarvis/states/category_state.dart';
+import 'package:newjarvis/states/prompts_state.dart';
 import 'package:provider/provider.dart';
-import '../states/category_state.dart';
-import '../states/prompts_state.dart';
 
 class PublicPromptsView extends StatefulWidget {
   const PublicPromptsView({super.key});
@@ -19,11 +19,10 @@ class _PublicPromptsViewState extends State<PublicPromptsView> {
   }
 
   Future<void> _fetchInitialPrompts() async {
-    final categoryState = Provider.of<CategoryState>(context, listen: false);
     final promptState = Provider.of<PromptState>(context, listen: false);
 
     // Initial fetch of prompts for the selected category
-    await promptState.fetchPublicPrompts(context, categoryState.selectedCategory);
+    await promptState.fetchPrompts(context, isPublic: true);
   }
 
   @override
@@ -48,7 +47,7 @@ class _PublicPromptsViewState extends State<PublicPromptsView> {
                     onTap: () {
                       // Update selected category and fetch prompts
                       categoryState.selectCategory(category['value']);
-                      promptState.fetchPublicPrompts(context, categoryState.selectedCategory);
+                      promptState.fetchPrompts(context, isPublic: true, category: categoryState.selectedCategory);
                     },
                     child: MouseRegion(
                       cursor: SystemMouseCursors.click,
@@ -83,6 +82,8 @@ class _PublicPromptsViewState extends State<PublicPromptsView> {
                 itemCount: prompts.length,
                 itemBuilder: (context, index) {
                   final prompt = prompts[index];
+                  print(prompt);
+                  
                   return GestureDetector(
                     onTap: () {
                       // Handle list item click
@@ -90,6 +91,7 @@ class _PublicPromptsViewState extends State<PublicPromptsView> {
                     child: MouseRegion(
                       cursor: SystemMouseCursors.click,
                       child: PromptListItem(
+                        isFavorite: prompt['isFavorite'] ?? false,
                         promptId: prompt['_id'] ?? '0',
                         title: prompt['title'] ?? 'No Title',
                         subtitle: prompt['description'] ?? '',
