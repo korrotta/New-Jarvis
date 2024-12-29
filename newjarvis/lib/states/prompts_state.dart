@@ -3,41 +3,50 @@ import 'package:newjarvis/services/api_service.dart';
 
 class PromptState with ChangeNotifier {
   bool isLoading = false;
-  bool isPublicPromptSelected = true; // Track the selected tab/view
+  String selectedCategory = 'public';
   List<Map<String, dynamic>> publicPrompts = [];
   List<Map<String, dynamic>> privatePrompts = [];
+    List<Map<String, dynamic>> favoritesPrompts = [];
 
   // Toggle between Public and Private Prompts
-  void togglePromptType(bool isPublic) {
-    isPublicPromptSelected = isPublic;
-    notifyListeners(); // Notify listeners of the change
+  void togglePromptType(String promptType) {
+    selectedCategory = promptType;
+    notifyListeners(); 
   }
 
-  Future<void> fetchPrompts(BuildContext context) async {
+  Future<void> fetchPrompts(BuildContext context, {required bool isPublic, String? category}) async {
     isLoading = true;
-    notifyListeners(); // Notify listeners of state change
-
+    notifyListeners();
+  
     try {
-      // Fetch public prompts
-      publicPrompts = await ApiService().getPrompts(
-        context: context,
-        isPublic: true,
-        isFavorite: false,
-        limit: 20,
-      );
-
-      // Fetch private prompts
-      privatePrompts = await ApiService().getPrompts(
-        context: context,
-        isPublic: false,
-        isFavorite: false,
-        limit: 20,
-      );
+      if (isPublic && selectedCategory == 'public') {
+        publicPrompts = await ApiService().getPrompts(
+          context: context,
+          category: category?.isEmpty ?? true ? 'business' : category!,
+          isPublic: isPublic,
+          isFavorite: selectedCategory == 'favorites',
+          limit: 20,
+        );
+      } else if (selectedCategory == 'favorites') {
+        favoritesPrompts = await ApiService().getPrompts(
+          context: context,
+          category: category?.isEmpty ?? true ? 'business' : category!,
+          isFavorite: selectedCategory == 'favorites',
+          limit: 20,
+        );
+      } else {
+        privatePrompts = await ApiService().getPrompts(
+          context: context,
+          isPublic: isPublic,
+          isFavorite: selectedCategory == 'favorites',
+          limit: 20,
+        );
+      }
     } catch (e) {
       print("Error fetching prompts: $e");
     } finally {
       isLoading = false;
-      notifyListeners(); // Notify listeners of state change
+      notifyListeners();
     }
   }
 }

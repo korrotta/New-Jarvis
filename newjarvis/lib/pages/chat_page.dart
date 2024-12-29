@@ -311,22 +311,12 @@ class _ChatPageState extends State<ChatPage> {
                   ),
 
                   // Conversation Drawer
-                  Positioned(
-                    top: 0,
-                    bottom: 0,
-                    left: 0,
-                    child: ConversationDrawer(
+                    ConversationSidebar(
                       conversations: _conversations,
                       onSelectedConversation: _handleConversationSelect,
-                      // onToggleDrawer: () {
-                      //   setState(() {
-                      //     isDrawerVisible = !isDrawerVisible;
-                      //   });
-                      // },
                       remainingTokens: remainingUsage,
                       totalTokens: totalUsage,
-                    ),
-                  ),
+                      ),
 
                   // Sidebar
                   if (isSidebarVisible)

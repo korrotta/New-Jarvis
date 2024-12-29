@@ -1,63 +1,63 @@
 import 'package:flutter/material.dart';
 import 'package:newjarvis/services/api_service.dart';
+import 'package:newjarvis/states/category_state.dart';
+import 'package:provider/provider.dart';
 
 class NewPromptDialog extends StatefulWidget {
   final void Function() refresh;
 
   const NewPromptDialog({super.key, required this.refresh});
+
   @override
   _NewPromptDialogState createState() => _NewPromptDialogState();
 }
 
 class _NewPromptDialogState extends State<NewPromptDialog> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  bool isPrivatePrompt = true; // Default to "Private Prompt"
+  bool isPrivatePrompt = true;
 
-  String selectedLanguage = "Auto"; // Default language selection
-  String selectedCategory = "Other"; // Default category selection
-
+  String selectedLanguage = "Auto";
   final TextEditingController nameController = TextEditingController();
   final TextEditingController promptController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
 
   Future<void> onSubmit() async {
-    // Validate the form
     if (_formKey.currentState!.validate()) {
-      // Get the input data
+      final categoryState = Provider.of<CategoryState>(context, listen: false);
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
+      final navigator = Navigator.of(context);
+  
       final newPrompt = {
         "title": nameController.text.trim(),
         "content": promptController.text.trim(),
         "description": descriptionController.text.isEmpty
             ? "Custom prompt created by the user"
             : descriptionController.text.trim(),
-        "category": 'other',
+        "category": categoryState.selectedCategory,
         "language": selectedLanguage,
-        "isPublic": !isPrivatePrompt, // Negate since "Private Prompt" is true
-      } as Map<String, dynamic>;
-
+        "isPublic": !isPrivatePrompt,
+      };
+  
       try {
-        // Call the ApiService to create the prompt
         final response = await ApiService.instance.createPrompt(
           context: context,
-          title: newPrompt["title"]!,
-          content: newPrompt["content"]!,
-          description: newPrompt["description"]!,
-          category: newPrompt["category"]!,
-          language: newPrompt["language"]!,
-          isPublic: newPrompt["isPublic"]!,
+          title: newPrompt["title"] as String,
+          content: newPrompt["content"] as String,
+          description: newPrompt["description"] as String,
+          category: newPrompt["category"] as String,
+          language: newPrompt["language"] as String,
+          isPublic: newPrompt["isPublic"] as bool,
         );
-
-        // Handle success
+  
         if (response.isNotEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
+          scaffoldMessenger.showSnackBar(
             const SnackBar(content: Text('Prompt created successfully!')),
           );
-          widget.refresh(); // Refresh the prompt list
-          Navigator.of(context).pop(); // Close dialog
+          widget.refresh();
+          navigator.pop();
         }
       } catch (e) {
-        // Handle error
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.showSnackBar(
           SnackBar(content: Text('Error creating prompt: $e')),
         );
       }
@@ -66,12 +66,14 @@ class _NewPromptDialogState extends State<NewPromptDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final categoryState = Provider.of<CategoryState>(context);
+
     return Dialog(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
       child: Container(
-        width: 600, // Adjust width as needed
+        width: 600,
         padding: const EdgeInsets.all(16),
         child: SingleChildScrollView(
           child: Form(
@@ -80,14 +82,11 @@ class _NewPromptDialogState extends State<NewPromptDialog> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Title
                 const Text(
                   "New Prompt",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
-
-                // Prompt Type (Private/Public)
                 Row(
                   children: [
                     Expanded(
@@ -123,8 +122,6 @@ class _NewPromptDialogState extends State<NewPromptDialog> {
                   ],
                 ),
                 const SizedBox(height: 8),
-
-                // Name Field (Always Visible)
                 TextFormField(
                   controller: nameController,
                   decoration: const InputDecoration(
@@ -140,79 +137,67 @@ class _NewPromptDialogState extends State<NewPromptDialog> {
                   },
                 ),
                 const SizedBox(height: 16),
-
-                // Fields for Public Prompt Only
-                if (!isPrivatePrompt) ...[
-                  DropdownButtonFormField<String>(
-                    value: selectedLanguage,
-                    onChanged: (value) {
-                      setState(() {
-                        selectedLanguage = value!;
-                      });
-                    },
-                    decoration: const InputDecoration(
-                      labelText: "Prompt Language *",
-                      border: OutlineInputBorder(),
-                    ),
-                    items: ["Auto", "English", "Spanish", "French", "German"]
-                        .map((language) => DropdownMenuItem(
-                              value: language,
-                              child: Text(language),
-                            ))
-                        .toList(),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return "Language is required.";
-                      }
-                      return null;
-                    },
+                DropdownButtonFormField<String>(
+                  value: selectedLanguage,
+                  onChanged: (value) {
+                    setState(() {
+                      selectedLanguage = value!;
+                    });
+                  },
+                  decoration: const InputDecoration(
+                    labelText: "Prompt Language *",
+                    border: OutlineInputBorder(),
                   ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    value: selectedCategory,
-                    onChanged: (value) {
-                      setState(() {
-                        selectedCategory = value!;
-                      });
-                    },
-                    decoration: const InputDecoration(
-                      labelText: "Category *",
-                      border: OutlineInputBorder(),
-                    ),
-                    items: ["Other", "Grammar", "Creative Writing", "Science"]
-                        .map((category) => DropdownMenuItem(
-                              value: category,
-                              child: Text(category),
-                            ))
-                        .toList(),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return "Category is required.";
-                      }
-                      return null;
-                    },
+                  items: ["Auto", "English", "Spanish", "French", "German"]
+                      .map((language) => DropdownMenuItem(
+                            value: language,
+                            child: Text(language),
+                          ))
+                      .toList(),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return "Language is required.";
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: categoryState.selectedCategory.isEmpty
+                      ? categoryState.categories.first['value'] as String
+                      : categoryState.selectedCategory,
+                  onChanged: (value) {
+                    categoryState.selectCategory(value!);
+                  },
+                  decoration: const InputDecoration(
+                    labelText: "Category *",
+                    border: OutlineInputBorder(),
                   ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: descriptionController,
-                    decoration: const InputDecoration(
-                      labelText: "Description",
-                      hintText:
-                          "Describe your prompt so others can have a better understanding",
-                      border: OutlineInputBorder(),
-                    ),
-                    maxLines: 3,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return "Description is required.";
-                      }
-                      return null;
-                    },
+                  items: categoryState.categories
+                      .map<DropdownMenuItem<String>>(
+                          (category) => DropdownMenuItem<String>(
+                                value: category['value'] as String,
+                                child: Text(category['text'] as String),
+                              ))
+                      .toList(),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return "Category is required.";
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: descriptionController,
+                  decoration: const InputDecoration(
+                    labelText: "Description",
+                    hintText: "Describe your prompt so others can have a better understanding",
+                    border: OutlineInputBorder(),
                   ),
-                  const SizedBox(height: 16),
-                ],
-
-                // Prompt Field (Always Visible)
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 16),
                 TextFormField(
                   controller: promptController,
                   maxLines: 4,
@@ -220,8 +205,7 @@ class _NewPromptDialogState extends State<NewPromptDialog> {
                     labelText: "Prompt *",
                     hintText: "e.g. Write an article about [TOPIC]",
                     border: OutlineInputBorder(),
-                    helperText:
-                        "Use square brackets [ ] to specify user input.",
+                    helperText: "Use square brackets [ ] to specify user input.",
                     helperStyle: TextStyle(color: Colors.blue),
                   ),
                   validator: (value) {
@@ -232,8 +216,6 @@ class _NewPromptDialogState extends State<NewPromptDialog> {
                   },
                 ),
                 const SizedBox(height: 16),
-
-                // Buttons
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -260,3 +242,4 @@ class _NewPromptDialogState extends State<NewPromptDialog> {
     );
   }
 }
+

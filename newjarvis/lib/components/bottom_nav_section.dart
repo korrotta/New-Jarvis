@@ -20,35 +20,41 @@ class BottomNavSection extends StatefulWidget {
 class _BottomNavSectionState extends State<BottomNavSection> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(15),
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
-      child: Wrap(
-        direction: Axis.horizontal,
-        runAlignment: WrapAlignment.start,
-        alignment: WrapAlignment.start,
-        spacing: 10,
-        runSpacing: 10,
-        children: [
-          Row(
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Wrap(
+          direction: Axis.horizontal,
+          runAlignment: WrapAlignment.start,
+          spacing: 10,
+          runSpacing: 10,
+          alignment: WrapAlignment.start,
+          children: [
+            Row(
             children: [
-              // Ai Switch Section
-              AiModelSelectionSection(
-                onAiSelected: widget.onAiSelected,
-              ),
-              // Prompt Section
-              const PromptSection(),
-            ],
-          ),
-          // Chat Input Section
-          ChatInputSection(
-            onSend: widget.onSend,
-          ),
-        ],
+                // Ai Switch Section
+                AiModelSelectionSection(
+                  onAiSelected: widget.onAiSelected,
+                ),
+                // Prompt Section
+                const PromptSection(),
+              ],
+            ),
+            // Chat Input Section
+            ChatInputSection(
+              onSend: widget.onSend,
+            ),
+          ],
+        ),
       ),
     );
   }
 }
+
