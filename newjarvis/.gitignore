@@ -31,6 +31,7 @@ migrate_working_dir/
 .pub/
 /build/
 
+
 # Ephemerally generated
 **/ios/Runner/GeneratedPluginRegistrant.h
 **/ios/Runner/GeneratedPluginRegistrant.m

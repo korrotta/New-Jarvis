@@ -652,15 +652,15 @@ class ApiService {
 
   // Get Prompts
   Future<List<Map<String, dynamic>>> getPrompts({
-      required BuildContext context,
-      String query = '',
-      int offset = 0,
-      int limit = 20,
-      bool isFavorite = false,
-      bool isPublic = true,
-      String? category, // Add category as an optional parameter
-      }) async {
-    final token = await _getToken();
+    required BuildContext context,
+    String query = '',
+    int offset = 0,
+    int limit = 20,
+    bool isFavorite = false,
+    bool isPublic = true,
+    String? category, // Add category as an optional parameter
+  }) async {
+    final token = await getTokenWithRefresh();
     if (token == null) {
       throw Exception('No token found. Please sign in.');
     }
@@ -688,39 +688,39 @@ class ApiService {
         '$_baseUrl/api/v1/prompts?query=$query&offset=$offset&limit=$limit&isFavorite=$isFavorite&isPublic=$isPublic'
         '${category != null ? '&category=$category' : ''}');
 
-      print('Fetching prompts from URL: $url');
+    print('Fetching prompts from URL: $url');
 
-      try {
-        final headers = {
-          'Authorization': 'Bearer $token',
-          'x-jarvis-guid': '', // Replace with a valid GUID if required
-        };
+    try {
+      final headers = {
+        'Authorization': 'Bearer $token',
+        'x-jarvis-guid': '', // Replace with a valid GUID if required
+      };
 
-        final request = http.Request('GET', url);
-        request.headers.addAll(headers);
+      final request = http.Request('GET', url);
+      request.headers.addAll(headers);
 
-        final response = await request.send();
+      final response = await request.send();
 
-        if (response.statusCode == 200) {
-          final responseBody = await response.stream.bytesToString();
-          print('Response body: $responseBody');
+      if (response.statusCode == 200) {
+        final responseBody = await response.stream.bytesToString();
+        print('Response body: $responseBody');
 
-          final data = jsonDecode(responseBody);
+        final data = jsonDecode(responseBody);
 
-          // Assuming the response contains a list of prompts
-          final prompts = List<Map<String, dynamic>>.from(data['items'] ?? []);
-          return prompts;
-        } else {
-          _showErrorSnackbar(context,
-              "Failed to fetch prompts. Status Code: ${response.statusCode}");
-          return [];
-        }
-      } catch (e) {
-        print("Error fetching prompts: $e");
-        _showErrorSnackbar(context, "Error fetching prompts: $e");
+        // Assuming the response contains a list of prompts
+        final prompts = List<Map<String, dynamic>>.from(data['items'] ?? []);
+        return prompts;
+      } else {
+        _showErrorSnackbar(context,
+            "Failed to fetch prompts. Status Code: ${response.statusCode}");
         return [];
       }
-}
+    } catch (e) {
+      print("Error fetching prompts: $e");
+      _showErrorSnackbar(context, "Error fetching prompts: $e");
+      return [];
+    }
+  }
 
   // Add this method to your ApiService class
   Future<Map<String, dynamic>> createPrompt({
@@ -732,7 +732,7 @@ class ApiService {
     required String language,
     required bool isPublic,
   }) async {
-    final token = await getToken();
+    final token = await getTokenWithRefresh();
 
     if (token == null) {
       throw Exception('No token found. Please sign in.');
@@ -792,7 +792,7 @@ class ApiService {
     required String language,
     required bool isPublic,
   }) async {
-    final token = await getToken();
+    final token = await getTokenWithRefresh();
 
     if (token == null) {
       throw Exception('No token found. Please sign in.');
@@ -846,7 +846,8 @@ class ApiService {
     required BuildContext context,
     required String promptId,
   }) async {
-    final String? token = await getToken(); // Get the token dynamically
+    final String? token =
+        await getTokenWithRefresh(); // Get the token dynamically
 
     if (token == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -895,15 +896,14 @@ class ApiService {
     }
   }
 
-
-Future<Map<String, dynamic>> addPromptToFavorites({
-        required BuildContext context,
-        required String promptId,
-        }) async {
-    final token = await _getToken();
+  Future<Map<String, dynamic>> addPromptToFavorites({
+    required BuildContext context,
+    required String promptId,
+  }) async {
+    final token = await getTokenWithRefresh();
 
     if (token == null) {
-        throw Exception('No token found. Please sign in.');
+      throw Exception('No token found. Please sign in.');
     }
 
     final url = Uri.parse('$_baseUrl/api/v1/prompts/$promptId/favorite');
@@ -911,32 +911,32 @@ Future<Map<String, dynamic>> addPromptToFavorites({
     print('Adding prompt to favorites at URL: $url');
 
     try {
-        final headers = {
-            'Authorization': 'Bearer $token',
-            'Content-Type': 'application/json',
-        };
+      final headers = {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      };
 
-        final response = await http.post(
-                url,
-                headers: headers,
-                );
+      final response = await http.post(
+        url,
+        headers: headers,
+      );
 
-        print('Response status: ${response.statusCode}');
-        print('Response body: ${response.body}');
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
 
-        if (response.statusCode == 200) {
-            // Decode and return the response
-            final data = jsonDecode(response.body);
-            return data;
-        } else {
-            _showErrorSnackbar(context,
-                    "Failed to add prompt to favorites. Status Code: ${response.statusCode}");
-            return {};
-        }
-    } catch (e) {
-        print("Error adding prompt to favorites: $e");
-        _showErrorSnackbar(context, "Error adding prompt to favorites: $e");
+      if (response.statusCode == 200) {
+        // Decode and return the response
+        final data = jsonDecode(response.body);
+        return data;
+      } else {
+        _showErrorSnackbar(context,
+            "Failed to add prompt to favorites. Status Code: ${response.statusCode}");
         return {};
+      }
+    } catch (e) {
+      print("Error adding prompt to favorites: $e");
+      _showErrorSnackbar(context, "Error adding prompt to favorites: $e");
+      return {};
     }
-}
+  }
 }
