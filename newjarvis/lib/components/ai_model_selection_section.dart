@@ -27,6 +27,12 @@ class _AiModelSelectionSectionState extends State<AiModelSelectionSection> {
 
   String _selectedAiId = Id.CLAUDE_3_HAIKU_20240307.value;
 
+  String _formatAiId(String aiId) {
+    return aiId.replaceAll('-', ' ').split(' ').map((String word) {
+      return word[0].toUpperCase() + word.substring(1);
+    }).join(' ');
+  }
+
   @override
   Widget build(BuildContext context) {
     // Create spinner for AI Agents
@@ -79,7 +85,7 @@ class _AiModelSelectionSectionState extends State<AiModelSelectionSection> {
                     value: value,
                     child: AiAgent(
                       AiIcon: 'assets/icons/$imageName.png',
-                      AiName: value,
+                      AiName: _formatAiId(value),
                     ),
                   );
                 },

@@ -18,9 +18,35 @@
 
   <title>newjarvis</title>
   <link rel="manifest" href="manifest.json">
+
 </head>
 <body>
+  <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+  <script src="https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js"></script>
   <script src="main.dart.js" type="application/javascript"></script>
   <script src="flutter_bootstrap.js" async></script>
+  <script>
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "firebase/app";
+  
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+  
+  
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyBqdw6a69SUX9p5WUvFVjZJ3b28GifBFWQ",
+      authDomain: "new-jarvis-51b90.firebaseapp.com",
+      projectId: "new-jarvis-51b90",
+      storageBucket: "new-jarvis-51b90.firebasestorage.app",
+      messagingSenderId: "880284024996",
+      appId: "1:880284024996:web:214867ee3ccecb73312631"
+    };
+  
+  
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+  </script>
 </body>
 </html>
