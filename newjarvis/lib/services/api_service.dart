@@ -160,6 +160,8 @@ class ApiService {
         // Get token
         final token = data['token'];
 
+        print('token response: $token');
+
         // Format the token into access and refresh tokens
         final accessToken = token['accessToken'];
         final refreshToken = token['refreshToken'];
@@ -303,6 +305,53 @@ class ApiService {
     } catch (e) {
       _showErrorSnackbar(context, "Error getting current user: $e");
       return user;
+    }
+  }
+
+  // Google sign in
+  Future<Map<String, dynamic>> googleSignIn({
+    required String idToken,
+    required BuildContext context,
+  }) async {
+    final url = Uri.parse('$_baseUrl/api/v1/auth/google-sign-in');
+
+    try {
+      final response = await http.post(
+        url,
+        body: {
+          'token': idToken,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        // Decode and return JSON response
+        final data = jsonDecode(response.body);
+
+        // Get token
+        final token = data['token'];
+
+        print('token response: $token');
+
+        // // Format the token into access and refresh tokens
+        // final accessToken = token['accessToken'];
+        // final refreshToken = token['refreshToken'];
+        // final expiresIn = 60; // Could be different
+
+        // // Store accessToken in SharedPreferences for future use
+        // await _storeToken(accessToken, expiresIn);
+        // await _storeRefreshToken(refreshToken);
+
+        return data;
+      } else {
+        // Format the error message to get issue
+        var error = (jsonDecode(response.body)["details"]);
+        error = error.toString().substring(9, error.toString().length - 2);
+        _showErrorSnackbar(context, "Failed to sign in. \n$error");
+        return {};
+      }
+    } catch (e) {
+      // Error during sign in
+      return {};
     }
   }
 

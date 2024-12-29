@@ -1,9 +1,12 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:newjarvis/components/custom_button.dart';
 import 'package:newjarvis/components/custom_textfield.dart';
 import 'package:newjarvis/services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginPage extends StatefulWidget {
   // Page navigation
@@ -25,6 +28,9 @@ class _LoginPageState extends State<LoginPage> {
   // Email and Password controllers
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
+  // Firebase Auth instance (for Google Sign in)
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // Loading state
   bool isLoading = false;
@@ -155,6 +161,89 @@ class _LoginPageState extends State<LoginPage> {
         // ScaffoldMessenger.of(context).showSnackBar(
         //   const SnackBar(content: Text('Invalid email or password')),
         // );
+        return;
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      // Set loading state
+      setState(() {
+        isLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
+  // Google Sign in
+  void googleSignIn() async {
+    // Set loading state
+    setState(() {
+      isLoading = true;
+    });
+
+    if (!mounted) return;
+
+    // Check network connectivity
+    bool isConnected = await checkNetworkConnectivity();
+    if (!isConnected) {
+      setState(() {
+        isLoading = false;
+      });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No internet connection')),
+      );
+      return;
+    }
+
+    if (!mounted) return;
+
+    try {
+      await Firebase.initializeApp();
+
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+      if (googleUser == null) {
+        setState(() {
+          isLoading = false;
+        });
+        return;
+      }
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final UserCredential userCredential =
+          await _auth.signInWithCredential(credential);
+
+      print('User: ${userCredential.user}');
+      print('Google sign in token: ${googleAuth.idToken}');
+
+      final googleToken = googleAuth.idToken;
+
+      // Await the response from the googleSignIn API
+      final response = await apiService.googleSignIn(
+          idToken: googleToken!, context: context);
+
+      if (!mounted) return;
+
+      // Set loading state
+      setState(() {
+        isLoading = false;
+      });
+
+      if (response != null) {
+        if (!mounted) return;
+        Navigator.pushReplacementNamed(context, '/chat');
+      } else {
         return;
       }
     } catch (e) {
@@ -343,67 +432,71 @@ class _LoginPageState extends State<LoginPage> {
 
             const SizedBox(height: 10),
 
-            // // -- OR --
-            // Row(
-            //   children: [
-            //     Expanded(
-            //       child: Container(
-            //         margin: const EdgeInsets.only(left: 20, right: 10),
-            //         child: Divider(
-            //           color: Theme.of(context).colorScheme.inversePrimary,
-            //         ),
-            //       ),
-            //     ),
-            //     Text(
-            //       "OR LOGIN WITH",
-            //       style: TextStyle(
-            //         color: Theme.of(context).colorScheme.inversePrimary,
-            //         fontSize: 16,
-            //       ),
-            //     ),
-            //     Expanded(
-            //       child: Container(
-            //         margin: const EdgeInsets.only(left: 10, right: 20),
-            //         child: Divider(
-            //           color: Theme.of(context).colorScheme.inversePrimary,
-            //         ),
-            //       ),
-            //     ),
-            //   ],
-            // ),
+            // -- OR --
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    margin: const EdgeInsets.only(left: 20, right: 10),
+                    child: Divider(
+                      color: Theme.of(context).colorScheme.inversePrimary,
+                    ),
+                  ),
+                ),
+                Text(
+                  "OR",
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.inversePrimary,
+                    fontSize: 16,
+                  ),
+                ),
+                Expanded(
+                  child: Container(
+                    margin: const EdgeInsets.only(left: 10, right: 20),
+                    child: Divider(
+                      color: Theme.of(context).colorScheme.inversePrimary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
 
-            // const SizedBox(height: 10),
+            const SizedBox(height: 10),
 
-            // // Jarvis sign in
-            // Container(
-            //   margin: const EdgeInsets.symmetric(horizontal: 20),
-            //   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            //   decoration: BoxDecoration(
-            //     color: Theme.of(context).colorScheme.tertiary,
-            //     borderRadius: BorderRadius.circular(8),
-            //     border: Border.all(
-            //       color: Theme.of(context).colorScheme.primary,
-            //     ),
-            //   ),
-            //   child: Row(
-            //     mainAxisAlignment: MainAxisAlignment.center,
-            //     children: [
-            //       Image.asset(
-            //         "assets/icons/icon.png",
-            //         width: 30,
-            //         height: 30,
-            //       ),
-            //       const SizedBox(width: 10),
-            //       Text(
-            //         "Jarvis",
-            //         style: TextStyle(
-            //           color: Theme.of(context).colorScheme.inversePrimary,
-            //           fontSize: 16,
-            //         ),
-            //       )
-            //     ],
-            //   ),
-            // ),
+            // Google sign in
+            GestureDetector(
+              onTap: googleSignIn,
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.tertiary,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      "assets/icons/google.png",
+                      width: 30,
+                      height: 30,
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      "Sign in with Google",
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.inversePrimary,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
 
             const SizedBox(height: 10),
 

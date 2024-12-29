@@ -1,26 +1,87 @@
 {
   "project_info": {
-    "project_number": "1098947487924",
-    "project_id": "new-jarvis-725d8",
-    "storage_bucket": "new-jarvis-725d8.appspot.com"
+    "project_number": "880284024996",
+    "project_id": "new-jarvis-51b90",
+    "storage_bucket": "new-jarvis-51b90.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1098947487924:android:8a3b00dc92a278fc3e4fe1",
+        "mobilesdk_app_id": "1:880284024996:android:309985461e69b232312631",
         "android_client_info": {
-          "package_name": "com.example.newjarvis"
+          "package_name": "com.advancedmobile.newjarvis"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "880284024996-gkqfi56td77r6dopep1i10rfgmka36dh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.advancedmobile.newjarvis",
+            "certificate_hash": "742beb0811b8d6e3cc4a067840885c01f3e121b3"
+          }
+        },
+        {
+          "client_id": "880284024996-lmvob3mn8mulkumivmrp0alhpb742bta.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyAI_SCLv6ViZ2vLMTvWIS6_8Bd18xQPeJI"
+          "current_key": "AIzaSyBlB1Q6AqoUbLGF_ne1r0xitT9lVHrAE2s"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "880284024996-lmvob3mn8mulkumivmrp0alhpb742bta.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "880284024996-9gj1d17hbebhuh9sqt7dfupcukbqh7qb.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.advancedmobile.newjarvis"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:880284024996:android:6b434956510b7cd9312631",
+        "android_client_info": {
+          "package_name": "com.example.newjarvis"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "880284024996-lmvob3mn8mulkumivmrp0alhpb742bta.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBlB1Q6AqoUbLGF_ne1r0xitT9lVHrAE2s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "880284024996-lmvob3mn8mulkumivmrp0alhpb742bta.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "880284024996-9gj1d17hbebhuh9sqt7dfupcukbqh7qb.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.advancedmobile.newjarvis"
+              }
+            }
+          ]
         }
       }
     }

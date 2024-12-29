@@ -1,4 +1,4 @@
-package com.example.newjarvis
+package com.advancedmobile.newjarvis
 
 import io.flutter.embedding.android.FlutterActivity
 
