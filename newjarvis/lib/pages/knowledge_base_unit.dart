@@ -80,7 +80,7 @@ class _KnowledgeUnitScreenState extends State<KnowledgeUnitScreen> {
                     
                     //final unitProvider = Provider.of<UnitProvider>(context);
                     return CreateUnitDialogFromGoogleDrive(
-                      onConfirm: (name) {
+                      onConfirm: (name,) {
                         // Xử lý logic khi xác nhận từ giao diện Google Drive
                         //_addUnit("GG Drive", name);
                       },
