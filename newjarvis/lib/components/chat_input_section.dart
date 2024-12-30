@@ -64,7 +64,7 @@ class _ChatInputSectionState extends State<ChatInputSection> {
                             Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10),
                                 decoration: BoxDecoration(
-                                    color: Theme.of(context).colorScheme.secondary,
+                                    color: Theme.of(context).colorScheme.secondary.withOpacity(0.8),
                                     borderRadius: BorderRadius.circular(20),
                                     ),
                                 child: Column(
@@ -83,7 +83,7 @@ class _ChatInputSectionState extends State<ChatInputSection> {
                                                         decoration: InputDecoration(
                                                             hintText: 'Type a message...',
                                                             hintStyle: TextStyle(
-                                                                color: Theme.of(context).colorScheme.primary,
+                                                                color: Theme.of(context).colorScheme.primary.withOpacity(0.7),
                                                                 fontSize: 14,
                                                                 ),
                                                             border: const OutlineInputBorder(
@@ -100,7 +100,7 @@ class _ChatInputSectionState extends State<ChatInputSection> {
                                                         ),
                                                         ),
                                                         IconButton(
-                                                            icon: Icon(Icons.send_sharp, color: Theme.of(context).colorScheme.primary),
+                                                            icon: Icon(Icons.send_sharp, color: Colors.blue),
                                                             onPressed: () => _sendChat(context),
                                                             ),
                                                     ],

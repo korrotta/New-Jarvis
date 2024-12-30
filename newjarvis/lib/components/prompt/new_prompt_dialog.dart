@@ -124,10 +124,12 @@ class _NewPromptDialogState extends State<NewPromptDialog> {
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: nameController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: "Name *",
                     hintText: "Name of the prompt",
-                    border: OutlineInputBorder(),
+                    border:  OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
@@ -144,9 +146,12 @@ class _NewPromptDialogState extends State<NewPromptDialog> {
                       selectedLanguage = value!;
                     });
                   },
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: "Prompt Language *",
-                    border: OutlineInputBorder(),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 15.0),
                   ),
                   items: ["Auto", "English", "Spanish", "French", "German"]
                       .map((language) => DropdownMenuItem(
@@ -160,6 +165,9 @@ class _NewPromptDialogState extends State<NewPromptDialog> {
                     }
                     return null;
                   },
+                  dropdownColor: Colors.white,
+                  style: TextStyle(color: Colors.black, fontSize: 16),
+                  icon: Icon(Icons.arrow_drop_down, color: Colors.black),
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
@@ -169,9 +177,11 @@ class _NewPromptDialogState extends State<NewPromptDialog> {
                   onChanged: (value) {
                     categoryState.selectCategory(value!);
                   },
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: "Category *",
-                    border: OutlineInputBorder(),
+                    border:  OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      ),
                   ),
                   items: categoryState.categories
                       .map<DropdownMenuItem<String>>(
@@ -190,10 +200,12 @@ class _NewPromptDialogState extends State<NewPromptDialog> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: descriptionController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: "Description",
                     hintText: "Describe your prompt so others can have a better understanding",
-                    border: OutlineInputBorder(),
+                    border:  OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      ),
                   ),
                   maxLines: 3,
                 ),
@@ -201,10 +213,12 @@ class _NewPromptDialogState extends State<NewPromptDialog> {
                 TextFormField(
                   controller: promptController,
                   maxLines: 4,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: "Prompt *",
                     hintText: "e.g. Write an article about [TOPIC]",
-                    border: OutlineInputBorder(),
+                    border:  OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      ),
                     helperText: "Use square brackets [ ] to specify user input.",
                     helperStyle: TextStyle(color: Colors.blue),
                   ),

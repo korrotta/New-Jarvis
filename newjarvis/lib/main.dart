@@ -26,13 +26,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => AuthProvider(context)),
-        ChangeNotifierProvider(create: (context) => ChatState()),
-        ChangeNotifierProvider(create: (context) => PromptState()),
-        ChangeNotifierProvider(create: (context) => CategoryState()),
-        ChangeNotifierProvider(create: (context) => KnowledgeBaseProvider()),
-        ChangeNotifierProvider(create: (context) => UnitProvider()),
-
+      ChangeNotifierProvider(create: (context) => AuthProvider(context)),
+      ChangeNotifierProvider(create: (context) => ChatState()),
+      ChangeNotifierProvider(create: (context) => PromptState()),
+      ChangeNotifierProvider(create: (context) => CategoryState()),
+      ChangeNotifierProvider(create: (context) => KnowledgeBaseProvider()),
+      ChangeNotifierProvider(create: (context) => UnitProvider()),
       ],
       child: MaterialApp(
         title: 'New Jarvis',
