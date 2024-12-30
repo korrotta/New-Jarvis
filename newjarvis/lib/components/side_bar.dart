@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:newjarvis/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
@@ -20,19 +21,27 @@ class SideBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double sidebarWidth = isExpanded ? 220 : 80;
+    final sideBarWidthExpanded = MediaQuery.of(context).size.width * 0.15;
+    final sideBarWidthCollapsed = MediaQuery.of(context).size.width * 0.08;
+    double sidebarWidth =
+        isExpanded ? sideBarWidthExpanded : sideBarWidthCollapsed;
 
     return Container(
+      margin: const EdgeInsets.only(bottom: 10),
       width: sidebarWidth,
       decoration: BoxDecoration(
-        color: const Color(0xFF608BC1), // Light blue background
+        color: Theme.of(context).colorScheme.surface,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Theme.of(context).colorScheme.inversePrimary,
             blurRadius: 5,
             offset: const Offset(0, 2),
           ),
         ],
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(20),
+          bottomLeft: Radius.circular(20),
+        ),
       ),
       child: Column(
         children: [
@@ -40,26 +49,40 @@ class SideBar extends StatelessWidget {
           Align(
             alignment: Alignment.centerLeft,
             child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: isExpanded
+                  ? MainAxisAlignment.spaceBetween
+                  : MainAxisAlignment.spaceEvenly,
               children: [
-                IconButton(
-                  icon: Icon(
-                    isExpanded ? Icons.arrow_forward_ios : Icons.arrow_back_ios,
-                    color: Colors.white,
-                    size: 18,
-                  ),
-                  onPressed: () => onExpandToggle(),
-                ),
-                if (isExpanded)
-                  IconButton(
-                    icon: const Icon(
-                      Icons.close,
-                      color: Colors.redAccent,
-                      size: 22,
+                GestureDetector(
+                  child: Container(
+                    margin: isExpanded
+                        ? const EdgeInsets.only(left: 10)
+                        : const EdgeInsets.all(0),
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(5),
+                      color: Theme.of(context).colorScheme.secondary,
                     ),
-                    onPressed: () => onClose(),
+                    child: const CustomForwardIcon(),
                   ),
+                  onTap: () => onClose(),
+                ),
+                GestureDetector(
+                  child: Container(
+                    margin: isExpanded
+                        ? const EdgeInsets.only(right: 10)
+                        : const EdgeInsets.all(0),
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(5),
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                    child: const CustomExpandIcon(),
+                  ),
+                  onTap: () => onExpandToggle(),
+                ),
               ],
             ),
           ),
@@ -85,27 +108,25 @@ class SideBar extends StatelessWidget {
           onTap: () => onItemSelected(index),
           child: Container(
             margin: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 10),
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? Colors.blue[200] // Highlight for selected menu
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
-            ),
             child: Row(
               children: [
                 Padding(
                   padding: const EdgeInsets.all(12.0),
                   child: Icon(
                     menuIcons[index],
-                    color: isSelected ? Colors.blue[800] : Colors.white,
-                    size: 24,
+                    color: isSelected
+                        ? Colors.blueAccent
+                        : Theme.of(context).colorScheme.primary,
+                    size: 28,
                   ),
                 ),
                 if (isExpanded)
                   Text(
                     menuLabels[index],
                     style: TextStyle(
-                      color: isSelected ? Colors.blue[800] : Colors.white,
+                      color: isSelected
+                          ? Colors.blueAccent
+                          : Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                     ),
@@ -127,18 +148,28 @@ class SideBar extends StatelessWidget {
           onTap: () => onItemSelected(index),
           child: Container(
             margin: const EdgeInsets.symmetric(vertical: 5.0),
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? Colors.blue[200] // Highlight for selected menu
-                  : Colors.transparent,
-              shape: BoxShape.circle,
-            ),
             child: Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Icon(
-                menuIcons[index],
-                color: isSelected ? Colors.blue[800] : Colors.white,
-                size: 28,
+              child: Column(
+                children: [
+                  Icon(
+                    menuIcons[index],
+                    color: isSelected
+                        ? Colors.blueAccent
+                        : Theme.of(context).colorScheme.primary,
+                    size: 28,
+                  ),
+                  Text(
+                    menuLabels[index],
+                    style: TextStyle(
+                      color: isSelected
+                          ? Colors.blueAccent
+                          : Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -156,22 +187,24 @@ class SideBar extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 10),
         decoration: const BoxDecoration(
-          color: Colors.redAccent,
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(20),
+          ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(
               Icons.logout,
-              color: Colors.white,
-              size: 20,
+              color: Colors.redAccent,
+              size: 28,
             ),
             if (isExpanded) const SizedBox(width: 10),
             if (isExpanded)
               const Text(
                 'Sign out',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: Colors.redAccent,
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
                 ),
@@ -184,13 +217,81 @@ class SideBar extends StatelessWidget {
 }
 
 const List<IconData> menuIcons = [
-  Icons.chat_bubble_rounded,
-  Icons.person_rounded,
-  Icons.settings_outlined,
+  CupertinoIcons.chat_bubble_text_fill,
+  Icons.smart_toy_rounded,
+  CupertinoIcons.gear_alt_fill,
 ];
 
 const List<String> menuLabels = [
   'Chat',
-  'Personal',
+  'Assistant',
   'Settings',
 ];
+
+class CustomForwardIcon extends StatelessWidget {
+  const CustomForwardIcon({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        // Forward arrow
+        const Icon(
+          CupertinoIcons.chevron_right,
+          size: 14,
+          color: Colors.black,
+        ),
+        // Vertical line
+        Positioned(
+          right: 0,
+          child: Transform.scale(
+            scaleY: 1.5,
+            child: Transform.rotate(
+              angle: 1.57,
+              child: const Icon(
+                Icons.horizontal_rule,
+                size: 14,
+                color: Colors.black,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class CustomExpandIcon extends StatelessWidget {
+  const CustomExpandIcon({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        // Forward arrow
+        Transform.rotate(
+          angle: 1.57,
+          child: const Icon(
+            Icons.unfold_more_outlined,
+            size: 18,
+            color: Colors.black,
+          ),
+        ),
+        // Vertical line
+        Transform.scale(
+          scaleY: 1.2,
+          child: Transform.rotate(
+            angle: 1.57,
+            child: const Icon(
+              Icons.horizontal_rule,
+              size: 14,
+              color: Colors.black,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}

@@ -32,10 +32,10 @@ class RouteController {
   static void navigateTo(int index) {
     switch (index) {
       case 0:
-        navigatorKey.currentState!.pushNamed(chat);
+        navigatorKey.currentState!.pushReplacementNamed(chat);
         break;
       case 1:
-        navigatorKey.currentState!.pushNamed(personal);
+        navigatorKey.currentState!.pushReplacementNamed(personal);
         break;
     }
   }

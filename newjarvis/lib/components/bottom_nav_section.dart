@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:newjarvis/components/ai_model_selection_section.dart';
-import 'package:newjarvis/components/bottom_switch_section.dart';
+import 'package:newjarvis/components/prompt_section.dart';
 import 'package:newjarvis/components/chat_input_section.dart';
 
 class BottomNavSection extends StatefulWidget {
@@ -37,15 +37,17 @@ class _BottomNavSectionState extends State<BottomNavSection> {
           runSpacing: 10,
           alignment: WrapAlignment.start,
           children: [
-            Row(
-            children: [
-                // Ai Switch Section
-                AiModelSelectionSection(
-                  onAiSelected: widget.onAiSelected,
-                ),
-                // Prompt Section
-                const PromptSection(),
-              ],
+            SingleChildScrollView(
+              child: Row(
+                children: [
+                  // Ai Switch Section
+                  AiModelSelectionSection(
+                    onAiSelected: widget.onAiSelected,
+                  ),
+                  // Prompt Section
+                  const PromptSection(),
+                ],
+              ),
             ),
             // Chat Input Section
             ChatInputSection(
@@ -57,4 +59,3 @@ class _BottomNavSectionState extends State<BottomNavSection> {
     );
   }
 }
-
