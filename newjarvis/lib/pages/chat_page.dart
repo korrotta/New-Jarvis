@@ -94,12 +94,6 @@ class _ChatPageState extends State<ChatPage> {
     _initializePage();
   }
 
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
   Future<void> _initializePage() async {
     await _checkLoginStatus();
     await _getCurentUserInfo();
@@ -107,7 +101,7 @@ class _ChatPageState extends State<ChatPage> {
     await _getConversationHistory(_currentConversationId!);
     await _fetchRemainingUsage();
     await _fetchTotalTokens();
-    await _scrollToBottom();
+    // await _scrollToBottom();
     print('Current Conversation ID: $_currentConversationId');
   }
 
@@ -119,15 +113,15 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
-  Future<void> _scrollToBottom() async {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeOut,
-      );
-    }
-  }
+  // Future<void> _scrollToBottom() async {
+  //   if (_scrollController.hasClients) {
+  //     _scrollController.animateTo(
+  //       _scrollController.position.maxScrollExtent,
+  //       duration: const Duration(milliseconds: 500),
+  //       curve: Curves.easeOut,
+  //     );
+  //   }
+  // }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -361,7 +355,7 @@ class _ChatPageState extends State<ChatPage> {
         _currentConversationHistory = response;
       });
 
-      _scrollToBottom();
+      // _scrollToBottom();
       return;
     } catch (e) {
       // Error fetching conversation history
@@ -501,7 +495,7 @@ class _ChatPageState extends State<ChatPage> {
           );
         } else {
           final items = snapshot.data!;
-          _scrollToBottom();
+          // _scrollToBottom();
           return ListView.builder(
             controller: _scrollController,
             itemCount: items.length,
