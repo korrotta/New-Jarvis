@@ -28,8 +28,15 @@ class _PersonalPageState extends State<PersonalPage> {
   @override
   void initState() {
     super.initState();
-    _loginKnowledgeApi();
-    _getAssistants();
+    _initializePage();
+  }
+
+  Future<void> _initializePage() async {
+    // Auto login to the knowledge API
+    await _loginKnowledgeApi();
+
+    // Fetch assistants
+    await _getAssistants();
   }
 
   Future<void> _getAssistants() async {

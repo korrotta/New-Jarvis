@@ -26,6 +26,7 @@ class AuthProvider extends ChangeNotifier {
     if (isLoggedIn) {
       try {
         _currentUser = await apiService.getCurrentUser(context);
+        print('User: $_currentUser');
       } catch (e) {
         print('Error: $e');
       }
@@ -42,7 +43,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> signOut(BuildContext context) async {
-    await apiService.signOut();
+    await apiService.signOut(context);
     _currentUser = null;
     navigatorKey.currentState!.pushReplacementNamed('/auth');
     notifyListeners();

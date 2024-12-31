@@ -22,6 +22,9 @@ class KnowledgeApiService {
   // Instance of ApiService
   final ApiService _apiService = ApiService.instance;
 
+  // Kb Token timer
+  Timer? _kbTokenTimer;
+
   // Show error snackbar
   void _showErrorSnackbar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -39,10 +42,21 @@ class KnowledgeApiService {
     );
   }
 
+  // Auto refresh the kb token every 30 seconds
+  void autoRefreshKbToken() {
+    _kbTokenTimer = Timer.periodic(
+      const Duration(seconds: 30),
+      (timer) async {
+        await refreshToken();
+      },
+    );
+  }
+
   // Store the token in SharedPreferences
-  Future<void> _storeToken(String token) async {
+  Future<void> _storeToken(String accessToken, String refreshToken) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('kb_token', token);
+    await prefs.setString('kb_token', accessToken);
+    await prefs.setString('kb_refresh_token', refreshToken);
   }
 
   // Get the token from SharedPreferences
@@ -51,8 +65,14 @@ class KnowledgeApiService {
     return prefs.getString('kb_token');
   }
 
+  // Get the refresh token from SharedPreferences
+  Future<String?> _getRefreshToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('kb_refresh_token');
+  }
+
   // Sign in from external client (Jarvis)
-  Future<Map<String, dynamic>> signIn() async {
+  Future<void> signIn() async {
     final url = Uri.parse('$_baseUrl/kb-core/v1/auth/external-sign-in');
     final token = await _apiService.getTokenWithRefresh();
     final response = await http.post(
@@ -64,9 +84,13 @@ class KnowledgeApiService {
 
     if (response.statusCode == 200) {
       final result = jsonDecode(response.body);
-      print(result);
+      print('Sign in knowledge API: $result');
+
+      final kbAccessToken = result['token']['accessToken'];
+      final kbRefreshToken = result['token']['refreshToken'];
+
       // Store the token as knowledgeApiToken
-      await _storeToken(result['token']['accessToken']);
+      await _storeToken(kbAccessToken, kbRefreshToken);
 
       return result;
     } else {
@@ -75,9 +99,9 @@ class KnowledgeApiService {
   }
 
   // Refresh token
-  Future<Map<String, dynamic>> refreshToken() async {
+  Future<void> refreshToken() async {
     final url = Uri.parse('$_baseUrl/kb-core/v1/auth/refresh');
-    final token = await _getToken();
+    final token = await _getRefreshToken();
     final response = await http.post(
       url,
       body: {
@@ -85,12 +109,16 @@ class KnowledgeApiService {
       },
     );
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 401) {
       final result = jsonDecode(response.body);
       print(result);
-      print("Token Refreshed");
+      print("KB Token Refreshed");
+
+      final kbAccessToken = result['token']['accessToken'];
+      final kbRefreshToken = result['token']['refreshToken'];
+
       // Store the token as knowledgeApiToken
-      await _storeToken(result['accessToken']);
+      await _storeToken(kbAccessToken, kbRefreshToken);
 
       return result;
     } else {
@@ -116,8 +144,10 @@ class KnowledgeApiService {
       print(result);
       return result;
     } else {
-      _showErrorSnackbar(
-          context, 'Failed to get assistants, code: ${response.statusCode}');
+      _showErrorSnackbar(context,
+          'Failed to get assistants, Details: ${jsonDecode(response.body)}');
+
+      print('Failed to get assistants, Details: ${jsonDecode(response.body)}');
       throw Exception('Failed to get assistants');
     }
   }

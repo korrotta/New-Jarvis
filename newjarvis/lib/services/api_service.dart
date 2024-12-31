@@ -297,6 +297,7 @@ class ApiService {
         // Decode and return the current user data
         final data = jsonDecode(response.body);
         user = BasicUserModel.fromMap(data);
+        print('user response: $data');
         return user;
       } else {
         _showErrorSnackbar(
@@ -357,11 +358,17 @@ class ApiService {
   }
 
   // Sign out
-  Future<http.Response> signOut() async {
-    final token = await getTokenWithRefresh();
+  Future<void> signOut(BuildContext context) async {
+    final token = await getToken();
 
     if (token == null) {
-      throw Exception('No token found. Please sign in.');
+      // If token is null, clear SharedPreferences and return
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('auth_token');
+      await prefs.remove('expiration_time');
+      await prefs.remove('refresh_token');
+
+      return;
     }
 
     final url = Uri.parse('$_baseUrl/api/v1/auth/sign-out');
@@ -385,10 +392,8 @@ class ApiService {
         throw Exception(
             "Failed to sign out. Status Code: ${response.statusCode}");
       }
-
-      return response;
     } catch (e) {
-      return http.Response('Error signing out', 500);
+      _showErrorSnackbar(context, "Error signing out: $e");
     }
   }
 
