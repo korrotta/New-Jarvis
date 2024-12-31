@@ -3,6 +3,8 @@ import 'package:newjarvis/models/basic_user_model.dart';
 import 'package:newjarvis/services/api_service.dart';
 
 class AuthProvider extends ChangeNotifier {
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
   final ApiService apiService = ApiService();
   BasicUserModel? _currentUser;
   bool _isLoading = true;
@@ -42,7 +44,7 @@ class AuthProvider extends ChangeNotifier {
   Future<void> signOut(BuildContext context) async {
     await apiService.signOut();
     _currentUser = null;
-
+    navigatorKey.currentState!.pushReplacementNamed('/auth');
     notifyListeners();
   }
 }

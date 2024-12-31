@@ -21,8 +21,8 @@ class SideBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sideBarWidthExpanded = MediaQuery.of(context).size.width * 0.15;
-    final sideBarWidthCollapsed = MediaQuery.of(context).size.width * 0.08;
+    final sideBarWidthExpanded = MediaQuery.of(context).size.width * 0.2;
+    final sideBarWidthCollapsed = MediaQuery.of(context).size.width * 0.1;
     double sidebarWidth =
         isExpanded ? sideBarWidthExpanded : sideBarWidthCollapsed;
 

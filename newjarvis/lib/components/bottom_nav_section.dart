@@ -6,11 +6,13 @@ import 'package:newjarvis/components/chat_input_section.dart';
 class BottomNavSection extends StatefulWidget {
   final Function(String) onSend;
   final Function(String) onAiSelected;
+  final Function()? onNewConversation;
 
   const BottomNavSection({
     super.key,
     required this.onSend,
     required this.onAiSelected,
+    this.onNewConversation,
   });
 
   @override
@@ -52,6 +54,7 @@ class _BottomNavSectionState extends State<BottomNavSection> {
             // Chat Input Section
             ChatInputSection(
               onSend: widget.onSend,
+              onNewConversation: widget.onNewConversation,
             ),
           ],
         ),

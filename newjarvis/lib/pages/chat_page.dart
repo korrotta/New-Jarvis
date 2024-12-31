@@ -9,8 +9,10 @@ import 'package:newjarvis/components/side_bar.dart';
 import 'package:newjarvis/components/welcome_chat_section.dart';
 import 'package:newjarvis/enums/id.dart';
 import 'package:newjarvis/enums/model.dart';
+import 'package:newjarvis/models/ai_chat_metadata.dart';
 import 'package:newjarvis/models/ai_chat_model.dart';
 import 'package:newjarvis/models/assistant_model.dart';
+import 'package:newjarvis/models/basic_user_model.dart';
 import 'package:newjarvis/models/chat_conversation.dart';
 import 'package:newjarvis/models/chat_message.dart';
 import 'package:newjarvis/models/conversation_history_item_model.dart';
@@ -29,13 +31,31 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   // Api Service instance
-  final ApiService apiService = ApiService();
+  final ApiService _apiService = ApiService();
+
+  // Current user
+  BasicUserModel? _currentUser;
 
   // State variables
-  String? currentConversationId; // Nullable to handle new conversations
+  String? _currentConversationId; // Nullable to handle new conversations
+
   String _cursor = '';
-  ChatConversation currentConversation = ChatConversation(id: '', messages: []);
-  List<ChatMessage> messages = [];
+
+  ChatConversation _currentConversation = ChatConversation(
+    id: '',
+    messages: [],
+  );
+
+  List<ChatMessage> _messages = [];
+
+  AiChatMetadata _metadata = AiChatMetadata(
+    chatConversation: ChatConversation(
+      id: '',
+      messages: [],
+    ),
+  );
+
+  bool _isNewThread = false; // Flag to track if it's a new thread
 
   // Storing conversations and conversation history
   List<ConversationItemModel> _conversations = []; // Store all conversations
@@ -44,16 +64,16 @@ class _ChatPageState extends State<ChatPage> {
   Future<List<ConversationHistoryItemModel>>? _conversationHistory;
 
   // UI State variables
-  int selectedIndex = 0;
-  bool isExpanded = false;
-  bool isSidebarVisible = false;
-  bool isDrawerVisible = false;
-  double dragOffset = 200.0;
+  int _selectedIndex = 0;
+  bool _isExpanded = false;
+  bool _isSidebarVisible = false;
+  bool _isDrawerVisible = false;
+  double _dragOffset = 200.0;
   final ScrollController _scrollController = ScrollController();
 
   // Token usages
-  String remainingUsage = '0';
-  String totalUsage = '0';
+  String _remainingUsage = '0';
+  String _totalUsage = '0';
 
   // Default AI
   AssistantModel _assistant = AssistantModel(
@@ -70,17 +90,24 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void dispose() {
     _scrollController.dispose();
-    apiService.signOut();
+    _apiService.signOut();
     super.dispose();
   }
 
   Future<void> _initializePage() async {
     await _checkLoginStatus();
+    await _getCurentUserInfo();
     await _fetchAllConversations(isInitialFetch: true);
-    await _getConversationHistory(currentConversationId!);
+    await _getConversationHistory(_currentConversationId!);
     await _fetchRemainingUsage();
     await _fetchTotalTokens();
     await _scrollToBottom();
+    print('Current Conversation ID: $_currentConversationId');
+  }
+
+  Future<void> _getCurentUserInfo() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    _currentUser = authProvider.currentUser;
   }
 
   Future<void> _scrollToBottom() async {
@@ -95,8 +122,8 @@ class _ChatPageState extends State<ChatPage> {
 
   void _onItemTapped(int index) {
     setState(() {
-      selectedIndex = index;
-      isSidebarVisible = false;
+      _selectedIndex = index;
+      _isSidebarVisible = false;
     });
 
     // Navigate to the selected page
@@ -137,7 +164,7 @@ class _ChatPageState extends State<ChatPage> {
 
     try {
       // Call API to send the message and receive a response
-      final response = await apiService.sendMessage(
+      final response = await _apiService.sendMessage(
         context: context,
         aiChat: AiChatModel(
           assistant: _assistant,
@@ -182,91 +209,140 @@ class _ChatPageState extends State<ChatPage> {
     return chat;
   }
 
-  // Handle send message to AI (continue conversation)
-  Future<String> _handleSend(BuildContext context, String chat) async {
-    if (chat.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Please enter a message',
-            style: TextStyle(color: Colors.white, fontSize: 16),
-          ),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 3),
-        ),
-      );
-      return chat;
-    }
+  // // Handle send message to AI (continue conversation)
+  // Future<String> _handleSend(BuildContext context, String chat) async {
+  //   if (chat.isEmpty) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(
+  //         content: Text(
+  //           'Please enter a message',
+  //           style: TextStyle(color: Colors.white, fontSize: 16),
+  //         ),
+  //         backgroundColor: Colors.red,
+  //         duration: Duration(seconds: 3),
+  //       ),
+  //     );
+  //     return chat;
+  //   }
 
-    // Create placeholders for the conversation
-    final tempConversation = ConversationHistoryItemModel(
-      query: chat,
-      answer: '', // Placeholder for AI's response
-      files: [],
-      createdAt: DateTime.now().millisecondsSinceEpoch,
-    );
+  //   // Create placeholders for the conversation
+  //   final tempConversation = ConversationHistoryItemModel(
+  //     query: chat,
+  //     answer: '', // Placeholder for AI's response
+  //     files: [],
+  //     createdAt: DateTime.now().millisecondsSinceEpoch,
+  //   );
 
-    // Add placeholder to the conversation history
+  //   // Add placeholder to the conversation history
+  //   setState(() {
+  //     _conversationHistory = _conversationHistory!
+  //         .then((history) => [...history, tempConversation]);
+  //   });
+
+  //   await _scrollToBottom();
+
+  //   try {
+  //     // Call API to send the message and receive a response
+  //     final response = await apiService.sendMessage(
+  //       context: context,
+  //       aiChat: AiChatModel(
+  //         assistant: _assistant,
+  //         content: chat,
+  //         files: null,
+  //         metadata: null, // Pass metadata if conversation ID exists
+  //       ),
+  //     );
+
+  //     // Update the last message with AI's response
+  //     setState(() {
+  //       _fetchRemainingUsage();
+  //       _fetchTotalTokens();
+  //       // Refresh conversation history
+  //       _fetchAllConversations();
+  //       _conversationHistory = _conversationHistory!.then((history) {
+  //         // Replace the placeholder with the final response
+  //         final updatedHistory =
+  //             List<ConversationHistoryItemModel>.from(history);
+  //         updatedHistory.last = ConversationHistoryItemModel(
+  //           query: chat,
+  //           answer: response.message ??
+  //               '', // Use actual AI response or empty string if null
+  //           files: [],
+  //           createdAt: tempConversation.createdAt,
+  //         );
+
+  //         return updatedHistory;
+  //       });
+  //     });
+
+  //     await _scrollToBottom();
+  //   } catch (e) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('Error sending message: $e'),
+  //         backgroundColor: Colors.red,
+  //       ),
+  //     );
+  //   }
+
+  //   return chat;
+  // }
+
+  // Function to handle sending messages
+  void _handleSend(String message) {
     setState(() {
-      _conversationHistory = _conversationHistory!
-          .then((history) => [...history, tempConversation]);
-    });
-
-    await _scrollToBottom();
-
-    try {
-      // Call API to send the message and receive a response
-      final response = await apiService.sendMessage(
-        context: context,
-        aiChat: AiChatModel(
-          assistant: _assistant,
-          content: chat,
-          files: null,
-          metadata: null, // Pass metadata if conversation ID exists
-        ),
+      // Append the message to the current conversation thread
+      ChatMessage chatMessage = ChatMessage(
+        assistant: _assistant,
+        content: message,
+        files: [],
+        role: _currentUser!.roles.first,
       );
+      _messages.add(chatMessage);
 
-      // Update the last message with AI's response
       setState(() {
-        _fetchRemainingUsage();
-        _fetchTotalTokens();
-        // Refresh conversation history
-        _fetchAllConversations();
-        _conversationHistory = _conversationHistory!.then((history) {
-          // Replace the placeholder with the final response
-          final updatedHistory =
-              List<ConversationHistoryItemModel>.from(history);
-          updatedHistory.last = ConversationHistoryItemModel(
-            query: chat,
-            answer: response.message ??
-                '', // Use actual AI response or empty string if null
-            files: [],
-            createdAt: tempConversation.createdAt,
-          );
+        _currentConversation = ChatConversation(
+          id: _currentConversationId!,
+          messages: _messages,
+        );
 
-          return updatedHistory;
-        });
+        _metadata = AiChatMetadata(
+          chatConversation: _currentConversation,
+        );
       });
 
-      await _scrollToBottom();
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error sending message: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
+      // Send the message to the AI
+      try {
+        final response = _apiService.sendMessage(
+          context: context,
+          aiChat: AiChatModel(
+            assistant: _assistant,
+            content: message,
+            files: null,
+            metadata: _metadata,
+          ),
+        );
+      } catch (e) {
+        // Error sending message
+      }
+    });
+  }
 
-    return chat;
+  // Function to handle starting a new thread
+  void _handleNewConversation() {
+    setState(() {
+      _isNewThread = true;
+      _messages.clear(); // Clear the previous conversation messages
+      _currentConversationId = null; // Reset conversation ID
+    });
   }
 
   // Fetch remaining usage
   Future<void> _fetchRemainingUsage() async {
     try {
-      final TokenUsageModel tokenUsage = await apiService.getTokenUsage();
+      final TokenUsageModel tokenUsage = await _apiService.getTokenUsage();
       setState(() {
-        remainingUsage = tokenUsage.remainingTokens;
+        _remainingUsage = tokenUsage.remainingTokens;
       });
     } catch (e) {
       // Error fetching remaining tokens
@@ -276,9 +352,9 @@ class _ChatPageState extends State<ChatPage> {
   // Fetch total tokens
   Future<void> _fetchTotalTokens() async {
     try {
-      final TokenUsageModel tokenUsage = await apiService.getTokenUsage();
+      final TokenUsageModel tokenUsage = await _apiService.getTokenUsage();
       setState(() {
-        totalUsage = tokenUsage.totalTokens;
+        _totalUsage = tokenUsage.totalTokens;
       });
     } catch (e) {
       // Error fetching total tokens
@@ -294,7 +370,7 @@ class _ChatPageState extends State<ChatPage> {
   // Fetch all conversations
   Future<void> _fetchAllConversations({bool isInitialFetch = false}) async {
     try {
-      final response = await apiService.getConversations(
+      final response = await _apiService.getConversations(
         context: context,
         cursor: isInitialFetch ? null : _cursor,
         limit: 100,
@@ -308,14 +384,14 @@ class _ChatPageState extends State<ChatPage> {
           _conversations.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
           // Set the current conversation ID to the first conversation
-          currentConversationId = _conversations.first.id;
+          _currentConversationId = _conversations.first.id;
         } else {
           _conversations.addAll(response.items);
           // Sort the conversations by the latest message
           _conversations.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
           // Set the current conversation ID to the first conversation
-          currentConversationId = _conversations.first.id;
+          _currentConversationId = _conversations.first.id;
         }
         _cursor = response.cursor; // Update cursor for pagination
       });
@@ -327,7 +403,7 @@ class _ChatPageState extends State<ChatPage> {
   // Get conversation history based on conversationID
   Future<void> _getConversationHistory(String conversationId) async {
     try {
-      final response = await apiService.getConversationHistory(
+      final response = await _apiService.getConversationHistory(
         context: context,
         conversationId: conversationId,
         cursor: _cursor,
@@ -372,7 +448,7 @@ class _ChatPageState extends State<ChatPage> {
 
     setState(() {
       // Update the current conversation ID
-      currentConversationId = id;
+      _currentConversationId = id;
     });
   }
 
@@ -395,8 +471,8 @@ class _ChatPageState extends State<ChatPage> {
                         const EdgeInsets.only(top: 20, left: 20, right: 20),
                     duration: const Duration(milliseconds: 300),
                     margin: EdgeInsets.only(
-                      left: isDrawerVisible ? 250 : 0,
-                      right: isSidebarVisible ? (isExpanded ? 180 : 98) : 0,
+                      left: _isDrawerVisible ? 250 : 0,
+                      right: _isSidebarVisible ? (_isExpanded ? 180 : 98) : 0,
                     ),
                     width: double.infinity,
                     child: _buildChatList(context),
@@ -406,45 +482,45 @@ class _ChatPageState extends State<ChatPage> {
                   ConversationSidebar(
                     conversations: _conversations,
                     onSelectedConversation: _handleConversationSelect,
-                    remainingTokens: remainingUsage,
-                    totalTokens: totalUsage,
+                    remainingTokens: _remainingUsage,
+                    totalTokens: _totalUsage,
                   ),
 
                   // Sidebar
-                  if (isSidebarVisible)
+                  if (_isSidebarVisible)
                     Positioned(
                       top: 0,
                       bottom: 0,
                       right: 0,
                       child: SideBar(
-                        isExpanded: isExpanded,
-                        selectedIndex: selectedIndex,
+                        isExpanded: _isExpanded,
+                        selectedIndex: _selectedIndex,
                         onItemSelected: _onItemTapped,
                         onExpandToggle: () {
                           setState(() {
-                            isExpanded = !isExpanded;
+                            _isExpanded = !_isExpanded;
                           });
                         },
                         onClose: () {
                           setState(() {
-                            isSidebarVisible = false;
+                            _isSidebarVisible = false;
                           });
                         },
                       ),
                     ),
 
                   // Nửa hình tròn khi sidebar bị ẩn (Floating Button)
-                  if (!isSidebarVisible)
+                  if (!_isSidebarVisible)
                     FloatingButton(
-                      dragOffset: dragOffset,
+                      dragOffset: _dragOffset,
                       onDragUpdate: (delta) {
                         setState(
                           () {
-                            dragOffset += delta;
-                            if (dragOffset < 0) dragOffset = 0;
-                            if (dragOffset >
+                            _dragOffset += delta;
+                            if (_dragOffset < 0) _dragOffset = 0;
+                            if (_dragOffset >
                                 MediaQuery.of(context).size.height - 100) {
-                              dragOffset =
+                              _dragOffset =
                                   MediaQuery.of(context).size.height - 100;
                             }
                           },
@@ -453,7 +529,7 @@ class _ChatPageState extends State<ChatPage> {
                       onTap: () {
                         setState(
                           () {
-                            isSidebarVisible = true;
+                            _isSidebarVisible = true;
                           },
                         );
                       },
@@ -461,7 +537,8 @@ class _ChatPageState extends State<ChatPage> {
                 ],
               ),
         bottomNavigationBar: BottomNavSection(
-          onSend: (chat) => _handleSend(context, chat),
+          onSend: (chat) => _handleSend(chat),
+          onNewConversation: () => _handleNewConversation(),
           onAiSelected: (aiId) => _handleSelectedAI(context, aiId),
         ),
       ),

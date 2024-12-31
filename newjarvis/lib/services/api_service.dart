@@ -569,9 +569,9 @@ class ApiService {
         return ConversationResponseModel.fromJson(data);
       } else {
         _showErrorSnackbar(context,
-            "Failed to get conversations. Status Code: ${response.statusCode}");
+            "Failed to get conversations. Details: ${jsonDecode(response.body)['message']}");
         throw Exception(
-            "Failed to get conversations. Status Code: ${response.statusCode}");
+            "Failed to get conversations. Details: ${jsonDecode(response.body)['message']}");
       }
     } catch (e) {
       _showErrorSnackbar(context, "Error getting conversations: $e");
@@ -633,7 +633,7 @@ class ApiService {
         return conversationHistory;
       } else {
         _showErrorSnackbar(context,
-            "Failed to get conversation history. Status Code: ${response.statusCode}");
+            "Failed to get conversation history. Details: ${jsonDecode(response.body)['message']}");
         return [];
       }
     } catch (e) {

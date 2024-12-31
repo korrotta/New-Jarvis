@@ -5,7 +5,6 @@ import 'package:newjarvis/components/route_controller.dart';
 import 'package:newjarvis/components/side_bar.dart';
 import 'package:newjarvis/models/basic_user_model.dart';
 import 'package:newjarvis/providers/auth_provider.dart';
-import 'package:newjarvis/services/api_service.dart';
 import 'package:newjarvis/services/knowledge_api_service.dart';
 import 'package:provider/provider.dart';
 
@@ -35,7 +34,8 @@ class _PersonalPageState extends State<PersonalPage> {
 
   Future<void> _getAssistants() async {
     try {
-      final fetchedAssistants = await _knowledgeApiService.getAssistants();
+      final fetchedAssistants =
+          await _knowledgeApiService.getAssistants(context: context);
       setState(() {
         assistants = fetchedAssistants['data'];
         isLoading = false;
@@ -392,7 +392,7 @@ class _PersonalPageState extends State<PersonalPage> {
           padding: const EdgeInsets.all(16.0),
           child: ElevatedButton.icon(
             onPressed: () {
-              _knowledgeApiService.getAssistants();
+              _knowledgeApiService.getAssistants(context: context);
             },
             icon: const Icon(Icons.refresh),
             label: const Text("Get Assistants"),

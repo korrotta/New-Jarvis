@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:newjarvis/services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,6 +21,23 @@ class KnowledgeApiService {
 
   // Instance of ApiService
   final ApiService _apiService = ApiService.instance;
+
+  // Show error snackbar
+  void _showErrorSnackbar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: Colors.red,
+        content: Text(
+          message,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+          ),
+        ),
+        duration: const Duration(seconds: 5),
+      ),
+    );
+  }
 
   // Store the token in SharedPreferences
   Future<void> _storeToken(String token) async {
@@ -81,7 +99,9 @@ class KnowledgeApiService {
   }
 
   // Get Assitants
-  Future<Map<String, dynamic>> getAssistants() async {
+  Future<Map<String, dynamic>> getAssistants({
+    required BuildContext context,
+  }) async {
     final url = Uri.parse('$_baseUrl/kb-core/v1/ai-assistant');
     final token = await _getToken();
     final response = await http.get(
@@ -96,6 +116,8 @@ class KnowledgeApiService {
       print(result);
       return result;
     } else {
+      _showErrorSnackbar(
+          context, 'Failed to get assistants, code: ${response.statusCode}');
       throw Exception('Failed to get assistants');
     }
   }
