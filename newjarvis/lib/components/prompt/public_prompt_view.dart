@@ -20,8 +20,6 @@ class _PublicPromptsViewState extends State<PublicPromptsView> {
 
   Future<void> _fetchInitialPrompts() async {
     final promptState = Provider.of<PromptState>(context, listen: false);
-
-    // Initial fetch of prompts for the selected category
     await promptState.fetchPrompts(context, isPublic: true);
   }
 
@@ -125,6 +123,7 @@ class CategoryChip extends StatelessWidget {
       labelStyle: TextStyle(
         color: isSelected ? Colors.white : Colors.black,
       ),
+      side: BorderSide.none, // Removes the border
     );
   }
 }

@@ -4,8 +4,6 @@ import 'package:newjarvis/services/api_service.dart';
 import 'package:newjarvis/states/prompts_state.dart';
 import 'package:provider/provider.dart';
 
-// Import the PromptDetailDrawer
-
 class PromptListItem extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -59,72 +57,92 @@ class PromptListItem extends StatelessWidget {
     }
   }
 
-void _onAddToFavorites(BuildContext context) async {
+  void _onAddToFavorites(BuildContext context) async {
     final promptState = Provider.of<PromptState>(context, listen: false);
     await apiService.addPromptToFavorites(context: context, promptId: promptId);
     // refresh list
     promptState.fetchPrompts(context, isPublic: promptState.selectedCategory == 'public');
-}
+  }
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: IconButton(
-        icon: Icon(
-          Icons.favorite_border,
-          color: isFavorite ? Colors.pink : Colors.grey,
+    return Card(
+      elevation: 6.0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16.0),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(vertical: 2, horizontal: 6),
+        leading: GestureDetector(
+          onTap: () => _onAddToFavorites(context),
+          child: Icon(
+            isFavorite ? Icons.favorite : Icons.favorite_border,
+            color: isFavorite ? Colors.pink : Colors.grey,
+          ),
         ),
-        onPressed: () => _onAddToFavorites(context),
-      ),
-      title: Text(
-        title,
-        style: const TextStyle(fontWeight: FontWeight.bold),
-        overflow: TextOverflow.ellipsis,
-      ),
-      subtitle: subtitle.isNotEmpty
-          ? Text(
-              subtitle,
-              style: const TextStyle(color: Colors.grey),
-              overflow: TextOverflow.ellipsis,
-            )
-          : null,
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.delete, color: Colors.red),
-            onPressed: () => _onDelete(context),
-          ),
-          const Icon(Icons.arrow_forward_ios, size: 16),
-        ],
-      ),
-      onTap: () {
-        // Show bottom sheet with prompt details
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(
-              top: Radius.circular(16),
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.0),
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: subtitle.isNotEmpty
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 4.0),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(color: Colors.grey, fontSize: 10.0),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 6.0),
+                  Text(
+                    'By $author',
+                    style: const TextStyle(fontSize: 10.0, fontStyle: FontStyle.italic),
+                  ),
+                ],
+              )
+            : null,
+        trailing: Wrap(
+          children: <Widget>[
+            IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red, size:18),
+              onPressed: () => _onDelete(context),
             ),
-          ),
-          builder: (context) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(
-                vertical: 16.0,
-                horizontal: 16.0,
-              ),
-              child: PromptDetailBottomSheet(
-                title: title,
-                category: category,
-                author: author,
-                promptContent: promptContent,
-                promptId: promptId,
-              ),
-            );
-          },
-        );
-      },
+            IconButton(
+              icon: const Icon(Icons.arrow_forward_ios, size: 16),
+              onPressed: () {
+                // Show bottom sheet with prompt details
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(16),
+                    ),
+                  ),
+                  builder: (context) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 16.0,
+                        horizontal: 16.0,
+                      ),
+                      child: PromptDetailBottomSheet(
+                        title: title,
+                        category: category,
+                        author: author,
+                        promptContent: promptContent,
+                        promptId: promptId,
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
+
