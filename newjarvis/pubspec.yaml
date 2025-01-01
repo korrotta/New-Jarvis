@@ -16,6 +16,13 @@ dependencies:
   provider: ^6.1.2
   intl: ^0.19.0
   google_sign_in: ^6.2.2
+  mime: ^2.0.0
+  http_parser: ^4.0.2
+  file_picker: ^8.1.7
+  googleapis: ^13.2.0
+  googleapis_auth: ^1.6.0
+  flutter_secure_storage: ^9.2.2
+  url_launcher: ^6.3.1
 
 flutter_launcher_icons:
   android: "launcher_icon"
@@ -44,6 +51,10 @@ flutter:
     - assets/icons/gemini.png
     - assets/icons/gpt.png
     - assets/icons/google.png
+    - assets/icons/iconDrive.png
+    - assets/icons/iconSlack.png
+    - assets/icons/iconConfluence.png
+    - assets/newjarvis-446310-3f2e4f8d05cf.json
 
   # fonts:
   #   - family: Schyler

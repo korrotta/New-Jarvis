@@ -217,14 +217,16 @@ class SideBar extends StatelessWidget {
 }
 
 const List<IconData> menuIcons = [
-  CupertinoIcons.chat_bubble_text_fill,
-  Icons.smart_toy_rounded,
-  CupertinoIcons.gear_alt_fill,
+  Icons.chat_bubble_rounded,
+  Icons.person_rounded,
+  Icons.book_rounded,
+  Icons.settings_outlined,
 ];
 
 const List<String> menuLabels = [
   'Chat',
-  'Assistant',
+  'Personal',
+  'Knowledge Base',
   'Settings',
 ];
 

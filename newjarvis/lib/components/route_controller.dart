@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:newjarvis/pages/knowledge_base.dart';
 import 'package:newjarvis/pages/personal_page.dart';
 import 'package:newjarvis/pages/chat_page.dart';
 import 'package:newjarvis/services/auth_gate.dart';
@@ -15,6 +16,7 @@ class RouteController {
   static const String write = '/write';
   static const String translate = '/translate';
   static const String screenArt = '/screenArt';
+  static const String knowledge = '/knowledge';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -24,6 +26,8 @@ class RouteController {
         return MaterialPageRoute(builder: (_) => const ChatPage());
       case personal:
         return MaterialPageRoute(builder: (_) => const PersonalPage());
+      case knowledge:
+        return MaterialPageRoute(builder: (_) => const KnowledgePage());
       default:
         return MaterialPageRoute(builder: (_) => const AuthGate());
     }
@@ -37,6 +41,9 @@ class RouteController {
       case 1:
         navigatorKey.currentState!.pushReplacementNamed(personal);
         break;
+      case 2:
+        navigatorKey.currentState!.pushReplacementNamed(knowledge);
+        break;
     }
   }
 
@@ -45,6 +52,7 @@ class RouteController {
       auth: (context) => const AuthGate(),
       chat: (context) => const ChatPage(),
       personal: (context) => const PersonalPage(),
+      knowledge: (context) => const KnowledgePage(),
     };
   }
 
@@ -58,6 +66,11 @@ class RouteController {
       'icon': Icons.person_rounded,
       'label': 'Personal',
       'route': personal,
+    },
+    {
+      'icon': Icons.book_rounded,
+      'label': 'Knowledge Base',
+      'route': knowledge,
     },
   ];
 }
