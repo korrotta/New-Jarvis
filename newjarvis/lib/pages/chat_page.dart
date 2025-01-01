@@ -9,8 +9,13 @@ import 'package:newjarvis/components/side_bar.dart';
 import 'package:newjarvis/components/welcome_chat_section.dart';
 import 'package:newjarvis/enums/id.dart';
 import 'package:newjarvis/enums/model.dart';
+import 'package:newjarvis/models/ai_chat_metadata.dart';
 import 'package:newjarvis/models/ai_chat_model.dart';
 import 'package:newjarvis/models/assistant_model.dart';
+import 'package:newjarvis/models/basic_user_model.dart';
+import 'package:newjarvis/models/chat_conversation.dart';
+import 'package:newjarvis/models/chat_message.dart';
+import 'package:newjarvis/models/chat_response_model.dart';
 import 'package:newjarvis/models/conversation_history_item_model.dart';
 import 'package:newjarvis/models/conversation_item_model.dart';
 import 'package:newjarvis/models/token_usage_model.dart';
@@ -26,20 +31,62 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
-  final ApiService apiService = ApiService();
+  // Api Service instance
+  final ApiService _apiService = ApiService();
+
+  // Current user
+  BasicUserModel? _currentUser;
 
   // State variables
-  List<ConversationItemModel> _conversations = [];
-  Future<List<ConversationHistoryItemModel>>? _conversationHistoryFuture;
-  int selectedIndex = 0;
-  bool isExpanded = false;
-  bool isSidebarVisible = false;
-  bool isDrawerVisible = false;
-  double dragOffset = 200.0;
+  String? _currentConversationId; // Nullable to handle new conversations
+
+  String _cursor = '';
+
+  ChatConversation _currentConversation = ChatConversation(
+    id: '',
+    messages: [],
+  );
+
+  List<ChatMessage> _messages = [];
+
+  AiChatMetadata _metadata = AiChatMetadata(
+    chatConversation: ChatConversation(
+      id: '',
+      messages: [],
+    ),
+  );
+
+  bool _isNewThread = false; // Flag to track if it's a new thread
+
+  // Storing conversations and conversation history
+  List<ConversationItemModel> _conversations = []; // Store all conversations
+  List<ConversationHistoryItemModel> _currentConversationHistory =
+      []; // Store all current conversation history
+
+  // Store chat response
+  ChatResponseModel _chatResponse = ChatResponseModel(
+    id: '',
+    message: '',
+    remainingUsage: 0,
+  );
+
+  // UI State variables
+  int _selectedIndex = 0;
+  bool _isExpanded = false;
+  bool _isSidebarVisible = false;
+  bool _isDrawerVisible = false;
+  double _dragOffset = 200.0;
   final ScrollController _scrollController = ScrollController();
-  String remainingUsage = '0';
-  String totalUsage = '0';
-  String AiAgent = Id.CLAUDE_3_HAIKU_20240307.value; // Default AI Agent
+
+  // Token usages
+  String _remainingUsage = '0';
+  String _totalUsage = '0';
+
+  // Default AI
+  AssistantModel _assistant = AssistantModel(
+    id: Id.CLAUDE_3_HAIKU_20240307.value,
+    model: Model.dify.name,
+  );
 
   @override
   void initState() {
@@ -47,127 +94,195 @@ class _ChatPageState extends State<ChatPage> {
     _initializePage();
   }
 
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    apiService.signOut();
-    super.dispose();
-  }
-
   Future<void> _initializePage() async {
     await _checkLoginStatus();
-    await _fetchAllConversations();
-    _conversationHistoryFuture = _getAllConversationHistory(_conversations);
+    await _getCurentUserInfo();
+    await _fetchAllConversations(isInitialFetch: true);
+    await _getConversationHistory(_currentConversationId!);
     await _fetchRemainingUsage();
     await _fetchTotalTokens();
-    await _scrollToBottom();
+    // await _scrollToBottom();
+    print('Current Conversation ID: $_currentConversationId');
   }
 
-  Future<void> _scrollToBottom() async {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeOut,
-      );
-    }
+  Future<void> _getCurentUserInfo() async {
+    final response = await _apiService.getCurrentUser(context);
+    setState(() {
+      _currentUser = response;
+      print('Current User: $_currentUser');
+    });
   }
+
+  // Future<void> _scrollToBottom() async {
+  //   if (_scrollController.hasClients) {
+  //     _scrollController.animateTo(
+  //       _scrollController.position.maxScrollExtent,
+  //       duration: const Duration(milliseconds: 500),
+  //       curve: Curves.easeOut,
+  //     );
+  //   }
+  // }
 
   void _onItemTapped(int index) {
     setState(() {
-      selectedIndex = index;
-      isSidebarVisible = false;
+      _selectedIndex = index;
+      _isSidebarVisible = false;
     });
 
     // Navigate to the selected page
     RouteController.navigateTo(index);
   }
 
-  Future<String> _handleSend(BuildContext context, String chat) async {
-    if (chat.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Please enter a message',
-            style: TextStyle(color: Colors.white, fontSize: 16),
-          ),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 3),
-        ),
-      );
-      return chat;
-    }
+  // // Handle send message to AI (continue conversation)
+  // Future<String> _handleSend(BuildContext context, String chat) async {
+  //   if (chat.isEmpty) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(
+  //         content: Text(
+  //           'Please enter a message',
+  //           style: TextStyle(color: Colors.white, fontSize: 16),
+  //         ),
+  //         backgroundColor: Colors.red,
+  //         duration: Duration(seconds: 3),
+  //       ),
+  //     );
+  //     return chat;
+  //   }
 
-    // Create placeholders for the conversation
-    final tempConversation = ConversationHistoryItemModel(
-      query: chat,
-      answer: '', // Placeholder for AI's response
-      files: [],
-      createdAt: DateTime.now().millisecondsSinceEpoch,
-    );
+  //   // Create placeholders for the conversation
+  //   final tempConversation = ConversationHistoryItemModel(
+  //     query: chat,
+  //     answer: '', // Placeholder for AI's response
+  //     files: [],
+  //     createdAt: DateTime.now().millisecondsSinceEpoch,
+  //   );
 
-    // Add placeholder to the conversation history
+  //   // Add placeholder to the conversation history
+  //   setState(() {
+  //     _conversationHistory = _conversationHistory!
+  //         .then((history) => [...history, tempConversation]);
+  //   });
+
+  //   await _scrollToBottom();
+
+  //   try {
+  //     // Call API to send the message and receive a response
+  //     final response = await apiService.sendMessage(
+  //       context: context,
+  //       aiChat: AiChatModel(
+  //         assistant: _assistant,
+  //         content: chat,
+  //         files: null,
+  //         metadata: null, // Pass metadata if conversation ID exists
+  //       ),
+  //     );
+
+  //     // Update the last message with AI's response
+  //     setState(() {
+  //       _fetchRemainingUsage();
+  //       _fetchTotalTokens();
+  //       // Refresh conversation history
+  //       _fetchAllConversations();
+  //       _conversationHistory = _conversationHistory!.then((history) {
+  //         // Replace the placeholder with the final response
+  //         final updatedHistory =
+  //             List<ConversationHistoryItemModel>.from(history);
+  //         updatedHistory.last = ConversationHistoryItemModel(
+  //           query: chat,
+  //           answer: response.message ??
+  //               '', // Use actual AI response or empty string if null
+  //           files: [],
+  //           createdAt: tempConversation.createdAt,
+  //         );
+
+  //         return updatedHistory;
+  //       });
+  //     });
+
+  //     await _scrollToBottom();
+  //   } catch (e) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('Error sending message: $e'),
+  //         backgroundColor: Colors.red,
+  //       ),
+  //     );
+  //   }
+
+  //   return chat;
+  // }
+
+  // Function to handle sending messages
+  Future<void> _handleSend(String message) async {
     setState(() {
-      _conversationHistoryFuture = _conversationHistoryFuture!
-          .then((history) => [...history, tempConversation]);
+      // Append the message to the current conversation thread
+      ChatMessage chatMessage = ChatMessage(
+        assistant: _assistant,
+        content: message,
+        files: [],
+        role: _currentUser!.roles.first,
+      );
+      _messages.add(chatMessage);
+
+      setState(() {
+        _currentConversation = ChatConversation(
+          id: _currentConversationId!,
+          messages: _messages,
+        );
+
+        _metadata = AiChatMetadata(
+          chatConversation: _currentConversation,
+        );
+      });
     });
 
-    await _scrollToBottom();
-
+    // Send the message to the AI
     try {
-      // Call API to send the message and receive a response
-      final response = await apiService.sendMessage(
+      final response = await _apiService.sendMessage(
         context: context,
         aiChat: AiChatModel(
-          assistant: AssistantModel(
-            id: AiAgent,
-            model: Model.dify.name,
-          ),
-          content: chat,
+          assistant: _assistant,
+          content: message,
           files: null,
-          metadata: null,
+          metadata: _isNewThread ? null : _metadata,
         ),
       );
 
-      // Update the last message with AI's response
+      print('Response _handleSend: $response');
+
       setState(() {
-        _fetchRemainingUsage();
-        _fetchTotalTokens();
-        _conversationHistoryFuture =
-            _conversationHistoryFuture!.then((history) {
-          // Replace the placeholder with the final response
-          final updatedHistory =
-              List<ConversationHistoryItemModel>.from(history);
-          updatedHistory.last = ConversationHistoryItemModel(
-            query: chat,
-            answer: response.message ??
-                '', // Use actual AI response or empty string if null
-            files: [],
-            createdAt: tempConversation.createdAt,
-          );
-          return updatedHistory;
-        });
+        _chatResponse = response;
       });
 
-      await _scrollToBottom();
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error sending message: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
+      // Update current conversation history
+      _getConversationHistory(_currentConversationId!);
 
-    return chat;
+      // Update token usages
+      _fetchRemainingUsage();
+      _fetchTotalTokens();
+    } catch (e) {
+      // Error sending message
+    }
+  }
+
+  // Function to handle starting a new thread
+  void _handleNewConversation() {
+    setState(() {
+      _isNewThread = true;
+      _messages.clear(); // Clear the previous conversation messages
+      _conversations.clear(); // Clear the previous conversations
+      _currentConversationHistory
+          .clear(); // Clear the previous conversation history
+      _currentConversationId = null; // Reset conversation ID
+    });
   }
 
   // Fetch remaining usage
   Future<void> _fetchRemainingUsage() async {
     try {
-      final TokenUsageModel tokenUsage = await apiService.getTokenUsage();
+      final TokenUsageModel tokenUsage = await _apiService.getTokenUsage();
       setState(() {
-        remainingUsage = tokenUsage.remainingTokens;
+        _remainingUsage = tokenUsage.remainingTokens;
       });
     } catch (e) {
       // Error fetching remaining tokens
@@ -177,9 +292,9 @@ class _ChatPageState extends State<ChatPage> {
   // Fetch total tokens
   Future<void> _fetchTotalTokens() async {
     try {
-      final TokenUsageModel tokenUsage = await apiService.getTokenUsage();
+      final TokenUsageModel tokenUsage = await _apiService.getTokenUsage();
       setState(() {
-        totalUsage = tokenUsage.totalTokens;
+        _totalUsage = tokenUsage.totalTokens;
       });
     } catch (e) {
       // Error fetching total tokens
@@ -193,73 +308,66 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   // Fetch all conversations
-  Future<void> _fetchAllConversations() async {
-    final assistant = AssistantModel(
-      id: AiAgent,
-      model: Model.dify.name,
-    );
-
+  Future<void> _fetchAllConversations({bool isInitialFetch = false}) async {
     try {
-      final List<ConversationItemModel> conversations =
-          await apiService.getConversations(
+      final response = await _apiService.getConversations(
         context: context,
-        cursor: null,
+        cursor: isInitialFetch ? null : _cursor,
         limit: 100,
-        assistant: assistant,
+        assistant: _assistant,
       );
+
       setState(() {
-        _conversations = conversations;
+        if (isInitialFetch) {
+          _conversations = response.items; // Initial fetch
+          // Sort the conversations by the latest message
+          _conversations.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+          // Set the current conversation ID to the first conversation
+          _currentConversationId = _conversations.first.id;
+        } else {
+          _conversations.addAll(response.items);
+          // Sort the conversations by the latest message
+          _conversations.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+          // Set the current conversation ID to the first conversation
+          _currentConversationId = _conversations.first.id;
+        }
+        _cursor = response.cursor; // Update cursor for pagination
       });
     } catch (e) {
       // Error fetching conversations
     }
   }
 
-  // Get all conversations history
-  Future<List<ConversationHistoryItemModel>> _getAllConversationHistory(
-      List<ConversationItemModel> conversations) async {
-    List<ConversationHistoryItemModel> history = [];
-    conversations = conversations.reversed.toList();
-    for (var conversation in conversations) {
-      final item = await _getConversationHistory(conversation.id);
-      history.add(item);
-    }
-    return history;
-  }
-
-  // Get latest conversation history
-  Future<ConversationHistoryItemModel> _getConversationHistory(
-      String conversationId) async {
-    final assistant = AssistantModel(
-      id: AiAgent,
-      model: Model.dify.name,
-    );
-
+  // Get conversation history based on conversationID
+  Future<void> _getConversationHistory(String conversationId) async {
     try {
-      final history = await apiService.getConversationHistory(
+      final response = await _apiService.getConversationHistory(
         context: context,
         conversationId: conversationId,
-        cursor: null,
+        cursor: _cursor,
         limit: 100,
-        assistant: assistant,
+        assistant: _assistant,
       );
-      _scrollToBottom();
-      return history;
+
+      setState(() {
+        _currentConversationHistory = response;
+      });
+
+      // _scrollToBottom();
+      return;
     } catch (e) {
       // Error fetching conversation history
     }
 
-    return ConversationHistoryItemModel(
-      query: '',
-      answer: '',
-      files: [],
-      createdAt: 0,
-    );
+    return;
   }
 
+  // Handle Selected AI from BottomNavSection
   void _handleSelectedAI(BuildContext context, String aiId) {
     setState(() {
-      AiAgent = aiId;
+      _assistant.id = aiId;
     });
 
     // Fetch all conversations
@@ -270,17 +378,12 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void _handleConversationSelect(String id) {
-    // Get from the first match and the rest of the list
-    final List<ConversationItemModel> matchingAndRemaining = _conversations
-        .where((conversation) => conversation.id == id)
-        .followedBy(
-          _conversations.where((conversation) => conversation.id != id),
-        )
-        .toList();
+    // Get the conversation history based on the selected conversation ID
+    _getConversationHistory(id);
 
     setState(() {
-      _conversationHistoryFuture =
-          _getAllConversationHistory(matchingAndRemaining);
+      // Update the current conversation ID
+      _currentConversationId = id;
     });
   }
 
@@ -303,56 +406,56 @@ class _ChatPageState extends State<ChatPage> {
                         const EdgeInsets.only(top: 20, left: 20, right: 20),
                     duration: const Duration(milliseconds: 300),
                     margin: EdgeInsets.only(
-                      left: isDrawerVisible ? 250 : 0,
-                      right: isSidebarVisible ? (isExpanded ? 180 : 98) : 0,
+                      left: _isDrawerVisible ? 250 : 0,
+                      right: _isSidebarVisible ? (_isExpanded ? 180 : 98) : 0,
                     ),
                     width: double.infinity,
                     child: _buildChatList(context),
                   ),
 
                   // Conversation Drawer
-                    ConversationSidebar(
-                      conversations: _conversations,
-                      onSelectedConversation: _handleConversationSelect,
-                      remainingTokens: remainingUsage,
-                      totalTokens: totalUsage,
-                      ),
+                  ConversationSidebar(
+                    conversations: _conversations,
+                    onSelectedConversation: _handleConversationSelect,
+                    remainingTokens: _remainingUsage,
+                    totalTokens: _totalUsage,
+                  ),
 
                   // Sidebar
-                  if (isSidebarVisible)
+                  if (_isSidebarVisible)
                     Positioned(
                       top: 0,
                       bottom: 0,
                       right: 0,
                       child: SideBar(
-                        isExpanded: isExpanded,
-                        selectedIndex: selectedIndex,
+                        isExpanded: _isExpanded,
+                        selectedIndex: _selectedIndex,
                         onItemSelected: _onItemTapped,
                         onExpandToggle: () {
                           setState(() {
-                            isExpanded = !isExpanded;
+                            _isExpanded = !_isExpanded;
                           });
                         },
                         onClose: () {
                           setState(() {
-                            isSidebarVisible = false;
+                            _isSidebarVisible = false;
                           });
                         },
                       ),
                     ),
 
                   // Nửa hình tròn khi sidebar bị ẩn (Floating Button)
-                  if (!isSidebarVisible)
+                  if (!_isSidebarVisible)
                     FloatingButton(
-                      dragOffset: dragOffset,
+                      dragOffset: _dragOffset,
                       onDragUpdate: (delta) {
                         setState(
                           () {
-                            dragOffset += delta;
-                            if (dragOffset < 0) dragOffset = 0;
-                            if (dragOffset >
+                            _dragOffset += delta;
+                            if (_dragOffset < 0) _dragOffset = 0;
+                            if (_dragOffset >
                                 MediaQuery.of(context).size.height - 100) {
-                              dragOffset =
+                              _dragOffset =
                                   MediaQuery.of(context).size.height - 100;
                             }
                           },
@@ -361,7 +464,7 @@ class _ChatPageState extends State<ChatPage> {
                       onTap: () {
                         setState(
                           () {
-                            isSidebarVisible = true;
+                            _isSidebarVisible = true;
                           },
                         );
                       },
@@ -369,7 +472,8 @@ class _ChatPageState extends State<ChatPage> {
                 ],
               ),
         bottomNavigationBar: BottomNavSection(
-          onSend: (chat) => _handleSend(context, chat),
+          onSend: (chat) => _handleSend(chat),
+          onNewConversation: () => _handleNewConversation(),
           onAiSelected: (aiId) => _handleSelectedAI(context, aiId),
         ),
       ),
@@ -379,7 +483,7 @@ class _ChatPageState extends State<ChatPage> {
   Widget _buildChatList(BuildContext context) {
     // Return listbuilder of all conversations
     return FutureBuilder<List<ConversationHistoryItemModel>>(
-      future: _conversationHistoryFuture,
+      future: Future.value(_currentConversationHistory),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -391,7 +495,7 @@ class _ChatPageState extends State<ChatPage> {
           );
         } else {
           final items = snapshot.data!;
-          _scrollToBottom();
+          // _scrollToBottom();
           return ListView.builder(
             controller: _scrollController,
             itemCount: items.length,
