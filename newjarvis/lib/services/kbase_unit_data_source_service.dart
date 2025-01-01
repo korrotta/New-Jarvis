@@ -328,8 +328,8 @@ class KnowledgeBaseUnitApiService {
     }
   }
 
-  Future<void> deleteUnit(String unitId) async {
-    final url = Uri.parse('$_baseUrl/kb-core/v1/knowledge/units/$unitId');
+  Future<void> deleteUnit(String unitId, String knowledgeId) async {
+    final url = Uri.parse('$_baseUrl/kb-core/v1/knowledge/$knowledgeId/units/$unitId');
 
     // Lấy accessToken từ SharedPreferences hoặc đăng nhập lại nếu cần
     String? token = await getStoredAccessTokenKb();
@@ -348,7 +348,7 @@ class KnowledgeBaseUnitApiService {
       },
     );
 
-    if (response.statusCode == 204) {
+    if (response.statusCode == 204 || response.statusCode == 200) {
       print("Unit deleted successfully");
     } else {
       print("Failed to delete unit. Status code: ${response.statusCode}");

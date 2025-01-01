@@ -211,12 +211,12 @@ Future<void> toggleUnitStatus(String unitId, bool newStatus) async {
 }
 
 
-Future<void> deleteUnit(String unitId) async {
+Future<void> deleteUnit(String unitId, String knowledgeId) async {
   try {
     _setLoading(true);
 
     // Gọi API xóa Unit
-    await _unitApiService.deleteUnit(unitId);
+    await _unitApiService.deleteUnit(unitId, knowledgeId);
 
     // Xóa unit khỏi danh sách trong Provider
     filteredUnitList.removeWhere((unit) => unit.id == unitId);

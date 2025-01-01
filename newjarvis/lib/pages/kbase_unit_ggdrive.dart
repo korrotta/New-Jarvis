@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:newjarvis/pages/google_explored.dart';
 
 class CreateUnitDialogFromGoogleDrive extends StatefulWidget {
   final Function(String name) onConfirm;
@@ -14,7 +15,7 @@ class _CreateUnitDialogFromGoogleDriveState
     extends State<CreateUnitDialogFromGoogleDrive> {
   final _nameController = TextEditingController();
   bool _showNameError = false;
-  String? _selectedFolder;
+  String? _selectedFileName;
 
   @override
   void initState() {
@@ -34,11 +35,19 @@ class _CreateUnitDialogFromGoogleDriveState
     super.dispose();
   }
 
-  void _chooseFolder() async {
-    // Simulate folder selection logic
-    setState(() {
-      _selectedFolder = "Sample Folder Selected";
-    });
+  Future<void> _openDriveExplorer() async {
+    final selectedFile = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const GoogleDriveExplorer(),
+      ),
+    );
+
+    if (selectedFile != null) {
+      setState(() {
+        _selectedFileName = selectedFile;
+      });
+    }
   }
 
   void _submit() {
@@ -46,7 +55,7 @@ class _CreateUnitDialogFromGoogleDriveState
       _showNameError = _nameController.text.trim().isEmpty;
     });
 
-    if (!_showNameError) {
+    if (!_showNameError && _selectedFileName != null) {
       widget.onConfirm(_nameController.text.trim());
       Navigator.pop(context);
     }
@@ -145,14 +154,14 @@ class _CreateUnitDialogFromGoogleDriveState
             ),
             const SizedBox(height: 20),
             ElevatedButton.icon(
-              onPressed: _chooseFolder,
+              onPressed: _openDriveExplorer,
               icon: Image.asset(
                 'assets/icons/iconDrive.png',
                 width: 15,
                 height: 15,
               ),
               label: Text(
-                _selectedFolder ?? 'Choose Folder',
+                _selectedFileName ?? 'Choose File from Drive',
                 style: const TextStyle(fontSize: 16),
               ),
               style: ElevatedButton.styleFrom(
@@ -168,47 +177,6 @@ class _CreateUnitDialogFromGoogleDriveState
                 ),
               ),
             ),
-            const SizedBox(height: 12),
-            const Divider(),
-            // Info Box
-            Container(
-              padding: const EdgeInsets.all(12.0),
-              decoration: BoxDecoration(
-                color: const Color(0xFFE6F2FF),
-                borderRadius: BorderRadius.circular(8.0),
-                border: Border.all(
-                  color: const Color(0xFF90CAF9),
-                ),
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'ℹ You can load up to 64 pages at a time.',
-                    style: TextStyle(
-                      fontSize: 14.0,
-                      color: Colors.black,
-                    ),
-                  ),
-                  SizedBox(height: 5.0),
-                  Text(
-                    'If you want to increase this limitation, you need to contact me.',
-                    style: TextStyle(
-                      fontSize: 14.0,
-                      color: Colors.black,
-                    ),
-                  ),
-                  SizedBox(height: 5.0),
-                  Text(
-                    'Email: jarvisknowledgebase@gmail.com',
-                    style: TextStyle(
-                      fontSize: 14.0,
-                      color: Colors.blue,
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ],
         ),
       ),
@@ -218,9 +186,9 @@ class _CreateUnitDialogFromGoogleDriveState
           child: const Text('Cancel'),
         ),
         ElevatedButton(
-          onPressed: _submit,
+          onPressed: _selectedFileName != null ? _submit : null,
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blue,
+            backgroundColor: _selectedFileName != null ? Colors.blue : Colors.grey,
             foregroundColor: Colors.white,
           ),
           child: const Text('Connect'),
