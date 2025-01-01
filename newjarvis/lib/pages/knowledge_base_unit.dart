@@ -502,9 +502,9 @@ Color _getBackgroundColor(String unitName) {
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: Colors.red,
                                         ),
-                                        onPressed: () {
+                                        onPressed: () async {
                                           Navigator.of(context).pop();
-                                          unitProvider.deleteUnit(unit.id);
+                                          await unitProvider.deleteUnit(unit.id, unit.knowledgeId);
                                         },
                                         child: const Text('Delete', style: TextStyle(color: Colors.white),),
                                       ),

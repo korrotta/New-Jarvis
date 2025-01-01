@@ -20,6 +20,9 @@
         <meta-data
             android:name="com.google.android.gms.client_id"
             android:value="260143399375-n5l1pajas98jsuqiptjb5eh8nqre378j.apps.googleusercontent.com" />
+        <meta-data
+            android:name="com.google.android.gms.client.GoogleApiActivity"
+            android:value="com.google.android.gms.common.api.GoogleApiActivity" />
 
 
         <activity
