@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 
 class GoogleDriveService2 {
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-  serverClientId: '260143399375-n5l1pajas98jsuqiptjb5eh8nqre378j.apps.googleusercontent.com', // Sử dụng serverClientId từ OAuth JSON
+  serverClientId: '260143399375-n5l1pajas98jsuqiptjb5eh8nqre378j.apps.googleusercontent.com',
   scopes: [
     'https://www.googleapis.com/auth/drive.readonly',
     'https://www.googleapis.com/auth/drive.metadata.readonly',
