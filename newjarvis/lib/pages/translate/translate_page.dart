@@ -1,4 +1,4 @@
-import 'package:newjarvis/components/custom_widgets.dart';
+import 'package:newjarvis/components/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
 
 class TranslatePage extends StatelessWidget {

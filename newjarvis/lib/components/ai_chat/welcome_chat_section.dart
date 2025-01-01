@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:newjarvis/components/chat_participant.dart';
+import 'package:newjarvis/components/widgets/chat_participant.dart';
 
 class WelcomeChatSection extends StatefulWidget {
   const WelcomeChatSection({super.key});

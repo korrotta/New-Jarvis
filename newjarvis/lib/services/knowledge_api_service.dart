@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:newjarvis/models/ai_bot_model.dart';
 import 'package:newjarvis/services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -143,6 +144,7 @@ class KnowledgeApiService {
       final result = jsonDecode(response.body);
       print(result);
       return result;
+      ;
     } else {
       _showErrorSnackbar(context,
           'Failed to get assistants, Details: ${jsonDecode(response.body)}');

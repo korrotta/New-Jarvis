@@ -1,4 +1,4 @@
-import 'package:newjarvis/models/conversation_item_model.dart';
+import 'package:newjarvis/models/ai_chat/conversation_item_model.dart';
 
 class ConversationResponseModel {
   final String cursor; // Search, filter data by cursor

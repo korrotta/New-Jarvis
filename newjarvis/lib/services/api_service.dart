@@ -1,13 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:newjarvis/models/ai_chat_model.dart';
+import 'package:newjarvis/models/ai_chat/ai_chat_model.dart';
 import 'package:newjarvis/models/assistant_model.dart';
 import 'package:newjarvis/models/basic_user_model.dart';
-import 'package:newjarvis/models/chat_response_model.dart';
-import 'package:newjarvis/models/conversation_history_item_model.dart';
-import 'package:newjarvis/models/conversation_item_model.dart';
-import 'package:newjarvis/models/conversation_response_model.dart';
+import 'package:newjarvis/models/ai_chat/chat_response_model.dart';
+import 'package:newjarvis/models/ai_chat/conversation_history_item_model.dart';
+import 'package:newjarvis/models/ai_chat/conversation_item_model.dart';
+import 'package:newjarvis/models/ai_chat/conversation_response_model.dart';
 import 'package:newjarvis/models/token_usage_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;

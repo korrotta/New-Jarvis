@@ -1,7 +1,7 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:newjarvis/components/custom_button.dart';
-import 'package:newjarvis/components/custom_textfield.dart';
+import 'package:newjarvis/components/widgets/custom_button.dart';
+import 'package:newjarvis/components/widgets/custom_textfield.dart';
 import 'package:newjarvis/services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

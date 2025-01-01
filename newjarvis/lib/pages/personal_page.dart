@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:newjarvis/components/custom_textfield.dart';
-import 'package:newjarvis/components/floating_button.dart';
-import 'package:newjarvis/components/route_controller.dart';
-import 'package:newjarvis/components/side_bar.dart';
+import 'package:newjarvis/components/ai_assistant/empty_assistant_section.dart';
+import 'package:newjarvis/components/widgets/custom_textfield.dart';
+import 'package:newjarvis/components/widgets/floating_button.dart';
+import 'package:newjarvis/components/route/route_controller.dart';
+import 'package:newjarvis/components/widgets/side_bar.dart';
+import 'package:newjarvis/models/ai_bot_model.dart';
 import 'package:newjarvis/models/basic_user_model.dart';
-import 'package:newjarvis/providers/auth_provider.dart';
 import 'package:newjarvis/services/api_service.dart';
 import 'package:newjarvis/services/knowledge_api_service.dart';
-import 'package:provider/provider.dart';
 
 class PersonalPage extends StatefulWidget {
   const PersonalPage({super.key});
@@ -18,7 +18,7 @@ class PersonalPage extends StatefulWidget {
 
 class _PersonalPageState extends State<PersonalPage> {
   // List of assistants
-  List<dynamic> _assistants = [];
+  List<AiBotModel> _assistants = [];
 
   // API Service Instance
   final ApiService _apiService = ApiService();
@@ -29,12 +29,18 @@ class _PersonalPageState extends State<PersonalPage> {
   // Current user
   BasicUserModel? _currentUser;
 
+  // Text Editing Controllers
+  TextEditingController _assistantNameController = TextEditingController();
+  TextEditingController _assistantDescriptionController =
+      TextEditingController();
+
   // UI Variables
   int _selectedIndex = 1;
   bool _isExpanded = false;
   bool _isSidebarVisible = false;
-  bool _isDrawerVisible = false;
   double _dragOffset = 200.0;
+
+  // Loading state
   bool _isLoading = false;
 
   @override
@@ -177,10 +183,6 @@ class _PersonalPageState extends State<PersonalPage> {
   }
 
   Widget _buildPageContent(BuildContext context) {
-    TextEditingController assistantNameController = TextEditingController();
-    TextEditingController assistantDescriptionController =
-        TextEditingController();
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -191,7 +193,8 @@ class _PersonalPageState extends State<PersonalPage> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Icon(
-                  Icons.person,
+                  Icons.person_outline,
+                  size: 32,
                   color: Theme.of(context).colorScheme.inversePrimary,
                 ),
                 Text(
@@ -204,6 +207,7 @@ class _PersonalPageState extends State<PersonalPage> {
                 ),
               ],
             ),
+            const SizedBox(width: 5),
             // Display current user name
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -319,55 +323,8 @@ class _PersonalPageState extends State<PersonalPage> {
                   context: context,
                   builder: (context) {
                     // Dialog include (title, assistant name*, assistant description, create button, cancel button)
-                    return AlertDialog(
-                      title: const Text("Create Assistant"),
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 15),
-                          const Text("Assistant name"),
-                          const SizedBox(height: 5),
-                          CustomTextfield(
-                            validator: (p0) =>
-                                p0!.isEmpty ? "Name is required" : null,
-                            hintText: "",
-                            initialObscureText: false,
-                            controller: assistantNameController,
-                          ),
-                          const SizedBox(height: 15),
-                          const Text("Assistant description"),
-                          const SizedBox(height: 5),
-                          CustomTextfield(
-                            hintText: "",
-                            initialObscureText: false,
-                            controller: assistantDescriptionController,
-                          ),
-                          const SizedBox(height: 5),
-                        ],
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: const Text("Cancel"),
-                        ),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blueAccent,
-                          ),
-                          onPressed: () {
-                            _createNewAssistant(assistantNameController,
-                                assistantDescriptionController, context);
-                          },
-                          child: const Text(
-                            "Create",
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      ],
-                    );
+                    return _showCreateDialog(_assistantNameController,
+                        _assistantDescriptionController, context);
                   },
                 );
               },
@@ -384,53 +341,7 @@ class _PersonalPageState extends State<PersonalPage> {
 
         // List of assistants
         Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: _assistants.length,
-            itemBuilder: (context, index) {
-              final assistant = _assistants[index];
-              return Card(
-                elevation: 2,
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: Colors.blue.shade100,
-                    child: const Icon(Icons.smart_toy, color: Colors.blue),
-                  ),
-                  title: Text(assistant['assistantName'] ?? 'Unknown Name'),
-                  subtitle: Text(
-                      assistant['description'] ?? 'No description available'),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: Icon(
-                          assistant['isFavorite'] == true
-                              ? Icons.star
-                              : Icons.star_border,
-                          color: assistant['isFavorite'] == true
-                              ? Colors.yellow
-                              : null,
-                        ),
-                        onPressed: () {
-                          // Add your logic to toggle favorite status
-                          print(
-                              'Favorite toggled for: ${assistant['assistantName']}');
-                        },
-                      ),
-                      const SizedBox(width: 16),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline),
-                        onPressed: () {
-                          // Add your logic to delete the assistant
-                          print('Deleted: ${assistant['assistantName']}');
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
+          child: _buildAssistantList(),
         ),
 
         Padding(
@@ -447,6 +358,153 @@ class _PersonalPageState extends State<PersonalPage> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _showCreateDialog(
+      TextEditingController assistantNameController,
+      TextEditingController assistantDescriptionController,
+      BuildContext context) {
+    return AlertDialog(
+      title: const Text("Create Assistant"),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 15),
+          const Text("Assistant name"),
+          const SizedBox(height: 5),
+          CustomTextfield(
+            validator: (p0) => p0!.isEmpty ? "Name is required" : null,
+            hintText: "",
+            initialObscureText: false,
+            controller: assistantNameController,
+          ),
+          const SizedBox(height: 15),
+          const Text("Assistant description"),
+          const SizedBox(height: 5),
+          CustomTextfield(
+            hintText: "",
+            initialObscureText: false,
+            controller: assistantDescriptionController,
+          ),
+          const SizedBox(height: 5),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: const Text("Cancel"),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blueAccent,
+          ),
+          onPressed: () {
+            _createNewAssistant(assistantNameController,
+                assistantDescriptionController, context);
+          },
+          child: const Text(
+            "Create",
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAssistantList() {
+    return FutureBuilder<List<AiBotModel>>(
+      future: Future.value(_assistants),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return const SizedBox.shrink();
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const EmptyAssistantSection(),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    // Show the create bot dialog
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return _showCreateDialog(
+                          _assistantNameController,
+                          _assistantDescriptionController,
+                          context,
+                        );
+                      },
+                    );
+                  },
+                  icon: const Icon(Icons.add),
+                  label: const Text("Create Bot Now"),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(120, 48),
+                  ),
+                ),
+              ],
+            ),
+          );
+        } else {
+          final items = snapshot.data!;
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final assistant = items[index];
+              return Card(
+                elevation: 2,
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: Colors.blue.shade100,
+                    child: const Icon(Icons.smart_toy, color: Colors.blue),
+                  ),
+                  title: Text(assistant.assistantName ?? 'Unknown Name'),
+                  subtitle:
+                      Text(assistant.description ?? 'No description available'),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // IconButton(
+                      //   icon: Icon(
+                      //     assistant['isFavorite'] == true
+                      //         ? Icons.star
+                      //         : Icons.star_border,
+                      //     color: assistant['isFavorite'] == true
+                      //         ? Colors.yellow
+                      //         : null,
+                      //   ),
+                      //   onPressed: () {
+                      //     // Add your logic to toggle favorite status
+                      //     print(
+                      //         'Favorite toggled for: ${assistant['assistantName']}');
+                      //   },
+                      // ),
+                      const SizedBox(width: 16),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline),
+                        onPressed: () {
+                          // Add your logic to delete the assistant
+                          print(
+                              'Deleted: ${assistant.id} - ${assistant.assistantName}');
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        }
+      },
     );
   }
 

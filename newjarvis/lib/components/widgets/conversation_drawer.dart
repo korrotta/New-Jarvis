@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:newjarvis/models/conversation_item_model.dart';
+import 'package:newjarvis/models/ai_chat/conversation_item_model.dart';
 
 class ConversationSidebar extends StatefulWidget {
   final List<ConversationItemModel> conversations;
