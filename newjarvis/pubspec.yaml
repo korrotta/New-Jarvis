@@ -54,7 +54,8 @@ flutter:
     - assets/icons/iconDrive.png
     - assets/icons/iconSlack.png
     - assets/icons/iconConfluence.png
-    - assets/newjarvis-446310-3f2e4f8d05cf.json
+    - assets/images/email_marketing.png
+    - assets/images/empty_inbox.png
 
   # fonts:
   #   - family: Schyler

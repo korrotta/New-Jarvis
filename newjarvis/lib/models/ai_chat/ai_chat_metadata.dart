@@ -1,4 +1,4 @@
-import 'package:newjarvis/models/chat_conversation.dart';
+import 'package:newjarvis/models/ai_chat/chat_conversation.dart';
 
 class AiChatMetadata {
   ChatConversation chatConversation;

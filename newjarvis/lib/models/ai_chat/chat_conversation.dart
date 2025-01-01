@@ -1,4 +1,4 @@
-import 'package:newjarvis/models/chat_message.dart';
+import 'package:newjarvis/models/ai_chat/chat_message.dart';
 
 class ChatConversation {
   String id;
