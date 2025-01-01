@@ -9,6 +9,11 @@ class ChatResponseModel {
     required this.remainingUsage,
   });
 
+  // Getter
+  String? get getId => id;
+  String? get getMessage => message;
+  int? get getRemainingUsage => remainingUsage;
+
   factory ChatResponseModel.fromJson(Map<String, dynamic> json) {
     return ChatResponseModel(
       id: json['id'],

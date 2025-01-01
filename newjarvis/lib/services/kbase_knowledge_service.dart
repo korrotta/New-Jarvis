@@ -56,7 +56,8 @@ class KnowledgeBaseApiService {
           'refreshToken': refreshTokenKb,
         };
       } else {
-        print("Failed to sign in knowledge API. Status code: ${response.statusCode}");
+        print(
+            "Failed to sign in knowledge API. Status code: ${response.statusCode}");
         print("Error: ${response.body}");
         throw Exception('Failed to sign in knowledge API');
       }
@@ -78,175 +79,165 @@ class KnowledgeBaseApiService {
     return prefs.getString('refreshTokenKb');
   }
 
-
   // Create Knowledge API
   Future<Knowledge> createKnowledge({
-  required String knowledgeName,
-  required String description,
-}) async {
-  final url = Uri.parse('$_baseUrl/kb-core/v1/knowledge');
+    required String knowledgeName,
+    required String description,
+  }) async {
+    final url = Uri.parse('$_baseUrl/kb-core/v1/knowledge');
 
-  // Lấy accessToken từ SharedPreferences hoặc đăng nhập lại nếu cần
-  String? token = await getStoredAccessTokenKb();
-  if (token == null) {
-    print("AccessToken not found. Signing in to get a new token...");
-    final tokens = await SignInKB(); // Gọi hàm signIn để lấy token mới
-    token = tokens['accessToken'];
+    // Lấy accessToken từ SharedPreferences hoặc đăng nhập lại nếu cần
+    String? token = await getStoredAccessTokenKb();
+    if (token == null) {
+      print("AccessToken not found. Signing in to get a new token...");
+      final tokens = await SignInKB(); // Gọi hàm signIn để lấy token mới
+      token = tokens['accessToken'];
+    }
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+        'x-jarvis-guid': '',
+      },
+      body: jsonEncode({
+        'knowledgeName': knowledgeName,
+        'description': description,
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      final result = jsonDecode(response.body);
+      print("Knowledge created successfully: $result");
+      // Chuyển đổi từ JSON sang model Knowledge
+      return Knowledge.fromJson(result);
+    } else {
+      print("Failed to create knowledge. Status code: ${response.statusCode}");
+      print("Error: ${response.body}");
+      throw Exception('Failed to create knowledge');
+    }
   }
-
-  final response = await http.post(
-    url,
-    headers: {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json',
-      'x-jarvis-guid': '',
-    },
-    body: jsonEncode({
-      'knowledgeName': knowledgeName,
-      'description': description,
-    }),
-  );
-
-  if (response.statusCode == 201) {
-    final result = jsonDecode(response.body);
-    print("Knowledge created successfully: $result");
-    // Chuyển đổi từ JSON sang model Knowledge
-    return Knowledge.fromJson(result);
-  } else {
-    print("Failed to create knowledge. Status code: ${response.statusCode}");
-    print("Error: ${response.body}");
-    throw Exception('Failed to create knowledge');
-  }
-}
-
 
   // Get Knowledge API
   Future<List<Knowledge>> getKnowledge({
-  int offset = 0,
-  int limit = 20,
-  String order = 'DESC',
-  String orderField = 'createdAt',
-  String? query,
-}) async {
-  final url = Uri.parse('$_baseUrl/kb-core/v1/knowledge').replace(
-    queryParameters: {
-      'offset': offset.toString(),
-      'limit': limit.toString(),
-      'order': order,
-      'order_field': orderField,
-      if (query != null) 'q': query,
-    },
-  );
-
-  // Lấy accessToken từ SharedPreferences hoặc đăng nhập lại nếu cần
-  String? token = await getStoredAccessTokenKb();
-  if (token == null) {
-    print("AccessToken not found. Signing in to get a new token...");
-    final tokens = await SignInKB(); // Gọi hàm signIn để lấy token mới
-    token = tokens['accessToken'];
-  }
-
-  final response = await http.get(
-    url,
-    headers: {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json',
-      'x-jarvis-guid': '', // Thay thế nếu cần
-    },
-  );
-
-  if (response.statusCode == 200) {
-    final result = jsonDecode(response.body);
-    print("Knowledge list fetched successfully: ${result['data']}");
-
-    // Chuyển đổi danh sách JSON sang danh sách đối tượng Knowledge
-    return List<Knowledge>.from(
-      (result['data'] as List).map((item) => Knowledge.fromJson(item)),
+    int offset = 0,
+    int limit = 20,
+    String order = 'DESC',
+    String orderField = 'createdAt',
+    String? query,
+  }) async {
+    final url = Uri.parse('$_baseUrl/kb-core/v1/knowledge').replace(
+      queryParameters: {
+        'offset': offset.toString(),
+        'limit': limit.toString(),
+        'order': order,
+        'order_field': orderField,
+        if (query != null) 'q': query,
+      },
     );
-  } else {
-    print("Failed to fetch knowledge. Status code: ${response.statusCode}");
-    print("Error: ${response.body}");
-    throw Exception('Failed to fetch knowledge');
-  }
-}
 
+    // Lấy accessToken từ SharedPreferences hoặc đăng nhập lại nếu cần
+    String? token = await getStoredAccessTokenKb();
+    if (token == null) {
+      print("AccessToken not found. Signing in to get a new token...");
+      final tokens = await SignInKB(); // Gọi hàm signIn để lấy token mới
+      token = tokens['accessToken'];
+    }
+
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+        'x-jarvis-guid': '', // Thay thế nếu cần
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final result = jsonDecode(response.body);
+      print("Knowledge list fetched successfully: ${result['data']}");
+
+      // Chuyển đổi danh sách JSON sang danh sách đối tượng Knowledge
+      return List<Knowledge>.from(
+        (result['data'] as List).map((item) => Knowledge.fromJson(item)),
+      );
+    } else {
+      print("Failed to fetch knowledge. Status code: ${response.statusCode}");
+      print("Error: ${response.body}");
+      throw Exception('Failed to fetch knowledge');
+    }
+  }
 
   // Delete Knowledge API
   Future<void> deleteKnowledge(String id) async {
-  final url = Uri.parse('$_baseUrl/kb-core/v1/knowledge/$id');
+    final url = Uri.parse('$_baseUrl/kb-core/v1/knowledge/$id');
 
-  // Lấy accessToken từ SharedPreferences hoặc đăng nhập lại nếu cần
-  String? token = await getStoredAccessTokenKb();
-  if (token == null) {
-    print("AccessToken not found. Signing in to get a new token...");
-    final tokens = await SignInKB(); // Gọi hàm signIn để lấy token mới
-    token = tokens['accessToken'];
+    // Lấy accessToken từ SharedPreferences hoặc đăng nhập lại nếu cần
+    String? token = await getStoredAccessTokenKb();
+    if (token == null) {
+      print("AccessToken not found. Signing in to get a new token...");
+      final tokens = await SignInKB(); // Gọi hàm signIn để lấy token mới
+      token = tokens['accessToken'];
+    }
+
+    final response = await http.delete(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'x-jarvis-guid': '', // Thay thế giá trị thực tế nếu cần
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 204) {
+      print("Knowledge deleted successfully: ID $id");
+    } else {
+      print("Failed to delete knowledge. Status code: ${response.statusCode}");
+      print("Error: ${response.body}");
+      throw Exception('Failed to delete knowledge');
+    }
   }
-
-  final response = await http.delete(
-    url,
-    headers: {
-      'Authorization': 'Bearer $token',
-      'x-jarvis-guid': '', // Thay thế giá trị thực tế nếu cần
-      'Content-Type': 'application/json',
-    },
-  );
-
-  if (response.statusCode == 200 || response.statusCode == 204) {
-    print("Knowledge deleted successfully: ID $id");
-  } else {
-    print("Failed to delete knowledge. Status code: ${response.statusCode}");
-    print("Error: ${response.body}");
-    throw Exception('Failed to delete knowledge');
-  }
-}
 
 // Hàm để chỉnh sửa Knowledge
-Future<Knowledge> updateKnowledge({
-  required String id,
-  required String knowledgeName,
-  String? description,
-}) async {
-  final url = Uri.parse('$_baseUrl/kb-core/v1/knowledge/$id');
+  Future<Knowledge> updateKnowledge({
+    required String id,
+    required String knowledgeName,
+    String? description,
+  }) async {
+    final url = Uri.parse('$_baseUrl/kb-core/v1/knowledge/$id');
 
-  // Lấy accessToken từ SharedPreferences hoặc đăng nhập lại nếu cần
-  String? token = await getStoredAccessTokenKb();
-  if (token == null) {
-    print("AccessToken not found. Signing in to get a new token...");
-    final tokens = await SignInKB(); // Gọi hàm signIn để lấy token mới
-    token = tokens['accessToken'];
+    // Lấy accessToken từ SharedPreferences hoặc đăng nhập lại nếu cần
+    String? token = await getStoredAccessTokenKb();
+    if (token == null) {
+      print("AccessToken not found. Signing in to get a new token...");
+      final tokens = await SignInKB(); // Gọi hàm signIn để lấy token mới
+      token = tokens['accessToken'];
+    }
+
+    final response = await http.patch(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+        'x-jarvis-guid': '',
+      },
+      body: jsonEncode({
+        'knowledgeName': knowledgeName,
+        if (description != null) 'description': description,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final result = jsonDecode(response.body);
+      print("Knowledge updated successfully: $result");
+
+      // Sử dụng model Knowledge để parse response
+      return Knowledge.fromJson(result);
+    } else {
+      print("Failed to update knowledge. Status code: ${response.statusCode}");
+      print("Error: ${response.body}");
+      throw Exception('Failed to update knowledge');
+    }
   }
-
-  final response = await http.patch(
-    url,
-    headers: {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json',
-      'x-jarvis-guid': '',
-    },
-    body: jsonEncode({
-      'knowledgeName': knowledgeName,
-      if (description != null) 'description': description,
-    }),
-  );
-
-  if (response.statusCode == 200) {
-    final result = jsonDecode(response.body);
-    print("Knowledge updated successfully: $result");
-
-    // Sử dụng model Knowledge để parse response
-    return Knowledge.fromJson(result);
-  } else {
-    print("Failed to update knowledge. Status code: ${response.statusCode}");
-    print("Error: ${response.body}");
-    throw Exception('Failed to update knowledge');
-  }
-}
-
-
-
-
-
-
-
 }

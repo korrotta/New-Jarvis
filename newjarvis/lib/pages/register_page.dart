@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:newjarvis/components/custom_button.dart';
-import 'package:newjarvis/components/custom_textfield.dart';
+import 'package:newjarvis/components/widgets/custom_button.dart';
+import 'package:newjarvis/components/widgets/custom_textfield.dart';
 import 'package:newjarvis/models/user_model.dart';
 import 'package:newjarvis/services/api_service.dart';
 

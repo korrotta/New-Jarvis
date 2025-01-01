@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:newjarvis/components/ai_agent.dart';
+import 'package:newjarvis/components/ai_assistant/ai_agent.dart';
 import 'package:newjarvis/enums/id.dart';
 
 class AiModelSelectionSection extends StatefulWidget {

@@ -1,12 +1,9 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:newjarvis/components/custom_button.dart';
-import 'package:newjarvis/components/custom_textfield.dart';
+import 'package:newjarvis/components/widgets/custom_button.dart';
+import 'package:newjarvis/components/widgets/custom_textfield.dart';
 import 'package:newjarvis/services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginPage extends StatefulWidget {
   // Page navigation
@@ -28,9 +25,6 @@ class _LoginPageState extends State<LoginPage> {
   // Email and Password controllers
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-
-  // Firebase Auth instance (for Google Sign in)
-  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // Loading state
   bool isLoading = false;
@@ -179,11 +173,6 @@ class _LoginPageState extends State<LoginPage> {
 
   // Google Sign in
   void googleSignIn() async {
-    // Set loading state
-    setState(() {
-      isLoading = true;
-    });
-
     if (!mounted) return;
 
     // Check network connectivity
@@ -201,63 +190,63 @@ class _LoginPageState extends State<LoginPage> {
 
     if (!mounted) return;
 
-    try {
-      await Firebase.initializeApp();
+    // try {
+    //   await Firebase.initializeApp();
 
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+    //   final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
 
-      if (googleUser == null) {
-        setState(() {
-          isLoading = false;
-        });
-        return;
-      }
+    //   if (googleUser == null) {
+    //     setState(() {
+    //       isLoading = false;
+    //     });
+    //     return;
+    //   }
 
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
+    //   final GoogleSignInAuthentication googleAuth =
+    //       await googleUser.authentication;
 
-      final AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
+    //   final AuthCredential credential = GoogleAuthProvider.credential(
+    //     accessToken: googleAuth.accessToken,
+    //     idToken: googleAuth.idToken,
+    //   );
 
-      final UserCredential userCredential =
-          await _auth.signInWithCredential(credential);
+    //   final UserCredential userCredential =
+    //       await _auth.signInWithCredential(credential);
 
-      print('User: ${userCredential.user}');
-      print('Google sign in token: ${googleAuth.idToken}');
+    //   print('User: ${userCredential.user}');
+    //   print('Google sign in token: ${googleAuth.idToken}');
 
-      final googleToken = googleAuth.idToken;
+    //   final googleToken = googleAuth.idToken;
 
-      // Await the response from the googleSignIn API
-      final response = await apiService.googleSignIn(
-          idToken: googleToken!, context: context);
+    //   // Await the response from the googleSignIn API
+    //   final response = await apiService.googleSignIn(
+    //       idToken: googleToken!, context: context);
 
-      if (!mounted) return;
+    //   if (!mounted) return;
 
-      // Set loading state
-      setState(() {
-        isLoading = false;
-      });
+    //   // Set loading state
+    //   setState(() {
+    //     isLoading = false;
+    //   });
 
-      if (response != null) {
-        if (!mounted) return;
-        Navigator.pushReplacementNamed(context, '/chat');
-      } else {
-        return;
-      }
-    } catch (e) {
-      if (!mounted) return;
+    //   if (response != null) {
+    //     if (!mounted) return;
+    //     Navigator.pushReplacementNamed(context, '/chat');
+    //   } else {
+    //     return;
+    //   }
+    // } catch (e) {
+    //   if (!mounted) return;
 
-      // Set loading state
-      setState(() {
-        isLoading = false;
-      });
+    //   // Set loading state
+    //   setState(() {
+    //     isLoading = false;
+    //   });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
-    }
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     SnackBar(content: Text('Error: $e')),
+    //   );
+    // }
   }
 
   @override

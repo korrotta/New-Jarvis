@@ -1,4 +1,4 @@
-import 'package:newjarvis/models/ai_chat_metadata.dart';
+import 'package:newjarvis/models/ai_chat/ai_chat_metadata.dart';
 import 'package:newjarvis/models/assistant_model.dart';
 
 class AiChatModel {

@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:newjarvis/components/custom_textfield.dart';
-import 'package:newjarvis/components/floating_button.dart';
-import 'package:newjarvis/components/route_controller.dart';
-import 'package:newjarvis/components/side_bar.dart';
+import 'package:newjarvis/components/ai_assistant/empty_assistant_section.dart';
+import 'package:newjarvis/components/widgets/custom_textfield.dart';
+import 'package:newjarvis/components/widgets/floating_button.dart';
+import 'package:newjarvis/components/route/route_controller.dart';
+import 'package:newjarvis/components/widgets/side_bar.dart';
+import 'package:newjarvis/models/ai_bot_model.dart';
 import 'package:newjarvis/models/basic_user_model.dart';
-import 'package:newjarvis/providers/auth_provider.dart';
+import 'package:newjarvis/services/api_service.dart';
 import 'package:newjarvis/services/knowledge_api_service.dart';
-import 'package:provider/provider.dart';
 
 class PersonalPage extends StatefulWidget {
   const PersonalPage({super.key});
@@ -16,32 +17,67 @@ class PersonalPage extends StatefulWidget {
 }
 
 class _PersonalPageState extends State<PersonalPage> {
-  List<dynamic> assistants = []; // Fetched assistants
+  // List of assistants
+  List<AiBotModel> _assistants = [];
+
+  // API Service Instance
+  final ApiService _apiService = ApiService();
+
+  // Knowledge API Service
   final KnowledgeApiService _knowledgeApiService = KnowledgeApiService();
-  int selectedIndex = 1;
-  bool isExpanded = false;
-  bool isSidebarVisible = false;
-  bool isDrawerVisible = false;
-  double dragOffset = 200.0;
-  bool isLoading = false;
+
+  // Current user
+  BasicUserModel? _currentUser;
+
+  // Text Editing Controllers
+  TextEditingController _assistantNameController = TextEditingController();
+  TextEditingController _assistantDescriptionController =
+      TextEditingController();
+
+  // UI Variables
+  int _selectedIndex = 1;
+  bool _isExpanded = false;
+  bool _isSidebarVisible = false;
+  double _dragOffset = 200.0;
+
+  // Loading state
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _loginKnowledgeApi();
-    _getAssistants();
+    _initializePage();
+  }
+
+  Future<void> _initializePage() async {
+    // Auto login to the knowledge API
+    await _loginKnowledgeApi();
+
+    // Get current user
+    await _getCurrentUser();
+
+    // Fetch assistants
+    await _getAssistants();
+  }
+
+  Future<void> _getCurrentUser() async {
+    final response = await _apiService.getCurrentUser(context);
+    setState(() {
+      _currentUser = response;
+    });
   }
 
   Future<void> _getAssistants() async {
     try {
-      final fetchedAssistants = await _knowledgeApiService.getAssistants();
+      final fetchedAssistants =
+          await _knowledgeApiService.getAssistants(context: context);
       setState(() {
-        assistants = fetchedAssistants['data'];
-        isLoading = false;
+        _assistants = fetchedAssistants['data'];
+        _isLoading = false;
       });
     } catch (e) {
       setState(() {
-        isLoading = false;
+        _isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to load assistants: $e')),
@@ -51,8 +87,8 @@ class _PersonalPageState extends State<PersonalPage> {
 
   void _onItemTapped(int index) {
     setState(() {
-      selectedIndex = index;
-      isSidebarVisible = false;
+      _selectedIndex = index;
+      _isSidebarVisible = false;
     });
 
     // Navigate to the selected page
@@ -70,7 +106,6 @@ class _PersonalPageState extends State<PersonalPage> {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
     return SafeArea(
       top: true,
       bottom: false,
@@ -78,7 +113,7 @@ class _PersonalPageState extends State<PersonalPage> {
       child: Scaffold(
         resizeToAvoidBottomInset:
             true, // Ensures the layout adjusts for the keyboard
-        body: authProvider.currentUser == null
+        body: _currentUser == null
             ? const Center(child: CircularProgressIndicator())
             : Stack(
                 children: [
@@ -87,47 +122,47 @@ class _PersonalPageState extends State<PersonalPage> {
                         const EdgeInsets.only(top: 20, left: 20, right: 20),
                     duration: const Duration(milliseconds: 300),
                     margin: EdgeInsets.only(
-                      right: isSidebarVisible ? (isExpanded ? 180 : 98) : 0,
+                      right: _isSidebarVisible ? (_isExpanded ? 180 : 98) : 0,
                     ),
                     width: double.infinity,
                     child: _buildPageContent(context),
                   ),
 
                   // Sidebar
-                  if (isSidebarVisible)
+                  if (_isSidebarVisible)
                     Positioned(
                       top: 0,
                       bottom: 0,
                       right: 0,
                       child: SideBar(
-                        isExpanded: isExpanded,
-                        selectedIndex: selectedIndex,
+                        isExpanded: _isExpanded,
+                        selectedIndex: _selectedIndex,
                         onItemSelected: _onItemTapped,
                         onExpandToggle: () {
                           setState(() {
-                            isExpanded = !isExpanded;
+                            _isExpanded = !_isExpanded;
                           });
                         },
                         onClose: () {
                           setState(() {
-                            isSidebarVisible = false;
+                            _isSidebarVisible = false;
                           });
                         },
                       ),
                     ),
 
                   // Nửa hình tròn khi sidebar bị ẩn (Floating Button)
-                  if (!isSidebarVisible)
+                  if (!_isSidebarVisible)
                     FloatingButton(
-                      dragOffset: dragOffset,
+                      dragOffset: _dragOffset,
                       onDragUpdate: (delta) {
                         setState(
                           () {
-                            dragOffset += delta;
-                            if (dragOffset < 0) dragOffset = 0;
-                            if (dragOffset >
+                            _dragOffset += delta;
+                            if (_dragOffset < 0) _dragOffset = 0;
+                            if (_dragOffset >
                                 MediaQuery.of(context).size.height - 100) {
-                              dragOffset =
+                              _dragOffset =
                                   MediaQuery.of(context).size.height - 100;
                             }
                           },
@@ -136,7 +171,7 @@ class _PersonalPageState extends State<PersonalPage> {
                       onTap: () {
                         setState(
                           () {
-                            isSidebarVisible = true;
+                            _isSidebarVisible = true;
                           },
                         );
                       },
@@ -148,13 +183,6 @@ class _PersonalPageState extends State<PersonalPage> {
   }
 
   Widget _buildPageContent(BuildContext context) {
-    final BasicUserModel? currentUser =
-        Provider.of<AuthProvider>(context).currentUser;
-
-    TextEditingController assistantNameController = TextEditingController();
-    TextEditingController assistantDescriptionController =
-        TextEditingController();
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -165,7 +193,8 @@ class _PersonalPageState extends State<PersonalPage> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Icon(
-                  Icons.person,
+                  Icons.person_outline,
+                  size: 32,
                   color: Theme.of(context).colorScheme.inversePrimary,
                 ),
                 Text(
@@ -178,14 +207,20 @@ class _PersonalPageState extends State<PersonalPage> {
                 ),
               ],
             ),
+            const SizedBox(width: 5),
             // Display current user name
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 CircleAvatar(
-                  backgroundColor: Colors.blue.shade100,
-                  child: currentUser?.username != null
-                      ? Text(currentUser!.username![0].toUpperCase())
+                  backgroundColor: Colors.blueAccent,
+                  child: _currentUser?.username != null
+                      ? Text(
+                          _currentUser!.username![0].toUpperCase(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                          ),
+                        )
                       : const Icon(Icons.person),
                 ),
                 const SizedBox(width: 8),
@@ -193,14 +228,14 @@ class _PersonalPageState extends State<PersonalPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      currentUser?.username ?? "Unknown",
+                      _currentUser?.username ?? "Unknown",
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.inversePrimary,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     Text(
-                      currentUser?.email ?? "Unknown",
+                      _currentUser?.email ?? "Unknown",
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.inversePrimary,
                       ),
@@ -212,50 +247,75 @@ class _PersonalPageState extends State<PersonalPage> {
           ],
         ),
         const SizedBox(height: 16),
+
+        // Create Assistant & Filter Section
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             // Dropdown and Search Bar
-            Row(
-              children: [
-                DropdownButton<String>(
-                  value: "All",
-                  items: const [
-                    DropdownMenuItem(
-                      value: "All",
-                      child: Text("All"),
-                    ),
-                    DropdownMenuItem(
-                      value: "Favorites",
-                      child: Text("Favorites"),
-                    ),
-                  ],
-                  onChanged: (value) {},
-                ),
-                const SizedBox(
-                    width: 16), // Add space between dropdown and search bar
-                Container(
-                  width: 300,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                  child: TextField(
-                    decoration: InputDecoration(
-                      hintText: "Search",
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Flexible(
+                    flex: 3,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        color: Theme.of(context).colorScheme.surface,
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          padding: const EdgeInsets.all(0),
+                          borderRadius: BorderRadius.circular(20),
+                          value: "All",
+                          items: const [
+                            DropdownMenuItem(
+                              value: "All",
+                              child: Text("All"),
+                            ),
+                            DropdownMenuItem(
+                              value: "Favorites",
+                              child: Text("Favorites"),
+                            ),
+                          ],
+                          onChanged: (value) {
+                            print('Filter assistants by: $value');
+                          },
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 16),
+                  Flexible(
+                    flex: 5,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: "Search",
+                          prefixIcon: const Icon(Icons.search),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-
-            // Spacer to push the Create button to the far right
+            const SizedBox(width: 16),
+            // Create button
             ElevatedButton.icon(
               onPressed: () {
                 // Show the create bot dialog
@@ -263,65 +323,8 @@ class _PersonalPageState extends State<PersonalPage> {
                   context: context,
                   builder: (context) {
                     // Dialog include (title, assistant name*, assistant description, create button, cancel button)
-                    return AlertDialog(
-                      title: const Text("Create Assistant"),
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 15),
-                          const Text("Assistant name"),
-                          const SizedBox(height: 5),
-                          CustomTextfield(
-                            validator: (p0) =>
-                                p0!.isEmpty ? "Name is required" : null,
-                            hintText: "",
-                            initialObscureText: false,
-                            controller: assistantNameController,
-                          ),
-                          const SizedBox(height: 15),
-                          const Text("Assistant description"),
-                          const SizedBox(height: 5),
-                          CustomTextfield(
-                            hintText: "",
-                            initialObscureText: false,
-                            controller: assistantDescriptionController,
-                          ),
-                          const SizedBox(height: 5),
-                        ],
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: const Text("Cancel"),
-                        ),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blueAccent,
-                          ),
-                          onPressed: () {
-                            final assistantName =
-                                assistantNameController.text.trim();
-                            final assistantDescription =
-                                assistantDescriptionController.text.trim();
-
-                            print('Assistant Name: $assistantName');
-                            print(
-                                'Assistant Description: $assistantDescription');
-
-                            _knowledgeApiService.createAssistant(
-                                assistantName, assistantDescription);
-                            Navigator.of(context).pop();
-                          },
-                          child: const Text(
-                            "Create",
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      ],
-                    );
+                    return _showCreateDialog(_assistantNameController,
+                        _assistantDescriptionController, context);
                   },
                 );
               },
@@ -338,60 +341,14 @@ class _PersonalPageState extends State<PersonalPage> {
 
         // List of assistants
         Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: assistants.length,
-            itemBuilder: (context, index) {
-              final assistant = assistants[index];
-              return Card(
-                elevation: 2,
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: Colors.blue.shade100,
-                    child: const Icon(Icons.smart_toy, color: Colors.blue),
-                  ),
-                  title: Text(assistant['assistantName'] ?? 'Unknown Name'),
-                  subtitle: Text(
-                      assistant['description'] ?? 'No description available'),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: Icon(
-                          assistant['isFavorite'] == true
-                              ? Icons.star
-                              : Icons.star_border,
-                          color: assistant['isFavorite'] == true
-                              ? Colors.yellow
-                              : null,
-                        ),
-                        onPressed: () {
-                          // Add your logic to toggle favorite status
-                          print(
-                              'Favorite toggled for: ${assistant['assistantName']}');
-                        },
-                      ),
-                      const SizedBox(width: 16),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline),
-                        onPressed: () {
-                          // Add your logic to delete the assistant
-                          print('Deleted: ${assistant['assistantName']}');
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
+          child: _buildAssistantList(),
         ),
 
         Padding(
           padding: const EdgeInsets.all(16.0),
           child: ElevatedButton.icon(
             onPressed: () {
-              _knowledgeApiService.getAssistants();
+              _knowledgeApiService.getAssistants(context: context);
             },
             icon: const Icon(Icons.refresh),
             label: const Text("Get Assistants"),
@@ -402,5 +359,169 @@ class _PersonalPageState extends State<PersonalPage> {
         ),
       ],
     );
+  }
+
+  Widget _showCreateDialog(
+      TextEditingController assistantNameController,
+      TextEditingController assistantDescriptionController,
+      BuildContext context) {
+    return AlertDialog(
+      title: const Text("Create Assistant"),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 15),
+          const Text("Assistant name"),
+          const SizedBox(height: 5),
+          CustomTextfield(
+            validator: (p0) => p0!.isEmpty ? "Name is required" : null,
+            hintText: "",
+            initialObscureText: false,
+            controller: assistantNameController,
+          ),
+          const SizedBox(height: 15),
+          const Text("Assistant description"),
+          const SizedBox(height: 5),
+          CustomTextfield(
+            hintText: "",
+            initialObscureText: false,
+            controller: assistantDescriptionController,
+          ),
+          const SizedBox(height: 5),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: const Text("Cancel"),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blueAccent,
+          ),
+          onPressed: () {
+            _createNewAssistant(assistantNameController,
+                assistantDescriptionController, context);
+          },
+          child: const Text(
+            "Create",
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAssistantList() {
+    return FutureBuilder<List<AiBotModel>>(
+      future: Future.value(_assistants),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return const SizedBox.shrink();
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const EmptyAssistantSection(),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    // Show the create bot dialog
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return _showCreateDialog(
+                          _assistantNameController,
+                          _assistantDescriptionController,
+                          context,
+                        );
+                      },
+                    );
+                  },
+                  icon: const Icon(Icons.add),
+                  label: const Text("Create Bot Now"),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(120, 48),
+                  ),
+                ),
+              ],
+            ),
+          );
+        } else {
+          final items = snapshot.data!;
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final assistant = items[index];
+              return Card(
+                elevation: 2,
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: Colors.blue.shade100,
+                    child: const Icon(Icons.smart_toy, color: Colors.blue),
+                  ),
+                  title: Text(assistant.assistantName ?? 'Unknown Name'),
+                  subtitle:
+                      Text(assistant.description ?? 'No description available'),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // IconButton(
+                      //   icon: Icon(
+                      //     assistant['isFavorite'] == true
+                      //         ? Icons.star
+                      //         : Icons.star_border,
+                      //     color: assistant['isFavorite'] == true
+                      //         ? Colors.yellow
+                      //         : null,
+                      //   ),
+                      //   onPressed: () {
+                      //     // Add your logic to toggle favorite status
+                      //     print(
+                      //         'Favorite toggled for: ${assistant['assistantName']}');
+                      //   },
+                      // ),
+                      const SizedBox(width: 16),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline),
+                        onPressed: () {
+                          // Add your logic to delete the assistant
+                          print(
+                              'Deleted: ${assistant.id} - ${assistant.assistantName}');
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        }
+      },
+    );
+  }
+
+  void _createNewAssistant(
+      TextEditingController assistantNameController,
+      TextEditingController assistantDescriptionController,
+      BuildContext context) {
+    final assistantName = assistantNameController.text.trim();
+    final assistantDescription = assistantDescriptionController.text.trim();
+
+    print('Assistant Name: $assistantName');
+    print('Assistant Description: $assistantDescription');
+
+    // Call the API to create a new assistant
+    _knowledgeApiService.createAssistant(assistantName, assistantDescription);
+    // Refresh the list of assistants
+    _getAssistants();
+    Navigator.of(context).pop();
   }
 }
