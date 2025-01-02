@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:newjarvis/components/ai_assistant/empty_assistant_section.dart';
+import 'package:newjarvis/components/widgets/custom_dropdownmenu.dart';
 import 'package:newjarvis/components/widgets/custom_textfield.dart';
 import 'package:newjarvis/components/widgets/floating_button.dart';
 import 'package:newjarvis/components/route/route_controller.dart';
@@ -33,6 +34,13 @@ class _PersonalPageState extends State<PersonalPage> {
   TextEditingController _assistantNameController = TextEditingController();
   TextEditingController _assistantDescriptionController =
       TextEditingController();
+  TextEditingController _searchController = TextEditingController();
+
+  // Search Text
+  String _searchText = "";
+
+  // Selected Filter
+  String _selectedFilter = "All";
 
   // UI Variables
   int _selectedIndex = 1;
@@ -72,7 +80,8 @@ class _PersonalPageState extends State<PersonalPage> {
       final fetchedAssistants =
           await _knowledgeApiService.getAssistants(context: context);
       setState(() {
-        _assistants = fetchedAssistants['data'];
+        _assistants = fetchedAssistants;
+        _assistants.sort((a, b) => a.createdAt.compareTo(b.createdAt));
         _isLoading = false;
       });
     } catch (e) {
@@ -101,6 +110,29 @@ class _PersonalPageState extends State<PersonalPage> {
       print('Successfully logged in to the knowledge API');
     } catch (e) {
       print('Error during auto login: $e');
+    }
+  }
+
+  Future<void> _performSearchAndFilter(String text, String filter) async {
+    print('Searching for: $text and filtering by: $filter');
+    setState(() {
+      _selectedFilter = filter;
+    });
+
+    try {
+      final result = await _knowledgeApiService.getAssistants(
+        context: context,
+        query: text,
+        isFavorite: _selectedFilter == 'Favorite',
+        isPublished: _selectedFilter == 'Published',
+      );
+      print('Search and filter result: $result');
+
+      setState(() {
+        _assistants = result;
+      });
+    } catch (e) {
+      print('Search and filter error: $e');
     }
   }
 
@@ -193,12 +225,12 @@ class _PersonalPageState extends State<PersonalPage> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Icon(
-                  Icons.person_outline,
+                  Icons.smart_toy_rounded,
                   size: 32,
                   color: Theme.of(context).colorScheme.inversePrimary,
                 ),
                 Text(
-                  "Personal",
+                  "AI Assistant",
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -207,7 +239,7 @@ class _PersonalPageState extends State<PersonalPage> {
                 ),
               ],
             ),
-            const SizedBox(width: 5),
+            const SizedBox(width: 10),
             // Display current user name
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -219,6 +251,7 @@ class _PersonalPageState extends State<PersonalPage> {
                           _currentUser!.username![0].toUpperCase(),
                           style: const TextStyle(
                             color: Colors.white,
+                            fontWeight: FontWeight.bold,
                           ),
                         )
                       : const Icon(Icons.person),
@@ -246,7 +279,8 @@ class _PersonalPageState extends State<PersonalPage> {
             ),
           ],
         ),
-        const SizedBox(height: 16),
+
+        const SizedBox(height: 20),
 
         // Create Assistant & Filter Section
         Row(
@@ -259,62 +293,36 @@ class _PersonalPageState extends State<PersonalPage> {
                 children: [
                   Flexible(
                     flex: 3,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: Theme.of(context).colorScheme.surface,
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          padding: const EdgeInsets.all(0),
-                          borderRadius: BorderRadius.circular(20),
-                          value: "All",
-                          items: const [
-                            DropdownMenuItem(
-                              value: "All",
-                              child: Text("All"),
-                            ),
-                            DropdownMenuItem(
-                              value: "Favorites",
-                              child: Text("Favorites"),
-                            ),
-                          ],
-                          onChanged: (value) {
-                            print('Filter assistants by: $value');
-                          },
-                        ),
-                      ),
+                    child: CustomDropdownmenu(
+                      dropdownItems: const ["All", "Favorite", "Published"],
+                      onSelected: (item) {
+                        print('Selected: $item');
+                        setState(() {
+                          _selectedFilter = item!;
+                        });
+                        _performSearchAndFilter(_searchText, _selectedFilter);
+                      },
+                      headingText: "Type: ",
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 5),
                   Flexible(
                     flex: 5,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                      child: TextField(
-                        decoration: InputDecoration(
-                          hintText: "Search",
-                          prefixIcon: const Icon(Icons.search),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                      ),
+                    child: CustomTextfield(
+                      hintText: "Search",
+                      initialObscureText: false,
+                      controller: _searchController,
+                      onChanged: (text) {
+                        setState(() {
+                          _searchText = text;
+                        });
+                        _performSearchAndFilter(text, _selectedFilter);
+                      },
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 16),
             // Create button
             ElevatedButton.icon(
               onPressed: () {
@@ -328,10 +336,19 @@ class _PersonalPageState extends State<PersonalPage> {
                   },
                 );
               },
-              icon: const Icon(Icons.add),
-              label: const Text("Create bot"),
+              icon: const Icon(Icons.add, color: Colors.white),
+              label: const Text(
+                "Create bot",
+                style: TextStyle(
+                  color: Colors.white,
+                ),
+              ),
               style: ElevatedButton.styleFrom(
-                minimumSize: const Size(120, 48),
+                minimumSize: const Size(120, 55),
+                backgroundColor: Colors.blueAccent,
+                side: BorderSide(
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                ),
               ),
             ),
           ],
@@ -444,10 +461,15 @@ class _PersonalPageState extends State<PersonalPage> {
                       },
                     );
                   },
-                  icon: const Icon(Icons.add),
-                  label: const Text("Create Bot Now"),
+                  icon: const Icon(Icons.add, color: Colors.white),
+                  label: const Text("Create Bot Now",
+                      style: TextStyle(color: Colors.white)),
                   style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(120, 48),
+                    minimumSize: const Size(120, 55),
+                    backgroundColor: Colors.blueAccent,
+                    side: BorderSide(
+                      color: Theme.of(context).colorScheme.inversePrimary,
+                    ),
                   ),
                 ),
               ],

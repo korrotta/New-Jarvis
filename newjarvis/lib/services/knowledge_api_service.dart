@@ -128,8 +128,15 @@ class KnowledgeApiService {
   }
 
   // Get Assitants
-  Future<Map<String, dynamic>> getAssistants({
+  Future<List<AiBotModel>> getAssistants({
     required BuildContext context,
+    String? query,
+    String? order,
+    String? orderField,
+    int? offset,
+    int? limit,
+    bool? isFavorite,
+    bool? isPublished,
   }) async {
     final url = Uri.parse('$_baseUrl/kb-core/v1/ai-assistant');
     final token = await _getToken();
@@ -143,8 +150,12 @@ class KnowledgeApiService {
     if (response.statusCode == 200) {
       final result = jsonDecode(response.body);
       print(result);
-      return result;
-      ;
+      final data = result['data'] as List;
+      final List<AiBotModel> assistants =
+          data.map((e) => AiBotModel.fromJson(e)).toList();
+
+      final metadata = result['metadata'];
+      return assistants;
     } else {
       _showErrorSnackbar(context,
           'Failed to get assistants, Details: ${jsonDecode(response.body)}');

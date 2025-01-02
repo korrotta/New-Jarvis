@@ -151,6 +151,8 @@ class SideBar extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Icon(
                     menuIcons[index],
@@ -168,6 +170,7 @@ class SideBar extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                     ),
+                    textAlign: TextAlign.center,
                   ),
                 ],
               ),
@@ -217,15 +220,15 @@ class SideBar extends StatelessWidget {
 }
 
 const List<IconData> menuIcons = [
-  Icons.chat_bubble_rounded,
-  Icons.person_rounded,
+  CupertinoIcons.chat_bubble_text_fill,
+  Icons.smart_toy_rounded,
   Icons.book_rounded,
-  Icons.settings_outlined,
+  CupertinoIcons.gear_alt_fill,
 ];
 
 const List<String> menuLabels = [
   'Chat',
-  'Personal',
+  'AI Assistant',
   'Knowledge Base',
   'Settings',
 ];
