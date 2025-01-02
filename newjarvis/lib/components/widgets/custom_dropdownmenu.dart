@@ -41,31 +41,24 @@ class _CustomDropdownmenuState extends State<CustomDropdownmenu> {
           _isHovered = false;
         });
       },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        width: 120,
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: _isHovered
-                ? Colors.blueAccent
-                : Theme.of(context).colorScheme.primary,
-            width: 1.5,
+      child: Tooltip(
+        message: 'Select a type',
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: _isHovered
+                  ? Colors.blueAccent
+                  : Theme.of(context).colorScheme.primary,
+              width: 1.5,
+            ),
+            borderRadius: BorderRadius.circular(12),
+            color: Theme.of(context).colorScheme.surface,
           ),
-          borderRadius: BorderRadius.circular(12),
-          color: Theme.of(context).colorScheme.surface,
-        ),
-        child: DropdownButton(
-          items: widget.dropdownItems.map((String item) {
-            return DropdownMenuItem(
-              value: item,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: _selectedItem == item
-                      ? Colors.blue.withOpacity(0.2) // Highlight selected item
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: DropdownButton(
+            items: widget.dropdownItems.map((String item) {
+              return DropdownMenuItem(
+                value: item,
                 child: Text(
                   item,
                   style: TextStyle(
@@ -74,36 +67,24 @@ class _CustomDropdownmenuState extends State<CustomDropdownmenu> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-              ),
-            );
-          }).toList(),
-          onChanged: (String? item) {
-            widget.onSelected!(item);
-            setState(() {
-              _selectedItem = item;
-            });
-          },
-          value: _selectedItem,
-          underline: Container(),
-          icon: const Icon(CupertinoIcons.chevron_down),
-          isExpanded: true,
-          borderRadius: BorderRadius.circular(12),
-          iconSize: 30,
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.inversePrimary,
-            fontSize: 16,
-          ),
-          selectedItemBuilder: (BuildContext context) {
-            return widget.dropdownItems.map((String item) {
-              return Text(
-                'Type: $item',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.inversePrimary,
-                  fontSize: 16,
-                ),
               );
-            }).toList();
-          },
+            }).toList(),
+            onChanged: (String? item) {
+              widget.onSelected!(item);
+              setState(() {
+                _selectedItem = 'Type: $item';
+              });
+            },
+            value: _selectedItem,
+            underline: Container(),
+            icon: const Icon(CupertinoIcons.chevron_down),
+            borderRadius: BorderRadius.circular(12),
+            iconSize: 30,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.inversePrimary,
+              fontSize: 16,
+            ),
+          ),
         ),
       ),
     );

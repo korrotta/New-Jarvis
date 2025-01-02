@@ -81,7 +81,6 @@ class _PersonalPageState extends State<PersonalPage> {
           await _knowledgeApiService.getAssistants(context: context);
       setState(() {
         _assistants = fetchedAssistants;
-        _assistants.sort((a, b) => a.createdAt.compareTo(b.createdAt));
         _isLoading = false;
       });
     } catch (e) {
@@ -123,8 +122,8 @@ class _PersonalPageState extends State<PersonalPage> {
       final result = await _knowledgeApiService.getAssistants(
         context: context,
         query: text,
-        isFavorite: _selectedFilter == 'Favorite',
-        isPublished: _selectedFilter == 'Published',
+        isFavorite: _selectedFilter.contains('Favorite'),
+        isPublished: _selectedFilter.contains('Published'),
       );
       print('Search and filter result: $result');
 
@@ -135,6 +134,8 @@ class _PersonalPageState extends State<PersonalPage> {
       print('Search and filter error: $e');
     }
   }
+
+  Future<void> _deleteAssistant(String id) async {}
 
   @override
   Widget build(BuildContext context) {
@@ -229,6 +230,7 @@ class _PersonalPageState extends State<PersonalPage> {
                   size: 32,
                   color: Theme.of(context).colorScheme.inversePrimary,
                 ),
+                const SizedBox(width: 15),
                 Text(
                   "AI Assistant",
                   style: TextStyle(
@@ -292,7 +294,7 @@ class _PersonalPageState extends State<PersonalPage> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Flexible(
-                    flex: 3,
+                    flex: 2,
                     child: CustomDropdownmenu(
                       dropdownItems: const ["All", "Favorite", "Published"],
                       onSelected: (item) {
