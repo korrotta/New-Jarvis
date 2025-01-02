@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:newjarvis/pages/assistant_page.dart';
 import 'package:newjarvis/pages/knowledge_base.dart';
 import 'package:newjarvis/pages/personal_page.dart';
 import 'package:newjarvis/pages/chat_page.dart';
@@ -17,6 +18,9 @@ class RouteController {
   static const String translate = '/translate';
   static const String screenArt = '/screenArt';
   static const String knowledge = '/knowledge';
+  static const String assistant = '/assistant';
+
+  static String arguments = '';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -28,6 +32,11 @@ class RouteController {
         return MaterialPageRoute(builder: (_) => const PersonalPage());
       case knowledge:
         return MaterialPageRoute(builder: (_) => const KnowledgePage());
+      case assistant:
+        return MaterialPageRoute(
+            builder: (_) => AssistantPage(
+                  assistantId: arguments,
+                ));
       default:
         return MaterialPageRoute(builder: (_) => const AuthGate());
     }
@@ -47,6 +56,13 @@ class RouteController {
     }
   }
 
+  static void navigateToPage(String route, {Object? arguments}) {
+    if (arguments != null) {
+      RouteController.arguments = arguments.toString();
+    }
+    navigatorKey.currentState!.pushNamed(route, arguments: arguments);
+  }
+
   static Map<String, WidgetBuilder> getRoutes() {
     return {
       auth: (context) => const AuthGate(),
@@ -56,21 +72,7 @@ class RouteController {
     };
   }
 
-  static List<Map<String, dynamic>> sideBarItems = [
-    {
-      'icon': Icons.chat_bubble_rounded,
-      'label': 'Chat',
-      'route': chat,
-    },
-    {
-      'icon': Icons.person_rounded,
-      'label': 'Personal',
-      'route': personal,
-    },
-    {
-      'icon': Icons.book_rounded,
-      'label': 'Knowledge Base',
-      'route': knowledge,
-    },
-  ];
+  static void pop() {
+    navigatorKey.currentState!.pop();
+  }
 }

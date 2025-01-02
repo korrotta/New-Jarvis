@@ -436,6 +436,9 @@ class _PersonalPageState extends State<PersonalPage> {
   void _navigateToAssistantDetails(String assistantId) {
     // Navigate to the assistant details page
     print('Navigate to assistant details: $assistantId');
+    RouteController.navigateToPage(RouteController.assistant, arguments: {
+      'assistantId': assistantId,
+    });
   }
 
   Widget _buildAssistantList() {
