@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:newjarvis/enums/order.dart';
 import 'package:newjarvis/models/ai_bot_model.dart';
+import 'package:newjarvis/models/assistant_thread_model.dart';
 import 'package:newjarvis/services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -280,9 +281,117 @@ class KnowledgeApiService {
     required BuildContext context,
     required String assistantId,
   }) async {
+    final url = Uri.parse('$_baseUrl/kb-core/v1/ai-assistant/$assistantId');
+    final token = await _getToken();
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final result = jsonDecode(response.body);
+      print(result);
+      return AiBotModel.fromJson(result);
+    } else {
+      _showErrorSnackbar(context,
+          'Failed to get assistant by ID, Details: ${jsonDecode(response.body)}');
+      print(
+          'Failed to get assistant by ID, Details: ${jsonDecode(response.body)}');
+      throw Exception('Failed to get assistant by ID');
+    }
+  }
+
+  // Create Thread for Assistant
+  Future<AssistantThreadModel> createThread({
+    required BuildContext context,
+    required String assistantId,
+    String? firstMessage,
+  }) async {
+    final url = Uri.parse('$_baseUrl/kb-core/v1/ai-assistant/thread');
+    final token = await _getToken();
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+      body: {
+        'assistantId': assistantId,
+        'firstMessage': firstMessage ?? '',
+      },
+    );
+
+    if (response.statusCode == 201) {
+      final result = jsonDecode(response.body);
+      print(result);
+
+      return AssistantThreadModel.fromJson(result);
+      ;
+    } else {
+      _showErrorSnackbar(context,
+          'Failed to create thread, code: ${response.statusCode}, body: ${response.body}');
+      print(
+          'Failed to create thread, code: ${response.statusCode}, body: ${response.body}');
+      throw Exception('Failed to create thread');
+    }
+  }
+
+  // Ask Assistant
+  Future<Map<String, dynamic>> askAssistant({
+    required BuildContext context,
+    required String assistantId,
+    required String openAiThreadId,
+    required String message,
+    required String additionalInstruction,
+  }) async {
+    final url = Uri.parse('$_baseUrl/kb-core/v1/ai-assistant/$assistantId/ask');
+    final token = await _getToken();
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+      body: {
+        'openAiThreadId': openAiThreadId,
+        'message': message,
+        'additionalInstruction': additionalInstruction,
+      },
+    );
+
+    if (response.statusCode == 201) {
+      final result = jsonDecode(response.body);
+      print(result);
+      return result;
+    } else {
+      _showErrorSnackbar(context,
+          'Failed to ask assistant, code: ${response.statusCode}, body: ${response.body}');
+      print(
+          'Failed to ask assistant, code: ${response.statusCode}, body: ${response.body}');
+      throw Exception('Failed to ask assistant');
+    }
+  }
+
+  // Get all threads from assistantId
+  Future<List<AssistantThreadModel>> getThreads({
+    required BuildContext context,
+    required String assistantId,
+    String? query,
+    Order? order,
+    String? orderField,
+    int? offset,
+    int? limit,
+  }) async {
     final url =
-        Uri.parse('$_baseUrl/kb-core/v1/ai-assistant/$assistantId').replace(
-      path: assistantId,
+        Uri.parse('$_baseUrl/kb-core/v1/ai-assistant/$assistantId/thread')
+            .replace(
+      queryParameters: {
+        'q': query ?? '',
+        'order': order ?? 'ASC',
+        'order_field': orderField ?? 'createdAt',
+        'offset': offset?.toString() ?? '0',
+        'limit': limit?.toString() ?? '10',
+      },
     );
     final token = await _getToken();
     final response = await http.get(
@@ -292,17 +401,23 @@ class KnowledgeApiService {
       },
     );
 
-    if (response.statusCode == 201) {
+    if (response.statusCode == 200) {
       final result = jsonDecode(response.body);
       print(result);
-      final assistant = AiBotModel.fromJson(result['data']);
-      return assistant;
+      final data = result['data'] as List;
+
+      final List<AssistantThreadModel> threads =
+          data.map((e) => AssistantThreadModel.fromJson(e)).toList();
+
+      final metadata = result['meta'];
+
+      return threads;
     } else {
       _showErrorSnackbar(context,
-          'Failed to get assistant by ID, Details: ${jsonDecode(response.body)}');
+          'Failed to get threads, code: ${response.statusCode}, body: ${response.body}');
       print(
-          'Failed to get assistant by ID, Details: ${jsonDecode(response.body)}');
-      throw Exception('Failed to get assistant by ID');
+          'Failed to get threads, code: ${response.statusCode}, body: ${response.body}');
+      throw Exception('Failed to get threads');
     }
   }
 }

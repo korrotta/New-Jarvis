@@ -2,11 +2,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class CustomDropdownmenu extends StatefulWidget {
-  String? headingText;
-  List<String> dropdownItems;
-  Function(String?)? onSelected;
+  final String? headingText;
+  final List<String> dropdownItems;
+  final Function(String?)? onSelected;
 
-  CustomDropdownmenu({
+  const CustomDropdownmenu({
     super.key,
     this.headingText,
     required this.dropdownItems,

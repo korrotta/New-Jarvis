@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:newjarvis/components/route/route_controller.dart';
 import 'package:newjarvis/models/basic_user_model.dart';
 import 'package:newjarvis/services/api_service.dart';
 
@@ -45,7 +46,7 @@ class AuthProvider extends ChangeNotifier {
   Future<void> signOut(BuildContext context) async {
     await apiService.signOut(context);
     _currentUser = null;
-    navigatorKey.currentState!.pushReplacementNamed('/auth');
+    RouteController.navigateReplacementNamed(RouteController.auth);
     notifyListeners();
   }
 }

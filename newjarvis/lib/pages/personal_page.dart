@@ -9,6 +9,7 @@ import 'package:newjarvis/components/route/route_controller.dart';
 import 'package:newjarvis/components/widgets/side_bar.dart';
 import 'package:newjarvis/models/ai_bot_model.dart';
 import 'package:newjarvis/models/basic_user_model.dart';
+import 'package:newjarvis/pages/assistant_page.dart';
 import 'package:newjarvis/services/api_service.dart';
 import 'package:newjarvis/services/knowledge_api_service.dart';
 
@@ -436,9 +437,16 @@ class _PersonalPageState extends State<PersonalPage> {
   void _navigateToAssistantDetails(String assistantId) {
     // Navigate to the assistant details page
     print('Navigate to assistant details: $assistantId');
-    RouteController.navigateToPage(RouteController.assistant, arguments: {
-      'assistantId': assistantId,
-    });
+    AiBotModel selectedAssistant =
+        _assistants.firstWhere((element) => element.id == assistantId);
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            AssistantPage(selectedAssistant: selectedAssistant),
+      ),
+    );
   }
 
   Widget _buildAssistantList() {

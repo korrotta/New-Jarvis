@@ -8,14 +8,12 @@ import 'package:newjarvis/components/route/route_controller.dart';
 import 'package:newjarvis/components/widgets/side_bar.dart';
 import 'package:newjarvis/components/ai_chat/welcome_chat_section.dart';
 import 'package:newjarvis/enums/id.dart';
-import 'package:newjarvis/enums/model.dart';
 import 'package:newjarvis/models/ai_chat/ai_chat_metadata.dart';
 import 'package:newjarvis/models/ai_chat/ai_chat_model.dart';
 import 'package:newjarvis/models/assistant_model.dart';
 import 'package:newjarvis/models/basic_user_model.dart';
 import 'package:newjarvis/models/ai_chat/chat_conversation.dart';
 import 'package:newjarvis/models/ai_chat/chat_message.dart';
-import 'package:newjarvis/models/ai_chat/chat_response_model.dart';
 import 'package:newjarvis/models/ai_chat/conversation_history_item_model.dart';
 import 'package:newjarvis/models/ai_chat/conversation_item_model.dart';
 import 'package:newjarvis/models/token_usage_model.dart';
@@ -40,8 +38,6 @@ class _ChatPageState extends State<ChatPage> {
   // State variables
   String? _currentConversationId; // Nullable to handle new conversations
 
-  String _cursor = '';
-
   ChatConversation _currentConversation = ChatConversation(
     id: '',
     messages: [],
@@ -63,13 +59,6 @@ class _ChatPageState extends State<ChatPage> {
   List<ConversationHistoryItemModel> _currentConversationHistory =
       []; // Store all current conversation history
 
-  // Store chat response
-  ChatResponseModel _chatResponse = ChatResponseModel(
-    id: '',
-    message: '',
-    remainingUsage: 0,
-  );
-
   // UI State variables
   int _selectedIndex = 0;
   bool _isExpanded = false;
@@ -85,7 +74,6 @@ class _ChatPageState extends State<ChatPage> {
   // Default AI
   AssistantModel _assistant = AssistantModel(
     id: Id.CLAUDE_3_HAIKU_20240307.value,
-    model: Model.dify.name,
   );
 
   @override
@@ -98,7 +86,9 @@ class _ChatPageState extends State<ChatPage> {
     await _checkLoginStatus();
     await _getCurentUserInfo();
     await _fetchAllConversations(isInitialFetch: true);
-    await _getConversationHistory(_currentConversationId!);
+    if (_currentConversationId != null) {
+      await _getConversationHistory(_currentConversationId!);
+    }
     await _fetchRemainingUsage();
     await _fetchTotalTokens();
     // await _scrollToBottom();
@@ -224,16 +214,14 @@ class _ChatPageState extends State<ChatPage> {
       );
       _messages.add(chatMessage);
 
-      setState(() {
-        _currentConversation = ChatConversation(
-          id: _currentConversationId!,
-          messages: _messages,
-        );
-
+      if (_currentConversationId != null) {
         _metadata = AiChatMetadata(
-          chatConversation: _currentConversation,
+          chatConversation: ChatConversation(
+            id: _currentConversationId!,
+            messages: _messages,
+          ),
         );
-      });
+      }
     });
 
     // Send the message to the AI
@@ -251,8 +239,12 @@ class _ChatPageState extends State<ChatPage> {
       print('Response _handleSend: $response');
 
       setState(() {
-        _chatResponse = response;
+        // Reset the new thread flag
+        _isNewThread = false;
       });
+
+      // Fetch all conversations
+      _fetchAllConversations();
 
       // Update current conversation history
       _getConversationHistory(_currentConversationId!);
@@ -312,10 +304,14 @@ class _ChatPageState extends State<ChatPage> {
     try {
       final response = await _apiService.getConversations(
         context: context,
-        cursor: isInitialFetch ? null : _cursor,
         limit: 100,
         assistant: _assistant,
       );
+
+      if (response.items.isEmpty) {
+        _handleNewConversation();
+        return;
+      }
 
       setState(() {
         if (isInitialFetch) {
@@ -333,7 +329,6 @@ class _ChatPageState extends State<ChatPage> {
           // Set the current conversation ID to the first conversation
           _currentConversationId = _conversations.first.id;
         }
-        _cursor = response.cursor; // Update cursor for pagination
       });
     } catch (e) {
       // Error fetching conversations
@@ -346,7 +341,6 @@ class _ChatPageState extends State<ChatPage> {
       final response = await _apiService.getConversationHistory(
         context: context,
         conversationId: conversationId,
-        cursor: _cursor,
         limit: 100,
         assistant: _assistant,
       );

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:newjarvis/components/prompt/promp_float_menu.dart';
 import 'package:newjarvis/states/chat_state.dart';
@@ -89,29 +88,18 @@ class _ChatInputSectionState extends State<ChatInputSection> {
                         color: Colors.blueAccent,
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          IconButton(
-                            tooltip: 'Start a new conversation',
-                            color: Colors.blueAccent,
-                            icon: Icon(
-                              CupertinoIcons.chat_bubble,
-                              color: Theme.of(context).colorScheme.tertiary,
-                            ),
-                            onPressed:
-                                _startNewConversation, // Trigger start new conv
+                      child: IconButton(
+                        tooltip: 'Start a new conversation',
+                        color: Colors.blueAccent,
+                        icon: Transform.flip(
+                          flipX: true,
+                          child: Icon(
+                            Icons.add_comment_outlined,
+                            color: Theme.of(context).colorScheme.tertiary,
                           ),
-                          Positioned(
-                            right: 13,
-                            top: 13,
-                            child: Icon(
-                              CupertinoIcons.add,
-                              color: Theme.of(context).colorScheme.tertiary,
-                              size: 13,
-                            ),
-                          ),
-                        ],
+                        ),
+                        onPressed:
+                            _startNewConversation, // Trigger start new conv
                       ),
                     ),
                     const SizedBox(width: 5),

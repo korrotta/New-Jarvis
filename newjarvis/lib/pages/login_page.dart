@@ -41,7 +41,6 @@ class _LoginPageState extends State<LoginPage> {
   // Check if user credentials are stored
   Future<void> _checkRememberMe() async {
     final prefs = await SharedPreferences.getInstance();
-    print(prefs.getKeys());
     final email = prefs.getString('email');
     final password = prefs.getString('password');
     if (email != null && password != null) {
@@ -142,12 +141,10 @@ class _LoginPageState extends State<LoginPage> {
       });
 
       if (response.isNotEmpty) {
-        print("Remember me: $rememberMe");
         if (rememberMe) {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('email', email);
           await prefs.setString('password', password);
-          print(prefs.getKeys());
         }
         if (!mounted) return;
         Navigator.pushReplacementNamed(context, '/chat');

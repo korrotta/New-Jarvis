@@ -1,16 +1,14 @@
 class AssistantModel {
   String? id;
-  String model;
+  final String model = 'dify';
 
   AssistantModel({
     this.id,
-    required this.model,
   });
 
   factory AssistantModel.fromJson(Map<String, dynamic> json) {
     return AssistantModel(
       id: json['id'],
-      model: json['model'],
     );
   }
 
@@ -19,7 +17,7 @@ class AssistantModel {
     if (id != null) {
       data['id'] = id;
     }
-    data['model'] = model;
+
     return data;
   }
 

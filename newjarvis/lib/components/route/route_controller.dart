@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:newjarvis/pages/assistant_page.dart';
 import 'package:newjarvis/pages/knowledge_base.dart';
 import 'package:newjarvis/pages/personal_page.dart';
 import 'package:newjarvis/pages/chat_page.dart';
@@ -20,8 +19,6 @@ class RouteController {
   static const String knowledge = '/knowledge';
   static const String assistant = '/assistant';
 
-  static String arguments = '';
-
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case auth:
@@ -32,11 +29,6 @@ class RouteController {
         return MaterialPageRoute(builder: (_) => const PersonalPage());
       case knowledge:
         return MaterialPageRoute(builder: (_) => const KnowledgePage());
-      case assistant:
-        return MaterialPageRoute(
-            builder: (_) => AssistantPage(
-                  assistantId: arguments,
-                ));
       default:
         return MaterialPageRoute(builder: (_) => const AuthGate());
     }
@@ -56,11 +48,8 @@ class RouteController {
     }
   }
 
-  static void navigateToPage(String route, {Object? arguments}) {
-    if (arguments != null) {
-      RouteController.arguments = arguments.toString();
-    }
-    navigatorKey.currentState!.pushNamed(route, arguments: arguments);
+  static void navigateReplacementNamed(String route) {
+    navigatorKey.currentState!.pushReplacementNamed(route);
   }
 
   static Map<String, WidgetBuilder> getRoutes() {
