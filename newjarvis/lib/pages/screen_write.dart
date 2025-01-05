@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:newjarvis/components/ai_chat/ai_model_selection_section.dart';
 import 'package:newjarvis/components/language_component.dart';
 import 'package:newjarvis/enums/id.dart';
 import 'package:newjarvis/enums/model.dart';
@@ -22,7 +23,6 @@ class ScreenSetUpEmail extends StatefulWidget{
 
 class _ScreenSetUpEmail extends State<ScreenSetUpEmail>{
 
-  
 
   // Controllers cho các TextField
   final TextEditingController contentController = TextEditingController();
@@ -100,8 +100,8 @@ class _ScreenSetUpEmail extends State<ScreenSetUpEmail>{
   try {
     // Chờ kết quả API call
     await emailProvider.generateEmail(
-      model: "dify", 
-      assistantId: "gpt-4o-mini",
+      model: _assistant.model, 
+      assistantId: _assistant.id!,
       email: content,
       action: "Reply to this email",
       mainIdea: mainIdea,
@@ -215,6 +215,14 @@ class _ScreenSetUpEmail extends State<ScreenSetUpEmail>{
       );
     }
   }
+
+  void _handleSelectedAI(BuildContext context, String aiId) {
+    setState(() {
+      _assistant.id = aiId;
+    });
+
+    // Fetch all conversations
+  }
   
 
   AppBar _buildAppBar(){
@@ -225,7 +233,7 @@ class _ScreenSetUpEmail extends State<ScreenSetUpEmail>{
         Row(
         children: [
           
-          const Text(
+          /*const Text(
             "Email",
             style: TextStyle(
               color: Colors.black,
@@ -234,6 +242,12 @@ class _ScreenSetUpEmail extends State<ScreenSetUpEmail>{
               fontSize: 23,
             ),
             textAlign: TextAlign.left,
+          ),*/
+
+          AiModelSelectionSection(
+                    onAiSelected: (String aiId) {
+                      _handleSelectedAI(context, aiId);
+                    },
           ),
 
           Expanded(

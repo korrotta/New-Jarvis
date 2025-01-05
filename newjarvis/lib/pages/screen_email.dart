@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:newjarvis/models/response_email_model.dart';
+import 'package:newjarvis/pages/draft_email.dart';
+import 'package:newjarvis/providers/idea_email_provider.dart';
 import 'package:newjarvis/providers/response_email_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -38,13 +40,12 @@ class _ScreenEmailState extends State<ScreenEmail> {
   final List<Widget> _chatWidgets = [];
   final TextEditingController _chatController = TextEditingController();
   bool _isOptionVisible = true;
+
   
 
   @override
   void initState() {
     super.initState();
-    // Khởi tạo giao diện khi mới vào
-      super.initState();
   // Hiển thị emailContent đầu tiên
   _chatWidgets.add(_buildEmailContentReceived(widget.emailContent));
   // Hiển thị mainIdea từ emailContent
@@ -59,6 +60,55 @@ class _ScreenEmailState extends State<ScreenEmail> {
     _chatController.dispose();
     super.dispose();
   }
+
+  Future<void> onGenerateEmailIdeaDraft() async {
+  // Gọi API thông qua Provider
+  final emailIdeaProvider =
+      Provider.of<EmailDraftIdeaProvider>(context, listen: false);
+
+  try {
+    // Chờ kết quả API call
+    await emailIdeaProvider.generateEmailIdea(
+      model: widget.model,
+      assistantId: widget.assistantId,
+      email: widget.emailContent,
+      action: "Suggest 3 ideas for this email",
+      context: [],
+      subject: "No Subject",
+      sender: "unknown@domain.com",
+      receiver: "recipient@domain.com",
+      language: widget.language,
+      contextUI: context,
+    );
+
+    // Lấy kết quả từ Provider
+    final responseDraft = emailIdeaProvider.emailResponse;
+
+    // Đóng dialog trước khi chuyển trang
+    Navigator.of(context).pop();
+
+    // Điều hướng sang màn hình hiển thị email response và truyền dữ liệu
+    if (responseDraft != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => DraftEmailPage(
+            draftReplies: responseDraft.ideas,
+          ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to generate email response!')),
+      );
+    }
+  } catch (error) {
+    print("Error calling API: $error");
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error: $error')),
+    );
+  }
+}
 
   
 
@@ -157,7 +207,7 @@ class _ScreenEmailState extends State<ScreenEmail> {
     width: double.infinity,
     padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
     decoration: BoxDecoration(
-      color: const Color.fromARGB(255, 220, 220, 220), // Màu xám nhạt cho emailContent Received
+      color: const Color.fromARGB(255, 220, 220, 220), 
       borderRadius: BorderRadius.circular(10.0),
     ),
     child: Column(
@@ -473,7 +523,27 @@ Widget build(BuildContext context) {
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom, // Đẩy lên khi bàn phím xuất hiện
         ),
-        child: _buildBottomChat(),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(child: _buildBottomChat()),
+            IconButton(
+            icon: const Icon(Icons.drafts, color: Colors.blue),
+            onPressed: () async {
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => const Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+
+              await onGenerateEmailIdeaDraft();
+            },
+          ),
+
+          ],
+        ),
       ),
     ),
   );

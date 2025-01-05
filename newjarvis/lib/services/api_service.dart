@@ -946,7 +946,7 @@ class ApiService {
 // Hàm để gọi API responseEmail
 Future<Map<String, dynamic>> responseEmail({
   required String model,
-  required String assistantId, // Optional assistant ID
+  required String assistantId,
   required String email,
   required String action,
   required String mainIdea,
@@ -998,6 +998,7 @@ Future<Map<String, dynamic>> responseEmail({
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
+        'x-jarvis-guid': '', 
       },
       body: jsonEncode(requestBody),
     );
@@ -1011,6 +1012,73 @@ Future<Map<String, dynamic>> responseEmail({
           "Failed to generate email. Status Code: ${response.statusCode}");
       return {};
     }
+  } catch (e) {
+    _showErrorSnackbar(contextUI, "Error generating email: $e");
+    return {};
+  }
+}
+
+// Hàm để gọi API responseEmail
+Future<Map<String, dynamic>> responseDraftIdeaEmail({
+  required String model,
+  required String assistantId, 
+  required String email,
+  required String action,
+  required List<Map<String, String>> context,
+  required String subject,
+  required String sender,
+  required String receiver,
+  required String language,
+  required BuildContext contextUI,
+}) async {
+  final token = await getTokenWithRefresh();
+
+  if (token == null) {
+    throw Exception('No token found. Please sign in.');
+  }
+
+  final url = Uri.parse('$_baseUrl/api/v1/ai-email/reply-ideas');
+  
+  try {
+    // Tạo body của request, bao gồm phần assistant nếu có
+    final requestBody = {
+      "assistant": {
+        "id": assistantId, 
+        "model": model,
+      },
+      "email": email,
+      "action": action,
+      "metadata": {
+        "context": context,
+        "subject": subject,
+        "sender": sender,
+        "receiver": receiver,
+        "language": language,
+      },
+    };
+    print("Request Body: ${jsonEncode(requestBody)}");
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+        'x-jarvis-guid': '', 
+      },
+      body: jsonEncode(requestBody),
+    );
+
+    if (response.statusCode == 200) {
+  print("Response Body: ${response.body}");
+  return jsonDecode(response.body);
+} else {
+  print("Status Code: ${response.statusCode}");
+  print("Response Body: ${response.body}");
+  _showErrorSnackbar(contextUI,
+      "Failed to generate email. Status Code: ${response.statusCode}");
+  return {};
+}
+
   } catch (e) {
     _showErrorSnackbar(contextUI, "Error generating email: $e");
     return {};

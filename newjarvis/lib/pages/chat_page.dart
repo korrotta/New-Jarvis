@@ -98,7 +98,10 @@ class _ChatPageState extends State<ChatPage> {
     await _checkLoginStatus();
     await _getCurentUserInfo();
     await _fetchAllConversations(isInitialFetch: true);
-    await _getConversationHistory(_currentConversationId!);
+    
+    if (_currentConversationId != null) {
+      await _getConversationHistory(_currentConversationId!);
+    }
     await _fetchRemainingUsage();
     await _fetchTotalTokens();
     // await _scrollToBottom();
