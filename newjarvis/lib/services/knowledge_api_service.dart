@@ -144,13 +144,13 @@ class KnowledgeApiService {
   }) async {
     final url = Uri.parse('$_baseUrl/kb-core/v1/ai-assistant').replace(
       queryParameters: {
-        'query': query ?? '',
+        'q': query ?? '',
         'order': order ?? 'ASC',
-        'orderField': orderField ?? 'createdAt',
+        'order_field': orderField ?? 'createdAt',
         'offset': offset?.toString() ?? '0',
         'limit': limit?.toString() ?? '10',
-        'isFavorite': isFavorite?.toString() ?? 'false',
-        'isPublished': isPublished?.toString() ?? 'false',
+        'is_favorite': isFavorite?.toString() ?? 'false',
+        'is_published': isPublished?.toString() ?? 'false',
       },
     );
     final token = await _getToken();
@@ -237,6 +237,34 @@ class KnowledgeApiService {
       print(
           'Failed to delete assistant, code: ${response.statusCode}, body: ${response.body}');
       throw Exception('Failed to delete assistant');
+    }
+  }
+
+  // Favorite an Assistant
+  Future<AiBotModel> favoriteAssistant({
+    required BuildContext context,
+    required String assistantId,
+  }) async {
+    final url =
+        Uri.parse('$_baseUrl/kb-core/v1/ai-assistant/$assistantId/favorite');
+    final token = await _getToken();
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 201) {
+      final result = jsonDecode(response.body);
+      print(result);
+      return AiBotModel.fromJson(result);
+    } else {
+      _showErrorSnackbar(context,
+          'Failed to favorite assistant, code: ${response.statusCode}, body: ${response.body}');
+      print(
+          'Failed to favorite assistant, code: ${response.statusCode}, body: ${response.body}');
+      throw Exception('Failed to favorite assistant');
     }
   }
 

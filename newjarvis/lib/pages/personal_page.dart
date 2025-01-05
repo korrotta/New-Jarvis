@@ -1,9 +1,12 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:newjarvis/components/ai_assistant/empty_assistant_section.dart';
 import 'package:newjarvis/components/widgets/custom_dropdownmenu.dart';
 import 'package:newjarvis/components/widgets/custom_textfield.dart';
+import 'package:newjarvis/components/widgets/filter_button.dart';
 import 'package:newjarvis/components/widgets/floating_button.dart';
 import 'package:newjarvis/components/route/route_controller.dart';
 import 'package:newjarvis/components/widgets/side_bar.dart';
@@ -95,6 +98,13 @@ class _PersonalPageState extends State<PersonalPage> {
         SnackBar(content: Text('Failed to load assistants: $e')),
       );
     }
+  }
+
+  void _updateFilter(String filter) {
+    setState(() {
+      _selectedFilter = filter;
+      _performSearchAndFilter(_searchText, _selectedFilter);
+    });
   }
 
   void _onItemTapped(int index) {
@@ -235,32 +245,35 @@ class _PersonalPageState extends State<PersonalPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Flexible(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.smart_toy_rounded,
-                    size: 22,
-                    color: Theme.of(context).colorScheme.inversePrimary,
-                  ),
-                  const SizedBox(width: 5),
-                  Text(
-                    "Assistant",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+            if (!_isSidebarVisible)
+              Flexible(
+                flex: 2,
+                fit: FlexFit.tight,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.smart_toy_rounded,
+                      size: 22,
                       color: Theme.of(context).colorScheme.inversePrimary,
                     ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+                    const SizedBox(width: 5),
+                    Text(
+                      "Assistant",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.inversePrimary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               ),
-            ),
             Flexible(
-              flex: 1,
+              flex: 3,
+              fit: FlexFit.tight,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 mainAxisSize: MainAxisSize.min,
@@ -314,72 +327,49 @@ class _PersonalPageState extends State<PersonalPage> {
         const SizedBox(height: 20),
 
         // Create Assistant Section
-        Wrap(
-          alignment: WrapAlignment.start,
-          spacing: 10,
-          runSpacing: 10,
-          runAlignment: WrapAlignment.start,
-          children: [
-            SizedBox(
-              width: 200,
-              child: CustomTextfield(
-                hintText: "Search",
-                initialObscureText: false,
-                controller: _searchController,
-                onChanged: (text) {
-                  setState(() {
-                    _searchText = text;
-                  });
-                  _performSearchAndFilter(text, _selectedFilter);
-                },
-              ),
-            ),
-            CustomDropdownmenu(
-              dropdownItems: const ["All", "Favorite", "Published"],
-              onSelected: (item) {
-                print('Selected: $item');
+        CustomTextfield(
+          hintText: "Search",
+          initialObscureText: false,
+          controller: _searchController,
+          onChanged: (text) {
+            // Add debounce timer to avoid excessive API calls
+            Future.delayed(const Duration(milliseconds: 1000), () {
+              if (text == _searchController.text) {
                 setState(() {
-                  _selectedFilter = item!;
+                  _searchText = text;
                 });
-                _performSearchAndFilter(_searchText, _selectedFilter);
-              },
-              headingText: "Type: ",
-            ),
-          ],
+                _performSearchAndFilter(text, _selectedFilter);
+                print('Search text: $text');
+              }
+            });
+          },
+        ),
+
+        const SizedBox(height: 10),
+
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Filter by type: ',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 5),
+              FilterBar(
+                selectedFilter: _selectedFilter,
+                onFilterSelected: _updateFilter,
+              ),
+            ],
+          ),
         ),
 
         const SizedBox(height: 5),
-
-        // Create button
-        // ElevatedButton.icon(
-        //   onPressed: () {
-        //     // Show the create bot dialog
-        //     showDialog(
-        //       context: context,
-        //       builder: (context) {
-        //         // Dialog include (title, assistant name*, assistant description, create button, cancel button)
-        //         return _showCreateDialog(_assistantNameController,
-        //             _assistantDescriptionController, context);
-        //       },
-        //     );
-        //   },
-        //   icon: const Icon(Icons.add, color: Colors.white),
-        //   label: const Text(
-        //     "Create bot",
-        //     style: TextStyle(
-        //       color: Colors.white,
-        //     ),
-        //   ),
-        //   style: ElevatedButton.styleFrom(
-        //     minimumSize: const Size(120, 55),
-        //     backgroundColor: Colors.blueAccent,
-        //     side: BorderSide(
-        //       color: Theme.of(context).colorScheme.inversePrimary,
-        //     ),
-        //   ),
-        // ),
-
-        const SizedBox(height: 10),
 
         // List of assistants
         Expanded(
@@ -618,17 +608,13 @@ class _PersonalPageState extends State<PersonalPage> {
           );
         } else {
           final items = snapshot.data!;
-          return GridView.builder(
+          return ListView.separated(
             shrinkWrap: true,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount:
-                  (MediaQuery.of(context).size.width ~/ 250).toInt(),
-              childAspectRatio: 4,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
-            ),
+            scrollDirection: Axis.vertical,
+            physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.all(8),
             itemCount: items.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 10),
             itemBuilder: (context, index) {
               final assistant = items[index];
               return GestureDetector(
@@ -694,21 +680,40 @@ class _PersonalPageState extends State<PersonalPage> {
                         ),
                       ),
 
-                      // Remove icon
+                      // Favorite & Remove
                       Positioned(
                         right: 0,
                         top: 0,
-                        child: Tooltip(
-                          message: 'Delete Assistant',
-                          child: IconButton(
-                            icon: const Icon(
-                              CupertinoIcons.trash,
-                              color: Colors.black,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            IconButton(
+                              icon: const Icon(
+                                CupertinoIcons.star,
+                                color: Colors.black,
+                                size: 16,
+                              ),
+                              onPressed: () {
+                                // Call the API to favorite/unfavorite the assistant
+                                _knowledgeApiService.favoriteAssistant(
+                                  context: context,
+                                  assistantId: assistant.id,
+                                );
+                                _getAssistants();
+                              },
                             ),
-                            onPressed: () {
-                              _deleteAssistant(assistant.id);
-                            },
-                          ),
+                            IconButton(
+                              icon: const Icon(
+                                CupertinoIcons.trash,
+                                color: Colors.black,
+                                size: 16,
+                              ),
+                              onPressed: () {
+                                _deleteAssistant(assistant.id);
+                              },
+                            ),
+                          ],
                         ),
                       ),
 
