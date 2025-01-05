@@ -397,19 +397,31 @@ class _PersonalPageState extends State<PersonalPage> {
           const SizedBox(height: 15),
           const Text("Assistant name"),
           const SizedBox(height: 5),
-          CustomTextfield(
-            validator: (p0) => p0!.isEmpty ? "Name is required" : null,
-            hintText: "",
-            initialObscureText: false,
-            controller: assistantNameController,
+          Row(
+            children: [
+              Expanded(
+                child: CustomTextfield(
+                  validator: (p0) => p0!.isEmpty ? "Name is required" : null,
+                  hintText: "",
+                  initialObscureText: false,
+                  controller: assistantNameController,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 15),
           const Text("Assistant description"),
           const SizedBox(height: 5),
-          CustomTextfield(
-            hintText: "",
-            initialObscureText: false,
-            controller: assistantDescriptionController,
+          Row(
+            children: [
+              Expanded(
+                child: CustomTextfield(
+                  hintText: "",
+                  initialObscureText: false,
+                  controller: assistantDescriptionController,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 5),
         ],
