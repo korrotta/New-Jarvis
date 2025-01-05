@@ -11,27 +11,38 @@ class FavouritesPromptView extends StatefulWidget {
 }
 
 class _FavouritesPromptViewState extends State<FavouritesPromptView> {
+    late Future<void> _fetchFavouritePromptsFuture;
+
     @override
     void initState() {
         super.initState();
-        _fetchFavouritePrompts();
+        _fetchFavouritePromptsFuture = _fetchFavouritePrompts();
     }
 
     Future<void> _fetchFavouritePrompts() async {
         final promptState = Provider.of<PromptState>(context, listen: false);
 
-        // Fetch favourite prompts if not already fetched
-        await promptState.fetchPrompts(context, isPublic: true);
+        // Fetch favourite prompts
+        await promptState.fetchPrompts(context, isPublic: true, category: 'favorites');
     }
 
     @override
     Widget build(BuildContext context) {
-        return Consumer<PromptState>(
-            builder: (context, promptState, _) {
-                if (promptState.isLoading) {
+        return FutureBuilder<void>(
+            future: _fetchFavouritePromptsFuture,
+            builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
                 }
 
+                if (snapshot.hasError) {
+                    return Center(
+                        child: Text("Error fetching favourite prompts: ${snapshot.error}"),
+                    );
+                }
+
+                // Access the prompts from PromptState
+                final promptState = Provider.of<PromptState>(context);
                 final prompts = promptState.favoritesPrompts;
 
                 if (prompts.isEmpty) {
@@ -58,4 +69,3 @@ class _FavouritesPromptViewState extends State<FavouritesPromptView> {
         );
     }
 }
-
