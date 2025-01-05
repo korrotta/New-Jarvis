@@ -73,7 +73,6 @@ class _ChatInputSectionState extends State<ChatInputSection> {
         children: [
           if (chatState.isPromptMenuVisible) PromptMenu(),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(20),

@@ -29,19 +29,19 @@ class _CustomDropdownmenuState extends State<CustomDropdownmenu> {
 
   @override
   Widget build(BuildContext context) {
-    return Tooltip(
-      message: 'Select a type',
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: Theme.of(context).colorScheme.primary,
-            width: 1.5,
-          ),
-          borderRadius: BorderRadius.circular(20),
-          color: Theme.of(context).colorScheme.surface,
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: Theme.of(context).colorScheme.primary,
+          width: 1.5,
         ),
-        child: DropdownButton(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
+        borderRadius: BorderRadius.circular(20),
+        color: Theme.of(context).colorScheme.surface,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: _selectedItem,
           items: widget.dropdownItems.map((String item) {
             return DropdownMenuItem(
               value: item,
@@ -54,14 +54,14 @@ class _CustomDropdownmenuState extends State<CustomDropdownmenu> {
               ),
             );
           }).toList(),
-          onChanged: (String? item) {
-            widget.onSelected!(item);
+          onChanged: (String? newValue) {
             setState(() {
-              _selectedItem = 'Type: $item';
+              _selectedItem = newValue;
             });
+            if (widget.onSelected != null) {
+              widget.onSelected!(newValue);
+            }
           },
-          value: _selectedItem,
-          underline: Container(),
           icon: const Icon(CupertinoIcons.chevron_down),
           borderRadius: BorderRadius.circular(20),
           iconSize: 20,
