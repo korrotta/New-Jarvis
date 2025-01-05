@@ -9,6 +9,7 @@ class AiBotModel {
   String? openAiThreadIdPlay;
   DateTime? updatedAt;
   String? updatedBy;
+  bool? isFavorite;
 
   AiBotModel({
     required this.assistantName,
@@ -19,6 +20,7 @@ class AiBotModel {
     this.instructions,
     required this.openAiAssistantId,
     this.openAiThreadIdPlay,
+    this.isFavorite,
     this.updatedAt,
     this.updatedBy,
   });
@@ -33,6 +35,7 @@ class AiBotModel {
       instructions: json['instructions'],
       openAiAssistantId: json['openAiAssistantId'],
       openAiThreadIdPlay: json['openAiThreadIdPlay'],
+      isFavorite: json['isFavorite'],
       updatedAt:
           json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
       updatedBy: json['updatedBy'],
@@ -57,6 +60,9 @@ class AiBotModel {
     if (openAiThreadIdPlay != null) {
       data['openAiThreadIdPlay'] = openAiThreadIdPlay;
     }
+    if (isFavorite != null) {
+      data['isFavorite'] = isFavorite;
+    }
     if (updatedAt != null) {
       data['updatedAt'] = updatedAt!.toIso8601String();
     }
@@ -68,6 +74,6 @@ class AiBotModel {
 
   @override
   String toString() {
-    return 'AiBotModel(assistantName: $assistantName, createdAt: $createdAt, createdBy: $createdBy, description: $description, id: $id, instructions: $instructions, openAiAssistantId: $openAiAssistantId, openAiThreadIdPlay: $openAiThreadIdPlay, updatedAt: $updatedAt, updatedBy: $updatedBy)';
+    return 'AiBotModel(assistantName: $assistantName, createdAt: $createdAt, createdBy: $createdBy, description: $description, id: $id, instructions: $instructions, openAiAssistantId: $openAiAssistantId, openAiThreadIdPlay: $openAiThreadIdPlay, updatedAt: $updatedAt, updatedBy: $updatedBy, isFavorite: $isFavorite)';
   }
 }

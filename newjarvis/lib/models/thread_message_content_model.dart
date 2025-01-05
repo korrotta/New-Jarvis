@@ -15,4 +15,16 @@ class ThreadMessageContentModel {
       text: MessageTextContentModel.fromJson(json['text']),
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'type': type,
+      'text': text.toJson(),
+    };
+  }
+
+  @override
+  String toString() {
+    return 'ThreadMessageContentModel(type: $type, text: $text)';
+  }
 }

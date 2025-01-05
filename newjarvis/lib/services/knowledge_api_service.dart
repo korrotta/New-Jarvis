@@ -141,41 +141,86 @@ class KnowledgeApiService {
     int? limit,
     bool? isFavorite,
     bool? isPublished,
+    bool? isAll,
   }) async {
-    final url = Uri.parse('$_baseUrl/kb-core/v1/ai-assistant').replace(
-      queryParameters: {
+    if (isAll == false || isAll == null) {
+      final _queryParameters = {
         'q': query ?? '',
         'order': order ?? 'ASC',
         'order_field': orderField ?? 'createdAt',
         'offset': offset?.toString() ?? '0',
         'limit': limit?.toString() ?? '10',
-        'is_favorite': isFavorite?.toString() ?? 'false',
-        'is_published': isPublished?.toString() ?? 'false',
-      },
-    );
-    final token = await _getToken();
-    final response = await http.get(
-      url,
-      headers: {
-        'Authorization': 'Bearer $token',
-      },
-    );
+        'is_favorite': isFavorite.toString(),
+        'is_published': isPublished.toString(),
+      };
 
-    if (response.statusCode == 200) {
-      final result = jsonDecode(response.body);
-      print(result);
-      final data = result['data'] as List;
-      final List<AiBotModel> assistants =
-          data.map((e) => AiBotModel.fromJson(e)).toList();
+      final url = Uri.parse('$_baseUrl/kb-core/v1/ai-assistant').replace(
+        queryParameters: _queryParameters,
+      );
 
-      final metadata = result['metadata'];
-      return assistants;
+      final token = await _getToken();
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        print(result);
+        final data = result['data'] as List;
+        final List<AiBotModel> assistants =
+            data.map((e) => AiBotModel.fromJson(e)).toList();
+
+        final metadata = result['metadata'];
+        return assistants;
+      } else {
+        _showErrorSnackbar(context,
+            'Failed to get assistants, Details: ${jsonDecode(response.body)}');
+
+        print(
+            'Failed to get assistants, Details: ${jsonDecode(response.body)}');
+        throw Exception('Failed to get assistants');
+      }
     } else {
-      _showErrorSnackbar(context,
-          'Failed to get assistants, Details: ${jsonDecode(response.body)}');
+      final _queryParameters = {
+        'q': query ?? '',
+        'order': order ?? 'ASC',
+        'order_field': orderField ?? 'createdAt',
+        'offset': offset?.toString() ?? '0',
+        'limit': limit?.toString() ?? '10',
+      };
 
-      print('Failed to get assistants, Details: ${jsonDecode(response.body)}');
-      throw Exception('Failed to get assistants');
+      final url = Uri.parse('$_baseUrl/kb-core/v1/ai-assistant').replace(
+        queryParameters: _queryParameters,
+      );
+
+      final token = await _getToken();
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        print(result);
+        final data = result['data'] as List;
+        final List<AiBotModel> assistants =
+            data.map((e) => AiBotModel.fromJson(e)).toList();
+
+        final metadata = result['metadata'];
+        return assistants;
+      } else {
+        _showErrorSnackbar(context,
+            'Failed to get assistants, Details: ${jsonDecode(response.body)}');
+
+        print(
+            'Failed to get assistants, Details: ${jsonDecode(response.body)}');
+        throw Exception('Failed to get assistants');
+      }
     }
   }
 
@@ -290,7 +335,7 @@ class KnowledgeApiService {
       },
     );
 
-    if (response.statusCode == 201) {
+    if (response.statusCode == 200) {
       final result = jsonDecode(response.body);
       print(result);
       return AiBotModel.fromJson(result);

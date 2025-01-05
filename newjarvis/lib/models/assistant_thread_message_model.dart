@@ -1,5 +1,7 @@
+import 'package:newjarvis/models/thread_message_content_model.dart';
+
 class AssistantThreadMessageModel {
-  List<dynamic> content;
+  List<ThreadMessageContentModel> content;
   int createdAt;
   String role;
 
@@ -11,7 +13,8 @@ class AssistantThreadMessageModel {
 
   factory AssistantThreadMessageModel.fromJson(Map<String, dynamic> json) {
     return AssistantThreadMessageModel(
-      content: json['content'],
+      content: List<ThreadMessageContentModel>.from(
+          json['content'].map((x) => ThreadMessageContentModel.fromJson(x))),
       createdAt: json['createdAt'],
       role: json['role'],
     );

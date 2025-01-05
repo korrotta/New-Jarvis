@@ -84,8 +84,8 @@ class _PersonalPageState extends State<PersonalPage> {
 
   Future<void> _getAssistants() async {
     try {
-      final fetchedAssistants =
-          await _knowledgeApiService.getAssistants(context: context);
+      final fetchedAssistants = await _knowledgeApiService.getAssistants(
+          context: context, isAll: _selectedFilter == "All");
       setState(() {
         _assistants = fetchedAssistants;
         _isLoading = false;
@@ -130,20 +130,34 @@ class _PersonalPageState extends State<PersonalPage> {
     print('Searching for: $text and filtering by: $filter');
     setState(() {
       _selectedFilter = filter;
+      print('Selected filter: $_selectedFilter');
     });
 
     try {
+      if (_selectedFilter == 'All') {
+        final result = await _knowledgeApiService.getAssistants(
+          context: context,
+          query: text,
+          isAll: true,
+        );
+
+        setState(() {
+          _assistants = result;
+        });
+        return;
+      }
       final result = await _knowledgeApiService.getAssistants(
         context: context,
         query: text,
         isFavorite: _selectedFilter.contains('Favorite'),
         isPublished: _selectedFilter.contains('Published'),
+        isAll: false,
       );
-      print('Search and filter result: $result');
 
       setState(() {
         _assistants = result;
       });
+      return;
     } catch (e) {
       print('Search and filter error: $e');
     }
@@ -415,93 +429,95 @@ class _PersonalPageState extends State<PersonalPage> {
         borderRadius: BorderRadius.circular(12.0),
       ),
       contentPadding: const EdgeInsets.all(20),
-      content: SizedBox(
-        width: MediaQuery.of(context).size.width * 0.4,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 15),
-            Text(
-              "Assistant name",
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.inversePrimary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 5),
-            TextFormField(
-              validator: (value) =>
-                  value!.isEmpty ? "Name cannot be empty" : null,
-              autovalidateMode: AutovalidateMode.onUserInteraction,
-              controller: assistantNameController,
-              maxLength: 1,
-              decoration: InputDecoration(
-                hintText: "Enter a name",
-                hintStyle: TextStyle(
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                border: const OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: Colors.blueAccent,
-                  ),
-                  borderRadius: BorderRadius.all(Radius.circular(12)),
+      content: SingleChildScrollView(
+        child: SizedBox(
+          width: MediaQuery.of(context).size.width * 0.4,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 15),
+              Text(
+                "Assistant name",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-              buildCounter: (context,
-                  {required currentLength,
-                  required isFocused,
-                  required maxLength}) {
-                return Text(
-                  "$currentLength / 50",
-                  style: TextStyle(
-                    color: isFocused
-                        ? Colors.blueAccent
-                        : Theme.of(context).colorScheme.primary,
+              const SizedBox(height: 5),
+              TextFormField(
+                validator: (value) =>
+                    value!.isEmpty ? "Name cannot be empty" : null,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                controller: assistantNameController,
+                maxLength: 1,
+                decoration: InputDecoration(
+                  hintText: "Enter a name",
+                  hintStyle: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
                   ),
-                );
-              },
-            ),
-            const SizedBox(height: 15),
-            Text(
-              "Assistant description",
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.inversePrimary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 5),
-            TextFormField(
-              controller: assistantDescriptionController,
-              maxLines: 6,
-              decoration: InputDecoration(
-                hintText: "Enter a description",
-                hintStyle: TextStyle(
-                  color: Theme.of(context).colorScheme.primary,
+                  border: const OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Colors.blueAccent,
+                    ),
+                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                  ),
                 ),
-                border: const OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: Colors.blueAccent,
-                  ),
-                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                buildCounter: (context,
+                    {required currentLength,
+                    required isFocused,
+                    required maxLength}) {
+                  return Text(
+                    "$currentLength / 50",
+                    style: TextStyle(
+                      color: isFocused
+                          ? Colors.blueAccent
+                          : Theme.of(context).colorScheme.primary,
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 15),
+              Text(
+                "Assistant description",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-              buildCounter: (context,
-                  {required currentLength,
-                  required isFocused,
-                  required maxLength}) {
-                return Text(
-                  "$currentLength / 2000",
-                  style: TextStyle(
-                    color: isFocused
-                        ? Colors.blueAccent
-                        : Theme.of(context).colorScheme.primary,
+              const SizedBox(height: 5),
+              TextFormField(
+                controller: assistantDescriptionController,
+                maxLines: 6,
+                decoration: InputDecoration(
+                  hintText: "Enter a description",
+                  hintStyle: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
                   ),
-                );
-              },
-            ),
-            const SizedBox(height: 5),
-          ],
+                  border: const OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Colors.blueAccent,
+                    ),
+                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                  ),
+                ),
+                buildCounter: (context,
+                    {required currentLength,
+                    required isFocused,
+                    required maxLength}) {
+                  return Text(
+                    "$currentLength / 2000",
+                    style: TextStyle(
+                      color: isFocused
+                          ? Colors.blueAccent
+                          : Theme.of(context).colorScheme.primary,
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 5),
+            ],
+          ),
         ),
       ),
       actions: [
@@ -565,187 +581,203 @@ class _PersonalPageState extends State<PersonalPage> {
     return FutureBuilder<List<AiBotModel>>(
       future: Future.value(_assistants),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return const SizedBox.shrink();
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const EmptyAssistantSection(),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    // Show the create bot dialog
-                    showDialog(
-                      context: context,
-                      builder: (context) {
-                        return _showCreateDialog(
-                          _assistantNameController,
-                          _assistantDescriptionController,
-                          context,
+        switch (snapshot.connectionState) {
+          case ConnectionState.active:
+            return const Center(child: CircularProgressIndicator());
+          case ConnectionState.none:
+            return const SizedBox.shrink();
+          case ConnectionState.waiting:
+            return const Center(child: CircularProgressIndicator());
+          case ConnectionState.done:
+            if (snapshot.hasError) {
+              return const SizedBox.shrink();
+            }
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const EmptyAssistantSection(),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        // Show the create bot dialog
+                        showDialog(
+                          context: context,
+                          builder: (context) {
+                            return _showCreateDialog(
+                              _assistantNameController,
+                              _assistantDescriptionController,
+                              context,
+                            );
+                          },
                         );
                       },
-                    );
-                  },
-                  icon: const Icon(
-                    Icons.add,
-                    color: Colors.white,
-                  ),
-                  label: const Text("Create Bot Now",
-                      style: TextStyle(color: Colors.white)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blueAccent,
-                    side: BorderSide(
-                      color: Theme.of(context).colorScheme.inversePrimary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        } else {
-          final items = snapshot.data!;
-          return ListView.separated(
-            shrinkWrap: true,
-            scrollDirection: Axis.vertical,
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.all(8),
-            itemCount: items.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 10),
-            itemBuilder: (context, index) {
-              final assistant = items[index];
-              return GestureDetector(
-                onTap: () {
-                  _navigateToAssistantDetails(assistant.id);
-                },
-                child: Container(
-                  width: MediaQuery.of(context).size.width * 0.3,
-                  height: MediaQuery.of(context).size.height * 0.1,
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Theme.of(context).colorScheme.primary,
-                        blurRadius: 5,
-                        offset: const Offset(0, 3),
+                      icon: const Icon(
+                        Icons.add,
+                        color: Colors.white,
                       ),
-                    ],
-                  ),
-                  child: Stack(
-                    children: [
-                      // Assistant details
-                      Positioned(
-                        top: 0,
-                        left: 0,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Image.asset(
-                              "assets/icons/assistant.png",
-                              width: 45,
-                              height: 45,
-                            ),
-                            const SizedBox(width: 10),
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                      label: const Text("Create Bot Now",
+                          style: TextStyle(color: Colors.white)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blueAccent,
+                        side: BorderSide(
+                          color: Theme.of(context).colorScheme.inversePrimary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            } else {
+              final items = snapshot.data!;
+              return ListView.separated(
+                shrinkWrap: true,
+                scrollDirection: Axis.vertical,
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.all(8),
+                itemCount: items.length,
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 10),
+                itemBuilder: (context, index) {
+                  final assistant = items[index];
+                  return GestureDetector(
+                    onTap: () {
+                      _navigateToAssistantDetails(assistant.id);
+                    },
+                    child: Container(
+                      width: MediaQuery.of(context).size.width * 0.3,
+                      height: MediaQuery.of(context).size.height * 0.1,
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Theme.of(context).colorScheme.primary,
+                            blurRadius: 5,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Stack(
+                        children: [
+                          // Assistant details
+                          Positioned(
+                            top: 0,
+                            left: 0,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
                               children: [
-                                Text(
-                                  assistant.assistantName,
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .inversePrimary,
-                                  ),
+                                Image.asset(
+                                  "assets/icons/assistant.png",
+                                  width: 45,
+                                  height: 45,
                                 ),
+                                const SizedBox(width: 10),
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      assistant.assistantName,
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .inversePrimary,
+                                      ),
+                                    ),
+                                    Text(
+                                      assistant.description ?? "",
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .inversePrimary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Favorite & Remove
+                          Positioned(
+                            right: 0,
+                            top: 0,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                IconButton(
+                                  icon: Icon(
+                                    assistant.isFavorite != null &&
+                                            assistant.isFavorite == true
+                                        ? CupertinoIcons.star_fill
+                                        : CupertinoIcons.star,
+                                    color: assistant.isFavorite != null &&
+                                            assistant.isFavorite == true
+                                        ? Colors.yellowAccent
+                                        : Colors.black,
+                                    size: 16,
+                                  ),
+                                  onPressed: () {
+                                    // Call the API to favorite/unfavorite the assistant
+                                    _knowledgeApiService.favoriteAssistant(
+                                      context: context,
+                                      assistantId: assistant.id,
+                                    );
+                                    _getAssistants();
+                                  },
+                                ),
+                                IconButton(
+                                  icon: const Icon(
+                                    CupertinoIcons.trash,
+                                    color: Colors.black,
+                                    size: 16,
+                                  ),
+                                  onPressed: () {
+                                    _deleteAssistant(assistant.id);
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Date time
+                          Positioned(
+                            right: 0,
+                            bottom: 0,
+                            child: Row(
+                              children: [
+                                Icon(
+                                  CupertinoIcons.clock,
+                                  size: 16,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                                const SizedBox(width: 5),
                                 Text(
-                                  assistant.description ?? "",
+                                  DateFormat('dd/MM/yyyy')
+                                      .format(assistant.createdAt),
                                   style: TextStyle(
-                                    fontSize: 14,
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .inversePrimary,
+                                    fontSize: 12,
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
                                   ),
                                 ),
                               ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-
-                      // Favorite & Remove
-                      Positioned(
-                        right: 0,
-                        top: 0,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            IconButton(
-                              icon: const Icon(
-                                CupertinoIcons.star,
-                                color: Colors.black,
-                                size: 16,
-                              ),
-                              onPressed: () {
-                                // Call the API to favorite/unfavorite the assistant
-                                _knowledgeApiService.favoriteAssistant(
-                                  context: context,
-                                  assistantId: assistant.id,
-                                );
-                                _getAssistants();
-                              },
-                            ),
-                            IconButton(
-                              icon: const Icon(
-                                CupertinoIcons.trash,
-                                color: Colors.black,
-                                size: 16,
-                              ),
-                              onPressed: () {
-                                _deleteAssistant(assistant.id);
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Date time
-                      Positioned(
-                        right: 0,
-                        bottom: 0,
-                        child: Row(
-                          children: [
-                            Icon(
-                              CupertinoIcons.clock,
-                              size: 16,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                            const SizedBox(width: 5),
-                            Text(
-                              DateFormat('dd/MM/yyyy')
-                                  .format(assistant.createdAt),
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                    ),
+                  );
+                },
               );
-            },
-          );
+            }
         }
       },
     );
