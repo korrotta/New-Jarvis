@@ -93,35 +93,116 @@ class _AssistantPageState extends State<AssistantPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 15),
-              const Text("Assistant name"),
+              Text(
+                "Assistant name",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               const SizedBox(height: 5),
-              CustomTextfield(
-                validator: (p0) => p0!.isEmpty ? "Name is required" : null,
-                hintText: "",
-                initialObscureText: false,
+              TextFormField(
+                validator: (value) =>
+                    value!.isEmpty ? "Name cannot be empty" : null,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 controller: assistantNameController,
+                maxLength: 1,
+                decoration: InputDecoration(
+                  hintText: "Enter a name",
+                  hintStyle: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  border: const OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Colors.blueAccent,
+                    ),
+                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                  ),
+                ),
+                buildCounter: (context,
+                    {required currentLength,
+                    required isFocused,
+                    required maxLength}) {
+                  return Text(
+                    "$currentLength / 50",
+                    style: TextStyle(
+                      color: isFocused
+                          ? Colors.blueAccent
+                          : Theme.of(context).colorScheme.primary,
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 15),
-              const Text("Assistant description"),
+              Text(
+                "Assistant description",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               const SizedBox(height: 5),
-              CustomTextfield(
-                hintText: "",
-                initialObscureText: false,
+              TextFormField(
                 controller: assistantDescriptionController,
+                maxLines: 10,
+                decoration: InputDecoration(
+                  hintText: "Enter a description",
+                  hintStyle: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  border: const OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Colors.blueAccent,
+                    ),
+                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                  ),
+                ),
+                buildCounter: (context,
+                    {required currentLength,
+                    required isFocused,
+                    required maxLength}) {
+                  return Text(
+                    "$currentLength / 2000",
+                    style: TextStyle(
+                      color: isFocused
+                          ? Colors.blueAccent
+                          : Theme.of(context).colorScheme.primary,
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 5),
             ],
           ),
           actions: [
-            TextButton(
+            ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text("Cancel"),
+              style: ElevatedButton.styleFrom(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                backgroundColor: Theme.of(context).colorScheme.surface,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                  side: const BorderSide(
+                    color: Colors.redAccent,
+                  ),
+                ),
+              ),
+              child: const Text(
+                "Cancel",
+                style: TextStyle(color: Colors.redAccent),
+              ),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 backgroundColor: Colors.blueAccent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
               ),
               onPressed: () {
                 _editAssistant(assistantNameController,

@@ -390,54 +390,125 @@ class _PersonalPageState extends State<PersonalPage> {
         borderRadius: BorderRadius.circular(12.0),
       ),
       contentPadding: const EdgeInsets.all(20),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 15),
-          const Text("Assistant name"),
-          const SizedBox(height: 5),
-          Row(
-            children: [
-              Expanded(
-                child: CustomTextfield(
-                  validator: (p0) => p0!.isEmpty ? "Name is required" : null,
-                  hintText: "",
-                  initialObscureText: false,
-                  controller: assistantNameController,
+      content: SizedBox(
+        width: MediaQuery.of(context).size.width * 0.4,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 15),
+            Text(
+              "Assistant name",
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.inversePrimary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 5),
+            TextFormField(
+              validator: (value) =>
+                  value!.isEmpty ? "Name cannot be empty" : null,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              controller: assistantNameController,
+              maxLength: 1,
+              decoration: InputDecoration(
+                hintText: "Enter a name",
+                hintStyle: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                border: const OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: Colors.blueAccent,
+                  ),
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 15),
-          const Text("Assistant description"),
-          const SizedBox(height: 5),
-          Row(
-            children: [
-              Expanded(
-                child: CustomTextfield(
-                  hintText: "",
-                  initialObscureText: false,
-                  controller: assistantDescriptionController,
+              buildCounter: (context,
+                  {required currentLength,
+                  required isFocused,
+                  required maxLength}) {
+                return Text(
+                  "$currentLength / 50",
+                  style: TextStyle(
+                    color: isFocused
+                        ? Colors.blueAccent
+                        : Theme.of(context).colorScheme.primary,
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 15),
+            Text(
+              "Assistant description",
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.inversePrimary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 5),
+            TextFormField(
+              controller: assistantDescriptionController,
+              maxLines: 10,
+              decoration: InputDecoration(
+                hintText: "Enter a description",
+                hintStyle: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                border: const OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: Colors.blueAccent,
+                  ),
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 5),
-        ],
+              buildCounter: (context,
+                  {required currentLength,
+                  required isFocused,
+                  required maxLength}) {
+                return Text(
+                  "$currentLength / 2000",
+                  style: TextStyle(
+                    color: isFocused
+                        ? Colors.blueAccent
+                        : Theme.of(context).colorScheme.primary,
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 5),
+          ],
+        ),
       ),
       actions: [
-        TextButton(
+        ElevatedButton(
           onPressed: () {
             Navigator.of(context).pop();
           },
-          child: const Text("Cancel"),
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.0),
+              side: const BorderSide(
+                color: Colors.redAccent,
+              ),
+            ),
+          ),
+          child: const Text(
+            "Cancel",
+            style: TextStyle(color: Colors.redAccent),
+          ),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             backgroundColor: Colors.blueAccent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.0),
+            ),
           ),
           onPressed: () {
+            _validateFields(assistantNameController, context);
             _createNewAssistant(assistantNameController,
                 assistantDescriptionController, context);
           },
@@ -651,6 +722,18 @@ class _PersonalPageState extends State<PersonalPage> {
         }
       },
     );
+  }
+
+  void _validateFields(
+      TextEditingController assistantNameController, BuildContext context) {
+    final assistantName = assistantNameController.text.trim();
+
+    if (assistantName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Assistant name cannot be empty')),
+      );
+      return;
+    }
   }
 
   Future<void> _createNewAssistant(
