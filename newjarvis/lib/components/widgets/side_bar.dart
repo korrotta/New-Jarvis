@@ -21,13 +21,13 @@ class SideBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sideBarWidthExpanded = MediaQuery.of(context).size.width * 0.2;
-    final sideBarWidthCollapsed = MediaQuery.of(context).size.width * 0.1;
+    const double sideBarWidthExpanded = 200; // Dung thay doi cai nay nha
+    const double sideBarWidthCollapsed = 85; // Dung thay doi cai nay nha
     double sidebarWidth =
         isExpanded ? sideBarWidthExpanded : sideBarWidthCollapsed;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: 0),
       width: sidebarWidth,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
@@ -107,7 +107,14 @@ class SideBar extends StatelessWidget {
         return GestureDetector(
           onTap: () => onItemSelected(index),
           child: Container(
-            margin: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 10),
+            margin: const EdgeInsets.symmetric(vertical: 5.0),
+            decoration: BoxDecoration(
+              border: Border(
+                left: isSelected
+                    ? const BorderSide(color: Colors.blueAccent, width: 3.5)
+                    : const BorderSide(color: Colors.transparent, width: 3.5),
+              ),
+            ),
             child: Row(
               children: [
                 Padding(
@@ -128,7 +135,7 @@ class SideBar extends StatelessWidget {
                           ? Colors.blueAccent
                           : Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                      fontSize: 15,
                     ),
                   ),
               ],
@@ -148,11 +155,17 @@ class SideBar extends StatelessWidget {
           onTap: () => onItemSelected(index),
           child: Container(
             margin: const EdgeInsets.symmetric(vertical: 5.0),
+            decoration: BoxDecoration(
+              border: Border(
+                left: isSelected
+                    ? const BorderSide(color: Colors.blueAccent, width: 3.0)
+                    : const BorderSide(color: Colors.transparent, width: 3.0),
+                right: const BorderSide(color: Colors.transparent, width: 3.0),
+              ),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Icon(
                     menuIcons[index],
@@ -168,8 +181,11 @@ class SideBar extends StatelessWidget {
                           ? Colors.blueAccent
                           : Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                      fontSize: 12,
                     ),
+                    maxLines: 1,
+                    softWrap: false, // Không wrap chữ
+                    overflow: TextOverflow.clip,
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -221,15 +237,17 @@ class SideBar extends StatelessWidget {
 
 const List<IconData> menuIcons = [
   CupertinoIcons.chat_bubble_text_fill,
-  Icons.smart_toy_rounded,
-  Icons.book_rounded,
-  CupertinoIcons.gear_alt_fill,
+  CupertinoIcons.bolt_horizontal_circle_fill,
+  CupertinoIcons.book_circle_fill,
+  CupertinoIcons.envelope_fill,
+  Icons.settings_outlined,
 ];
 
 const List<String> menuLabels = [
   'Chat',
   'AI Assistant',
   'Knowledge Base',
+  'Email',
   'Settings',
 ];
 
