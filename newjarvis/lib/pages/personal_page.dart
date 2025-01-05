@@ -133,17 +133,28 @@ class _PersonalPageState extends State<PersonalPage> {
     });
 
     try {
+      if (_selectedFilter == 'All') {
+        final result = await _knowledgeApiService.getAssistants(
+          context: context,
+          query: text,
+        );
+
+        setState(() {
+          _assistants = result;
+        });
+        return;
+      }
       final result = await _knowledgeApiService.getAssistants(
         context: context,
         query: text,
         isFavorite: _selectedFilter.contains('Favorite'),
         isPublished: _selectedFilter.contains('Published'),
       );
-      print('Search and filter result: $result');
 
       setState(() {
         _assistants = result;
       });
+      return;
     } catch (e) {
       print('Search and filter error: $e');
     }
