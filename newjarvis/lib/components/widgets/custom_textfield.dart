@@ -6,6 +6,7 @@ class CustomTextfield extends StatefulWidget {
   final TextEditingController controller;
   final String? Function(String?)? validator;
   final FocusNode? focusNode;
+  final void Function(String)? onChanged;
 
   const CustomTextfield({
     super.key,
@@ -14,6 +15,7 @@ class CustomTextfield extends StatefulWidget {
     required this.controller,
     this.validator,
     this.focusNode,
+    this.onChanged,
   });
 
   @override
@@ -38,6 +40,7 @@ class _CustomTextfieldState extends State<CustomTextfield> {
         controller: widget.controller,
         validator: widget.validator,
         autovalidateMode: AutovalidateMode.onUserInteraction,
+        onChanged: widget.onChanged,
         decoration: InputDecoration(
           contentPadding: const EdgeInsets.symmetric(horizontal: 20),
           enabledBorder: OutlineInputBorder(

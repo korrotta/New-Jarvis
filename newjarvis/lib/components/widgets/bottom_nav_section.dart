@@ -27,7 +27,11 @@ class _BottomNavSectionState extends State<BottomNavSection> {
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
       child: Container(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.only(
+          left: 10,
+          right: 10,
+          bottom: 10,
+        ),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(15),

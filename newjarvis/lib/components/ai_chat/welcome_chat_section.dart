@@ -55,7 +55,7 @@ class _WelcomeChatSectionState extends State<WelcomeChatSection> {
             RichText(
               text: TextSpan(
                 text:
-                    "Jarvis KB is a cutting-edge AI App development platform designed. With Jarvis KB, you can effortlessly create and deploy various chatbots across numerous social platforms and messaging apps like Messenger, Telegram, and Slack!",
+                    "AIdea is a cutting-edge AI App development platform designed. With AIdea, you can effortlessly create and deploy various chatbots across numerous social platforms and messaging apps like Messenger, Telegram, and Slack!",
                 style: TextStyle(
                   fontSize: 16,
                   color: Theme.of(context).colorScheme.inversePrimary,
@@ -65,7 +65,7 @@ class _WelcomeChatSectionState extends State<WelcomeChatSection> {
             const SizedBox(height: 24),
 
             Text(
-              "Why Choose Jarvis KB?",
+              "Why Choose AIdea?",
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -76,7 +76,7 @@ class _WelcomeChatSectionState extends State<WelcomeChatSection> {
             const SizedBox(height: 16),
 
             Text(
-              "We offer robust and flexible solutions to meet your chatbot development needs. Here's what makes Jarvis KB stand out:",
+              "We offer robust and flexible solutions to meet your chatbot development needs. Here's what makes AIdea stand out:",
               style: TextStyle(
                 fontSize: 16,
                 color: Theme.of(context).colorScheme.inversePrimary,
@@ -114,7 +114,7 @@ class _WelcomeChatSectionState extends State<WelcomeChatSection> {
               icon: Icons.group,
               title: "Collaboration Features 🤝",
               description:
-                  "Collaborate with other bots to enhance functionality and provide a richer user experience. Jarvis KB enables multiple bots to work together seamlessly.",
+                  "Collaborate with other bots to enhance functionality and provide a richer user experience. AIdea enables multiple bots to work together seamlessly.",
             ),
 
             const SizedBox(height: 16),

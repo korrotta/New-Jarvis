@@ -1,11 +1,15 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:newjarvis/components/ai_assistant/empty_assistant_section.dart';
+import 'package:newjarvis/components/widgets/custom_dropdownmenu.dart';
 import 'package:newjarvis/components/widgets/custom_textfield.dart';
 import 'package:newjarvis/components/widgets/floating_button.dart';
 import 'package:newjarvis/components/route/route_controller.dart';
 import 'package:newjarvis/components/widgets/side_bar.dart';
 import 'package:newjarvis/models/ai_bot_model.dart';
 import 'package:newjarvis/models/basic_user_model.dart';
+import 'package:newjarvis/pages/assistant_page.dart';
 import 'package:newjarvis/services/api_service.dart';
 import 'package:newjarvis/services/knowledge_api_service.dart';
 
@@ -33,12 +37,20 @@ class _PersonalPageState extends State<PersonalPage> {
   TextEditingController _assistantNameController = TextEditingController();
   TextEditingController _assistantDescriptionController =
       TextEditingController();
+  TextEditingController _searchController = TextEditingController();
+
+  // Search Text
+  String _searchText = "";
+
+  // Selected Filter
+  String _selectedFilter = "All";
 
   // UI Variables
   int _selectedIndex = 1;
   bool _isExpanded = false;
   bool _isSidebarVisible = false;
   double _dragOffset = 200.0;
+  bool _isHovered = false;
 
   // Loading state
   bool _isLoading = false;
@@ -72,7 +84,7 @@ class _PersonalPageState extends State<PersonalPage> {
       final fetchedAssistants =
           await _knowledgeApiService.getAssistants(context: context);
       setState(() {
-        _assistants = fetchedAssistants['data'];
+        _assistants = fetchedAssistants;
         _isLoading = false;
       });
     } catch (e) {
@@ -101,6 +113,41 @@ class _PersonalPageState extends State<PersonalPage> {
       print('Successfully logged in to the knowledge API');
     } catch (e) {
       print('Error during auto login: $e');
+    }
+  }
+
+  Future<void> _performSearchAndFilter(String text, String filter) async {
+    print('Searching for: $text and filtering by: $filter');
+    setState(() {
+      _selectedFilter = filter;
+    });
+
+    try {
+      final result = await _knowledgeApiService.getAssistants(
+        context: context,
+        query: text,
+        isFavorite: _selectedFilter.contains('Favorite'),
+        isPublished: _selectedFilter.contains('Published'),
+      );
+      print('Search and filter result: $result');
+
+      setState(() {
+        _assistants = result;
+      });
+    } catch (e) {
+      print('Search and filter error: $e');
+    }
+  }
+
+  Future<void> _deleteAssistant(String id) async {
+    try {
+      await _knowledgeApiService.deleteAssistant(
+          context: context, assistantId: id);
+      _getAssistants();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to delete assistant: $e')),
+      );
     }
   }
 
@@ -193,12 +240,13 @@ class _PersonalPageState extends State<PersonalPage> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Icon(
-                  Icons.person_outline,
+                  Icons.smart_toy_rounded,
                   size: 32,
                   color: Theme.of(context).colorScheme.inversePrimary,
                 ),
+                const SizedBox(width: 15),
                 Text(
-                  "Personal",
+                  "AI Assistant",
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -207,7 +255,7 @@ class _PersonalPageState extends State<PersonalPage> {
                 ),
               ],
             ),
-            const SizedBox(width: 5),
+            const SizedBox(width: 10),
             // Display current user name
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -219,6 +267,7 @@ class _PersonalPageState extends State<PersonalPage> {
                           _currentUser!.username![0].toUpperCase(),
                           style: const TextStyle(
                             color: Colors.white,
+                            fontWeight: FontWeight.bold,
                           ),
                         )
                       : const Icon(Icons.person),
@@ -246,7 +295,8 @@ class _PersonalPageState extends State<PersonalPage> {
             ),
           ],
         ),
-        const SizedBox(height: 16),
+
+        const SizedBox(height: 20),
 
         // Create Assistant & Filter Section
         Row(
@@ -258,63 +308,37 @@ class _PersonalPageState extends State<PersonalPage> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Flexible(
-                    flex: 3,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: Theme.of(context).colorScheme.surface,
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          padding: const EdgeInsets.all(0),
-                          borderRadius: BorderRadius.circular(20),
-                          value: "All",
-                          items: const [
-                            DropdownMenuItem(
-                              value: "All",
-                              child: Text("All"),
-                            ),
-                            DropdownMenuItem(
-                              value: "Favorites",
-                              child: Text("Favorites"),
-                            ),
-                          ],
-                          onChanged: (value) {
-                            print('Filter assistants by: $value');
-                          },
-                        ),
-                      ),
+                    flex: 2,
+                    child: CustomDropdownmenu(
+                      dropdownItems: const ["All", "Published"],
+                      onSelected: (item) {
+                        print('Selected: $item');
+                        setState(() {
+                          _selectedFilter = item!;
+                        });
+                        _performSearchAndFilter(_searchText, _selectedFilter);
+                      },
+                      headingText: "Type: ",
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 5),
                   Flexible(
                     flex: 5,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                      child: TextField(
-                        decoration: InputDecoration(
-                          hintText: "Search",
-                          prefixIcon: const Icon(Icons.search),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                      ),
+                    child: CustomTextfield(
+                      hintText: "Search",
+                      initialObscureText: false,
+                      controller: _searchController,
+                      onChanged: (text) {
+                        setState(() {
+                          _searchText = text;
+                        });
+                        _performSearchAndFilter(text, _selectedFilter);
+                      },
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 16),
             // Create button
             ElevatedButton.icon(
               onPressed: () {
@@ -328,10 +352,19 @@ class _PersonalPageState extends State<PersonalPage> {
                   },
                 );
               },
-              icon: const Icon(Icons.add),
-              label: const Text("Create bot"),
+              icon: const Icon(Icons.add, color: Colors.white),
+              label: const Text(
+                "Create bot",
+                style: TextStyle(
+                  color: Colors.white,
+                ),
+              ),
               style: ElevatedButton.styleFrom(
-                minimumSize: const Size(120, 48),
+                minimumSize: const Size(120, 55),
+                backgroundColor: Colors.blueAccent,
+                side: BorderSide(
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                ),
               ),
             ),
           ],
@@ -343,20 +376,6 @@ class _PersonalPageState extends State<PersonalPage> {
         Expanded(
           child: _buildAssistantList(),
         ),
-
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: ElevatedButton.icon(
-            onPressed: () {
-              _knowledgeApiService.getAssistants(context: context);
-            },
-            icon: const Icon(Icons.refresh),
-            label: const Text("Get Assistants"),
-            style: ElevatedButton.styleFrom(
-              minimumSize: const Size(double.infinity, 48),
-            ),
-          ),
-        ),
       ],
     );
   }
@@ -367,6 +386,10 @@ class _PersonalPageState extends State<PersonalPage> {
       BuildContext context) {
     return AlertDialog(
       title: const Text("Create Assistant"),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      contentPadding: const EdgeInsets.all(20),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -415,6 +438,21 @@ class _PersonalPageState extends State<PersonalPage> {
     );
   }
 
+  void _navigateToAssistantDetails(String assistantId) {
+    // Navigate to the assistant details page
+    print('Navigate to assistant details: $assistantId');
+    AiBotModel selectedAssistant =
+        _assistants.firstWhere((element) => element.id == assistantId);
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            AssistantPage(selectedAssistant: selectedAssistant),
+      ),
+    );
+  }
+
   Widget _buildAssistantList() {
     return FutureBuilder<List<AiBotModel>>(
       future: Future.value(_assistants),
@@ -444,10 +482,15 @@ class _PersonalPageState extends State<PersonalPage> {
                       },
                     );
                   },
-                  icon: const Icon(Icons.add),
-                  label: const Text("Create Bot Now"),
+                  icon: const Icon(Icons.add, color: Colors.white),
+                  label: const Text("Create Bot Now",
+                      style: TextStyle(color: Colors.white)),
                   style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(120, 48),
+                    minimumSize: const Size(120, 55),
+                    backgroundColor: Colors.blueAccent,
+                    side: BorderSide(
+                      color: Theme.of(context).colorScheme.inversePrimary,
+                    ),
                   ),
                 ),
               ],
@@ -455,49 +498,139 @@ class _PersonalPageState extends State<PersonalPage> {
           );
         } else {
           final items = snapshot.data!;
-          return ListView.builder(
+          return GridView.builder(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              childAspectRatio: 4 / 2,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 8,
+            ),
             padding: const EdgeInsets.all(16),
             itemCount: items.length,
             itemBuilder: (context, index) {
               final assistant = items[index];
-              return Card(
-                elevation: 2,
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: Colors.blue.shade100,
-                    child: const Icon(Icons.smart_toy, color: Colors.blue),
-                  ),
-                  title: Text(assistant.assistantName ?? 'Unknown Name'),
-                  subtitle:
-                      Text(assistant.description ?? 'No description available'),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // IconButton(
-                      //   icon: Icon(
-                      //     assistant['isFavorite'] == true
-                      //         ? Icons.star
-                      //         : Icons.star_border,
-                      //     color: assistant['isFavorite'] == true
-                      //         ? Colors.yellow
-                      //         : null,
-                      //   ),
-                      //   onPressed: () {
-                      //     // Add your logic to toggle favorite status
-                      //     print(
-                      //         'Favorite toggled for: ${assistant['assistantName']}');
-                      //   },
-                      // ),
-                      const SizedBox(width: 16),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline),
-                        onPressed: () {
-                          // Add your logic to delete the assistant
-                          print(
-                              'Deleted: ${assistant.id} - ${assistant.assistantName}');
-                        },
+              return StatefulBuilder(
+                builder: (context, setState) => MouseRegion(
+                  onEnter: (_) => setState(() => _isHovered = true),
+                  onExit: (_) => setState(() => _isHovered = false),
+                  cursor: SystemMouseCursors.click, // Change cursor on hover
+                  child: GestureDetector(
+                    onTap: () {
+                      _navigateToAssistantDetails(assistant.id);
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: _isHovered
+                                ? Colors.blue.withOpacity(0.5)
+                                : Colors.grey.withOpacity(0.5),
+                            blurRadius: _isHovered ? 10 : 5,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                        border: Border.all(
+                          color: _isHovered
+                              ? Colors.blue
+                              : Colors
+                                  .transparent, // Border color changes on hover
+                          width: 2,
+                        ),
                       ),
-                    ],
+                      child: Stack(
+                        children: [
+                          // Assistant details
+                          Positioned(
+                            top: 0,
+                            left: 0,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Image.asset(
+                                  "assets/icons/assistant.png",
+                                  width: 65,
+                                  height: 65,
+                                ),
+                                const SizedBox(width: 10),
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      assistant.assistantName,
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .inversePrimary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 5),
+                                    Text(
+                                      assistant.description ?? "",
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .inversePrimary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Remove icon
+                          Positioned(
+                            right: 0,
+                            top: 0,
+                            child: Tooltip(
+                              message: 'Delete Assistant',
+                              child: IconButton(
+                                icon: const Icon(
+                                  CupertinoIcons.trash,
+                                  color: Colors.black,
+                                ),
+                                onPressed: () {
+                                  _deleteAssistant(assistant.id);
+                                },
+                              ),
+                            ),
+                          ),
+
+                          // Date time
+                          Positioned(
+                            right: 0,
+                            bottom: 0,
+                            child: Row(
+                              children: [
+                                Icon(
+                                  CupertinoIcons.clock,
+                                  size: 16,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                                const SizedBox(width: 5),
+                                Text(
+                                  DateFormat('dd/MM/yyyy')
+                                      .format(assistant.createdAt),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               );
@@ -508,10 +641,10 @@ class _PersonalPageState extends State<PersonalPage> {
     );
   }
 
-  void _createNewAssistant(
+  Future<void> _createNewAssistant(
       TextEditingController assistantNameController,
       TextEditingController assistantDescriptionController,
-      BuildContext context) {
+      BuildContext context) async {
     final assistantName = assistantNameController.text.trim();
     final assistantDescription = assistantDescriptionController.text.trim();
 
@@ -519,9 +652,12 @@ class _PersonalPageState extends State<PersonalPage> {
     print('Assistant Description: $assistantDescription');
 
     // Call the API to create a new assistant
-    _knowledgeApiService.createAssistant(assistantName, assistantDescription);
-    // Refresh the list of assistants
+    await _knowledgeApiService.createAssistant(
+        context: context, name: assistantName, desc: assistantDescription);
+
     _getAssistants();
+
+    // Close the dialog
     Navigator.of(context).pop();
   }
 }
