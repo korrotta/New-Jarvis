@@ -99,7 +99,6 @@ class _ChatPageState extends State<ChatPage> {
     final response = await _apiService.getCurrentUser(context);
     setState(() {
       _currentUser = response;
-      print('Current User: $_currentUser');
     });
   }
 
@@ -385,7 +384,7 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     return SafeArea(
-      top: true,
+      left: true,
       bottom: false,
       minimum: const EdgeInsets.only(top: 20),
       child: Scaffold(

@@ -271,7 +271,7 @@ class _LoginPageState extends State<LoginPage> {
                 Container(
                   margin: const EdgeInsets.only(left: 10),
                   child: const Text(
-                    "Jarvis",
+                    "AIdea",
                     style: TextStyle(
                       color: Colors.blue,
                       fontSize: 30,
@@ -419,70 +419,70 @@ class _LoginPageState extends State<LoginPage> {
             const SizedBox(height: 10),
 
             // -- OR --
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.only(left: 20, right: 10),
-                    child: Divider(
-                      color: Theme.of(context).colorScheme.inversePrimary,
-                    ),
-                  ),
-                ),
-                Text(
-                  "OR",
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.inversePrimary,
-                    fontSize: 16,
-                  ),
-                ),
-                Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.only(left: 10, right: 20),
-                    child: Divider(
-                      color: Theme.of(context).colorScheme.inversePrimary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            // Row(
+            //   children: [
+            //     Expanded(
+            //       child: Container(
+            //         margin: const EdgeInsets.only(left: 20, right: 10),
+            //         child: Divider(
+            //           color: Theme.of(context).colorScheme.inversePrimary,
+            //         ),
+            //       ),
+            //     ),
+            //     Text(
+            //       "OR",
+            //       style: TextStyle(
+            //         color: Theme.of(context).colorScheme.inversePrimary,
+            //         fontSize: 16,
+            //       ),
+            //     ),
+            //     Expanded(
+            //       child: Container(
+            //         margin: const EdgeInsets.only(left: 10, right: 20),
+            //         child: Divider(
+            //           color: Theme.of(context).colorScheme.inversePrimary,
+            //         ),
+            //       ),
+            //     ),
+            //   ],
+            // ),
 
-            const SizedBox(height: 10),
+            // const SizedBox(height: 10),
 
-            // Google sign in
-            GestureDetector(
-              onTap: googleSignIn,
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 20),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.tertiary,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      "assets/icons/google.png",
-                      width: 30,
-                      height: 30,
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      "Sign in with Google",
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.inversePrimary,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            // // Google sign in
+            // GestureDetector(
+            //   onTap: googleSignIn,
+            //   child: Container(
+            //     margin: const EdgeInsets.symmetric(horizontal: 20),
+            //     padding:
+            //         const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            //     decoration: BoxDecoration(
+            //       color: Theme.of(context).colorScheme.tertiary,
+            //       borderRadius: BorderRadius.circular(8),
+            //       border: Border.all(
+            //         color: Theme.of(context).colorScheme.primary,
+            //       ),
+            //     ),
+            //     child: Row(
+            //       mainAxisAlignment: MainAxisAlignment.center,
+            //       children: [
+            //         Image.asset(
+            //           "assets/icons/google.png",
+            //           width: 30,
+            //           height: 30,
+            //         ),
+            //         const SizedBox(width: 10),
+            //         Text(
+            //           "Sign in with Google",
+            //           style: TextStyle(
+            //             color: Theme.of(context).colorScheme.inversePrimary,
+            //             fontSize: 16,
+            //           ),
+            //         ),
+            //       ],
+            //     ),
+            //   ),
+            // ),
 
             const SizedBox(height: 10),
 

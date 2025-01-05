@@ -310,7 +310,7 @@ class _PersonalPageState extends State<PersonalPage> {
                   Flexible(
                     flex: 2,
                     child: CustomDropdownmenu(
-                      dropdownItems: const ["All", "Favorite", "Published"],
+                      dropdownItems: const ["All", "Published"],
                       onSelected: (item) {
                         print('Selected: $item');
                         setState(() {
@@ -568,7 +568,7 @@ class _PersonalPageState extends State<PersonalPage> {
                                     ),
                                     const SizedBox(height: 5),
                                     Text(
-                                      assistant.description!,
+                                      assistant.description ?? "",
                                       style: TextStyle(
                                         fontSize: 14,
                                         color: Theme.of(context)
@@ -637,10 +637,10 @@ class _PersonalPageState extends State<PersonalPage> {
     );
   }
 
-  void _createNewAssistant(
+  Future<void> _createNewAssistant(
       TextEditingController assistantNameController,
       TextEditingController assistantDescriptionController,
-      BuildContext context) {
+      BuildContext context) async {
     final assistantName = assistantNameController.text.trim();
     final assistantDescription = assistantDescriptionController.text.trim();
 
@@ -648,10 +648,12 @@ class _PersonalPageState extends State<PersonalPage> {
     print('Assistant Description: $assistantDescription');
 
     // Call the API to create a new assistant
-    _knowledgeApiService.createAssistant(
+    await _knowledgeApiService.createAssistant(
         context: context, name: assistantName, desc: assistantDescription);
-    // Refresh the list of assistants
+
     _getAssistants();
+
+    // Close the dialog
     Navigator.of(context).pop();
   }
 }

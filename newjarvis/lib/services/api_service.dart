@@ -632,10 +632,6 @@ class ApiService {
       queryParameters: queryParameters,
     );
 
-    print('Get history for conversationId: $conversationId');
-
-    print('url: $url');
-
     try {
       final response = await http.get(
         url,
@@ -648,8 +644,6 @@ class ApiService {
       if (response.statusCode == 200) {
         // Decode and return the conversation history
         final data = jsonDecode(response.body);
-
-        print('conversation history response: $data');
 
         final List<dynamic> items = data['items'] ?? [];
 

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:newjarvis/enums/order.dart';
 import 'package:newjarvis/models/ai_bot_model.dart';
+import 'package:newjarvis/models/assistant_thread_message_model.dart';
 import 'package:newjarvis/models/assistant_thread_model.dart';
 import 'package:newjarvis/services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -212,7 +213,7 @@ class KnowledgeApiService {
   }
 
   // Delete an Assistant
-  Future<Map<String, dynamic>> deleteAssistant({
+  Future<bool> deleteAssistant({
     required BuildContext context,
     required String? assistantId,
   }) async {
@@ -239,17 +240,14 @@ class KnowledgeApiService {
   }
 
   // Update an Assistant
-  Future<Map<String, dynamic>> updateAssistant({
+  Future<AiBotModel> updateAssistant({
     required BuildContext context,
     required String assistantId,
     required String? name,
     String? desc,
     String? instructions,
   }) async {
-    final url =
-        Uri.parse('$_baseUrl/kb-core/v1/ai-assistant/$assistantId').replace(
-      path: assistantId,
-    );
+    final url = Uri.parse('$_baseUrl/kb-core/v1/ai-assistant/$assistantId');
     final token = await _getToken();
     final response = await http.patch(
       url,
@@ -266,7 +264,7 @@ class KnowledgeApiService {
     if (response.statusCode == 201) {
       final result = jsonDecode(response.body);
       print(result);
-      return result;
+      return AiBotModel.fromJson(result);
     } else {
       _showErrorSnackbar(context,
           'Failed to update assistant, code: ${response.statusCode}, body: ${response.body}');
@@ -338,10 +336,10 @@ class KnowledgeApiService {
   }
 
   // Ask Assistant
-  Future<Map<String, dynamic>> askAssistant({
+  Future<String> askAssistant({
     required BuildContext context,
     required String assistantId,
-    required String openAiThreadId,
+    required String? openAiThreadId,
     required String message,
     required String additionalInstruction,
   }) async {
@@ -359,8 +357,8 @@ class KnowledgeApiService {
       },
     );
 
-    if (response.statusCode == 201) {
-      final result = jsonDecode(response.body);
+    if (response.statusCode != 401) {
+      final result = response.body;
       print(result);
       return result;
     } else {
@@ -376,23 +374,9 @@ class KnowledgeApiService {
   Future<List<AssistantThreadModel>> getThreads({
     required BuildContext context,
     required String assistantId,
-    String? query,
-    Order? order,
-    String? orderField,
-    int? offset,
-    int? limit,
   }) async {
     final url =
-        Uri.parse('$_baseUrl/kb-core/v1/ai-assistant/$assistantId/thread')
-            .replace(
-      queryParameters: {
-        'q': query ?? '',
-        'order': order ?? 'ASC',
-        'order_field': orderField ?? 'createdAt',
-        'offset': offset?.toString() ?? '0',
-        'limit': limit?.toString() ?? '10',
-      },
-    );
+        Uri.parse('$_baseUrl/kb-core/v1/ai-assistant/$assistantId/threads');
     final token = await _getToken();
     final response = await http.get(
       url,
@@ -418,6 +402,69 @@ class KnowledgeApiService {
       print(
           'Failed to get threads, code: ${response.statusCode}, body: ${response.body}');
       throw Exception('Failed to get threads');
+    }
+  }
+
+  // Retreive messages from thread /kb-core/v1/ai-assistant/thread/{openAiThreadId}/messages
+  Future<List<AssistantThreadMessageModel>> getMessages({
+    required BuildContext context,
+    required String openAiThreadId,
+  }) async {
+    List<AssistantThreadMessageModel> messages = [];
+    final url = Uri.parse(
+        '$_baseUrl/kb-core/v1/ai-assistant/thread/$openAiThreadId/messages');
+
+    final token = await _getToken();
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> result = jsonDecode(response.body);
+      print('Messages: $result');
+
+      messages =
+          result.map((e) => AssistantThreadMessageModel.fromJson(e)).toList();
+
+      return messages;
+    } else {
+      _showErrorSnackbar(context,
+          'Failed to get messages, code: ${response.statusCode}, body: ${response.body}');
+      print(
+          'Failed to get messages, code: ${response.statusCode}, body: ${response.body}');
+      throw Exception('Failed to get messages');
+    }
+  }
+
+  // Import Knowledge to Assistant
+  Future<bool> importKnowledge({
+    required BuildContext context,
+    required String assistantId,
+    required String knowledgeId,
+  }) async {
+    final url = Uri.parse(
+        '$_baseUrl/kb-core/v1/ai-assistant/$assistantId/knowledges/$knowledgeId');
+    final token = await _getToken();
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final result = jsonDecode(response.body);
+      print(result);
+      return result;
+    } else {
+      _showErrorSnackbar(context,
+          'Failed to import knowledge, code: ${response.statusCode}, body: ${response.body}');
+      print(
+          'Failed to import knowledge, code: ${response.statusCode}, body: ${response.body}');
+      throw Exception('Failed to import knowledge');
     }
   }
 }
