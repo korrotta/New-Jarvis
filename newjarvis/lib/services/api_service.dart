@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:newjarvis/enums/id.dart';
 import 'package:newjarvis/models/ai_chat/ai_chat_model.dart';
 import 'package:newjarvis/models/assistant_model.dart';
 import 'package:newjarvis/models/basic_user_model.dart';
 import 'package:newjarvis/models/ai_chat/chat_response_model.dart';
 import 'package:newjarvis/models/ai_chat/conversation_history_item_model.dart';
-import 'package:newjarvis/models/ai_chat/conversation_item_model.dart';
 import 'package:newjarvis/models/ai_chat/conversation_response_model.dart';
 import 'package:newjarvis/models/token_usage_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,6 +15,7 @@ import 'package:http/http.dart' as http;
 class ApiService {
   // Base URL
   static const String _baseUrl = 'https://api.dev.jarvis.cx';
+  static const String _baseUrlNoHTTPS = 'api.dev.jarvis.cx';
 
   // Private Constructor
   ApiService._privateConstructor();
@@ -297,7 +298,6 @@ class ApiService {
         // Decode and return the current user data
         final data = jsonDecode(response.body);
         user = BasicUserModel.fromMap(data);
-        print('user response: $data');
         return user;
       } else {
         _showErrorSnackbar(
@@ -502,6 +502,11 @@ class ApiService {
 
     final url = Uri.parse('$_baseUrl/api/v1/ai-chat/messages');
 
+    final assistant = aiChat.assistant;
+    final content = aiChat.content;
+    final files = aiChat.files;
+    final metadata = aiChat.metadata;
+
     try {
       final response = await http.post(
         url,
@@ -509,15 +514,21 @@ class ApiService {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
-        body: jsonEncode(aiChat.toJson()),
+        body: json.encode({
+          'assistant': {
+            'id': assistant!.id,
+            'model': 'dify',
+          },
+          'content': content,
+          'files': files,
+          'metadata': metadata,
+        }),
       );
 
       if (response.statusCode == 200) {
         // Decode and return the message response
         final data = jsonDecode(response.body);
         chatResponse = ChatResponseModel.fromJson(data);
-
-        print('response ai id: ${data['aiId']}');
 
         return chatResponse;
       } else {
@@ -536,12 +547,11 @@ class ApiService {
     required BuildContext context,
     String? cursor,
     int? limit,
-    required AssistantModel? assistant,
+    required AssistantModel assistant,
   }) async {
     final token = await getTokenWithRefresh();
 
-    final assistantId = assistant?.id;
-    final assistantModel = assistant?.model;
+    String? assistantId = assistant.id;
 
     if (token == null) {
       throw Exception('No token found. Please sign in.');
@@ -549,10 +559,10 @@ class ApiService {
 
     final url = Uri.parse('$_baseUrl/api/v1/ai-chat/conversations').replace(
       queryParameters: {
-        'cursor': cursor?.toString(),
+        'cursor': cursor ?? '',
         'limit': limit?.toString() ?? '100',
         'assistantId': assistantId,
-        'assistantModel': assistantModel,
+        'assistantModel': 'dify',
       },
     );
 
@@ -569,7 +579,16 @@ class ApiService {
         // Decode and return the conversation
         final data = jsonDecode(response.body);
 
-        print('conversation response: $data');
+        print('Conversation response: $data');
+
+        if (data['items'] == null || data['items'].isEmpty) {
+          return ConversationResponseModel(
+            cursor: '',
+            hasMore: false,
+            limit: 0,
+            items: [],
+          );
+        }
 
         return ConversationResponseModel.fromJson(data);
       } else {
@@ -584,34 +603,33 @@ class ApiService {
     }
   }
 
-  // Get conversation history /api/v1/ai-chat/conversations/{conversationId}/messages
+  // Get conversation history
   Future<List<ConversationHistoryItemModel>> getConversationHistory({
     required BuildContext context,
     required String conversationId,
     String? cursor,
     int? limit,
-    required AssistantModel? assistant,
+    required AssistantModel assistant,
   }) async {
     List<ConversationHistoryItemModel> conversationHistory = [];
 
     final token = await getTokenWithRefresh();
 
-    final assistantId = assistant?.id;
-    final assistantModel = assistant?.model;
+    String? assistantId = assistant.id;
 
     if (token == null) {
       throw Exception('No token found. Please sign in.');
     }
 
+    final queryParameters = {
+      'assistantId': assistantId.toString(),
+      'assistantModel': 'dify',
+    };
+
     final url = Uri.parse(
             '$_baseUrl/api/v1/ai-chat/conversations/$conversationId/messages')
         .replace(
-      queryParameters: {
-        if (cursor != null) 'cursor': cursor,
-        'limit': limit?.toString() ?? '100',
-        'assistantId': assistantId,
-        'assistantModel': assistantModel,
-      },
+      queryParameters: queryParameters,
     );
 
     try {
@@ -627,8 +645,6 @@ class ApiService {
         // Decode and return the conversation history
         final data = jsonDecode(response.body);
 
-        print('conversation history response: $data');
-
         final List<dynamic> items = data['items'] ?? [];
 
         conversationHistory = items.map((item) {
@@ -639,6 +655,8 @@ class ApiService {
       } else {
         _showErrorSnackbar(context,
             "Failed to get conversation history. Details: ${jsonDecode(response.body)['message']}");
+        print(
+            "Failed to get conversation history. Details: ${jsonDecode(response.body)}");
         return [];
       }
     } catch (e) {

@@ -6,17 +6,23 @@ class PromptState with ChangeNotifier {
   String selectedCategory = 'public';
   List<Map<String, dynamic>> publicPrompts = [];
   List<Map<String, dynamic>> privatePrompts = [];
-    List<Map<String, dynamic>> favoritesPrompts = [];
+  List<Map<String, dynamic>> favoritesPrompts = [];
 
   // Toggle between Public and Private Prompts
   void togglePromptType(String promptType) {
-    selectedCategory = promptType;
-    notifyListeners(); 
+    if (selectedCategory != promptType) {
+      selectedCategory = promptType;
+      notifyListeners(); // Notify only when the category changes
+    }
   }
 
-  Future<void> fetchPrompts(BuildContext context, {required bool isPublic, String? category}) async {
+  Future<void> fetchPrompts(BuildContext context,
+      {required bool isPublic, String? category}) async {
+    if (isLoading) return; // Prevent fetching if already in progress
+
+    // Safely update state outside of the widget build phase
     isLoading = true;
-  
+
     try {
       if (isPublic && selectedCategory == 'public') {
         publicPrompts = await ApiService().getPrompts(
@@ -45,7 +51,7 @@ class PromptState with ChangeNotifier {
       print("Error fetching prompts: $e");
     } finally {
       isLoading = false;
-      notifyListeners();
+      notifyListeners(); // Notify listeners after the fetching process completes
     }
   }
 }
