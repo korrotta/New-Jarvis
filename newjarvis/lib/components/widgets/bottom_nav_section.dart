@@ -44,6 +44,7 @@ class _BottomNavSectionState extends State<BottomNavSection> {
           alignment: WrapAlignment.start,
           children: [
             SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
                   // Ai Switch Section
