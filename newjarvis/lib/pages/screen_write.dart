@@ -1,16 +1,19 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:newjarvis/components/route/route_controller.dart';
+import 'package:newjarvis/components/widgets/floating_button.dart';
+import 'package:newjarvis/components/widgets/side_bar.dart';
 
-class ScreenWrite extends StatefulWidget{
-  const ScreenWrite({super.key});
+class ScreenSetUpEmail extends StatefulWidget{
+  const ScreenSetUpEmail({super.key});
 
   @override
   State<StatefulWidget> createState() {
-    return _ScreenWrite();
+    return _ScreenSetUpEmail();
   }
 }
 
-class _ScreenWrite extends State<ScreenWrite>{
+class _ScreenSetUpEmail extends State<ScreenSetUpEmail>{
 
   int selectedIndex = 0; 
   int selectedSmallIndexLength = -1; 
@@ -25,16 +28,82 @@ class _ScreenWrite extends State<ScreenWrite>{
 
   bool _isGpt4Enabled = false;
 
+  int selectedIndexSideBar = 3;
+  bool isExpanded = false;
+  bool isSidebarVisible = false;
+  bool isDrawerVisible = false;
+  double dragOffset = 200.0;
+
+  void _onItemTapped(int index) {
+    setState(() {
+      selectedIndex = index;
+      isSidebarVisible = false;
+    });
+
+    // Navigate to the selected page
+    RouteController.navigateTo(index);
+  }
+
   @override
   Widget build(BuildContext context) {
     
     return SafeArea(
-          child: Scaffold(
-                  appBar: _buildAppBar(),
-                  body:  _buildBody(),
-                  backgroundColor: const Color.fromARGB(255, 245, 242, 242),
-                  )
-                  );
+      child: Scaffold(
+            appBar: _buildAppBar(),
+            body:  
+            Stack(children: [
+              _buildBody(),
+              // SideBar
+              if (isSidebarVisible)
+                Positioned(
+                  top: 0,
+                  bottom: 0,
+                  right: 0,
+                  child: SideBar(
+                    isExpanded: isExpanded,
+                    selectedIndex: selectedIndexSideBar,
+                    onItemSelected: _onItemTapped,
+                    onExpandToggle: () {
+                      setState(() {
+                        isExpanded = !isExpanded;
+                      });
+                    },
+                    onClose: () {
+                      setState(() {
+                        isSidebarVisible = false;
+                      });
+                    },
+                  ),
+                ),
+
+              // Nửa hình tròn khi sidebar bị ẩn (Floating Button)
+              if (!isSidebarVisible)
+                FloatingButton(
+                  dragOffset: dragOffset,
+                  onDragUpdate: (delta) {
+                    setState(
+                      () {
+                        dragOffset += delta;
+                        if (dragOffset < 0) dragOffset = 0;
+                        if (dragOffset > MediaQuery.of(context).size.height - 100) {
+                          dragOffset = MediaQuery.of(context).size.height - 100;
+                        }
+                      },
+                    );
+                  },
+                  onTap: () {
+                    setState(
+                      () {
+                        isSidebarVisible = true;
+                      },
+                    );
+                  },
+                ),
+            ],),
+
+          backgroundColor: const Color.fromARGB(255, 245, 242, 242),
+        )
+      );
   }
 
   AppBar _buildAppBar(){
@@ -46,7 +115,7 @@ class _ScreenWrite extends State<ScreenWrite>{
         children: [
           
           const Text(
-            "Write",
+            "Email",
             style: TextStyle(
               color: Colors.black,
               fontWeight: FontWeight.bold,
@@ -74,7 +143,7 @@ class _ScreenWrite extends State<ScreenWrite>{
                     const SizedBox(width: 5),
                     
                     const Text(
-                      "Writing Agent",
+                      "Email Agent",
                       style: TextStyle(
                         color: Colors.black,
                         fontFamily: "Arial",
@@ -96,11 +165,13 @@ class _ScreenWrite extends State<ScreenWrite>{
   }
 
 
+
   Widget _buildBody() {
 
     return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
+      child: Container(
+      height: MediaQuery.of(context).size.height, // Đảm bảo chiều cao luôn chiếm toàn bộ màn hình
+      padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
         
         child: Column(
 
@@ -171,7 +242,7 @@ class _ScreenWrite extends State<ScreenWrite>{
             child: const Column(children: [
               TextField(
                 decoration: InputDecoration(
-                  hintText: 'Tell me what to write for you. Hit Ctrl + Enter to generate.',
+                  hintText: 'Tell me what to write email for you. Hit Ctrl + Enter to generate.',
                   hintStyle: TextStyle(
                     color: Colors.grey,
                     fontSize: 12,
@@ -460,17 +531,12 @@ class _ScreenWrite extends State<ScreenWrite>{
 
                 ]
           ),
-
-
-          
           ],
         ),
       ),
+      
     );
   }
-
- 
-
 
   Widget _buildTextOption(String text, int index) {
   return GestureDetector(

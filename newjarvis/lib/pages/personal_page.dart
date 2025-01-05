@@ -1,11 +1,15 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:newjarvis/components/ai_assistant/empty_assistant_section.dart';
+import 'package:newjarvis/components/widgets/custom_dropdownmenu.dart';
 import 'package:newjarvis/components/widgets/custom_textfield.dart';
 import 'package:newjarvis/components/widgets/floating_button.dart';
 import 'package:newjarvis/components/route/route_controller.dart';
 import 'package:newjarvis/components/widgets/side_bar.dart';
 import 'package:newjarvis/models/ai_bot_model.dart';
 import 'package:newjarvis/models/basic_user_model.dart';
+import 'package:newjarvis/pages/assistant_page.dart';
 import 'package:newjarvis/services/api_service.dart';
 import 'package:newjarvis/services/knowledge_api_service.dart';
 
@@ -33,12 +37,20 @@ class _PersonalPageState extends State<PersonalPage> {
   TextEditingController _assistantNameController = TextEditingController();
   TextEditingController _assistantDescriptionController =
       TextEditingController();
+  TextEditingController _searchController = TextEditingController();
+
+  // Search Text
+  String _searchText = "";
+
+  // Selected Filter
+  String _selectedFilter = "All";
 
   // UI Variables
   int _selectedIndex = 1;
   bool _isExpanded = false;
   bool _isSidebarVisible = false;
   double _dragOffset = 200.0;
+  bool _isHovered = false;
 
   // Loading state
   bool _isLoading = false;
@@ -72,7 +84,7 @@ class _PersonalPageState extends State<PersonalPage> {
       final fetchedAssistants =
           await _knowledgeApiService.getAssistants(context: context);
       setState(() {
-        _assistants = fetchedAssistants['data'];
+        _assistants = fetchedAssistants;
         _isLoading = false;
       });
     } catch (e) {
@@ -101,6 +113,41 @@ class _PersonalPageState extends State<PersonalPage> {
       print('Successfully logged in to the knowledge API');
     } catch (e) {
       print('Error during auto login: $e');
+    }
+  }
+
+  Future<void> _performSearchAndFilter(String text, String filter) async {
+    print('Searching for: $text and filtering by: $filter');
+    setState(() {
+      _selectedFilter = filter;
+    });
+
+    try {
+      final result = await _knowledgeApiService.getAssistants(
+        context: context,
+        query: text,
+        isFavorite: _selectedFilter.contains('Favorite'),
+        isPublished: _selectedFilter.contains('Published'),
+      );
+      print('Search and filter result: $result');
+
+      setState(() {
+        _assistants = result;
+      });
+    } catch (e) {
+      print('Search and filter error: $e');
+    }
+  }
+
+  Future<void> _deleteAssistant(String id) async {
+    try {
+      await _knowledgeApiService.deleteAssistant(
+          context: context, assistantId: id);
+      _getAssistants();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to delete assistant: $e')),
+      );
     }
   }
 
@@ -184,139 +231,168 @@ class _PersonalPageState extends State<PersonalPage> {
 
   Widget _buildPageContent(BuildContext context) {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Icon(
-                  Icons.person_outline,
-                  size: 32,
-                  color: Theme.of(context).colorScheme.inversePrimary,
-                ),
-                Text(
-                  "Personal",
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.inversePrimary,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(width: 5),
-            // Display current user name
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                CircleAvatar(
-                  backgroundColor: Colors.blueAccent,
-                  child: _currentUser?.username != null
-                      ? Text(
-                          _currentUser!.username![0].toUpperCase(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Icon(Icons.person),
-                ),
-                const SizedBox(width: 8),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _currentUser?.username ?? "Unknown",
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.inversePrimary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      _currentUser?.email ?? "Unknown",
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.inversePrimary,
-                      ),
-                    ),
-                  ],
-                )
-              ],
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-
-        // Create Assistant & Filter Section
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            // Dropdown and Search Bar
-            Expanded(
+            Flexible(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  Flexible(
-                    flex: 3,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: Theme.of(context).colorScheme.surface,
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          padding: const EdgeInsets.all(0),
-                          borderRadius: BorderRadius.circular(20),
-                          value: "All",
-                          items: const [
-                            DropdownMenuItem(
-                              value: "All",
-                              child: Text("All"),
-                            ),
-                            DropdownMenuItem(
-                              value: "Favorites",
-                              child: Text("Favorites"),
-                            ),
-                          ],
-                          onChanged: (value) {
-                            print('Filter assistants by: $value');
-                          },
-                        ),
-                      ),
-                    ),
+                  Icon(
+                    Icons.smart_toy_rounded,
+                    size: 22,
+                    color: Theme.of(context).colorScheme.inversePrimary,
                   ),
-                  const SizedBox(width: 16),
-                  Flexible(
-                    flex: 5,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                      child: TextField(
-                        decoration: InputDecoration(
-                          hintText: "Search",
-                          prefixIcon: const Icon(Icons.search),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(20),
+                  const SizedBox(width: 5),
+                  Text(
+                    "Assistant",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.inversePrimary,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            Flexible(
+              flex: 1,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircleAvatar(
+                    backgroundColor: Colors.blueAccent,
+                    radius: 20,
+                    child: _currentUser?.username != null
+                        ? Text(
+                            _currentUser!.username![0].toUpperCase(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )
+                        : const Icon(Icons.person),
+                  ),
+                  const SizedBox(width: 5),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _currentUser?.username ?? "Unknown",
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.inversePrimary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
+                        Text(
+                          _currentUser?.email ?? "Unknown",
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.inversePrimary,
+                            fontSize: 12,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 16),
-            // Create button
-            ElevatedButton.icon(
+          ],
+        ),
+
+        const SizedBox(height: 20),
+
+        // Create Assistant Section
+        Wrap(
+          alignment: WrapAlignment.start,
+          spacing: 10,
+          runSpacing: 10,
+          runAlignment: WrapAlignment.start,
+          children: [
+            SizedBox(
+              width: 200,
+              child: CustomTextfield(
+                hintText: "Search",
+                initialObscureText: false,
+                controller: _searchController,
+                onChanged: (text) {
+                  setState(() {
+                    _searchText = text;
+                  });
+                  _performSearchAndFilter(text, _selectedFilter);
+                },
+              ),
+            ),
+            CustomDropdownmenu(
+              dropdownItems: const ["All", "Favorite", "Published"],
+              onSelected: (item) {
+                print('Selected: $item');
+                setState(() {
+                  _selectedFilter = item!;
+                });
+                _performSearchAndFilter(_searchText, _selectedFilter);
+              },
+              headingText: "Type: ",
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 5),
+
+        // Create button
+        // ElevatedButton.icon(
+        //   onPressed: () {
+        //     // Show the create bot dialog
+        //     showDialog(
+        //       context: context,
+        //       builder: (context) {
+        //         // Dialog include (title, assistant name*, assistant description, create button, cancel button)
+        //         return _showCreateDialog(_assistantNameController,
+        //             _assistantDescriptionController, context);
+        //       },
+        //     );
+        //   },
+        //   icon: const Icon(Icons.add, color: Colors.white),
+        //   label: const Text(
+        //     "Create bot",
+        //     style: TextStyle(
+        //       color: Colors.white,
+        //     ),
+        //   ),
+        //   style: ElevatedButton.styleFrom(
+        //     minimumSize: const Size(120, 55),
+        //     backgroundColor: Colors.blueAccent,
+        //     side: BorderSide(
+        //       color: Theme.of(context).colorScheme.inversePrimary,
+        //     ),
+        //   ),
+        // ),
+
+        const SizedBox(height: 10),
+
+        // List of assistants
+        Expanded(
+          child: _buildAssistantList(),
+        ),
+
+        Align(
+          alignment: Alignment.bottomRight,
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 20),
+            child: FloatingActionButton(
+              elevation: 0,
+              backgroundColor: Colors.blueAccent,
               onPressed: () {
                 // Show the create bot dialog
                 showDialog(
@@ -328,32 +404,10 @@ class _PersonalPageState extends State<PersonalPage> {
                   },
                 );
               },
-              icon: const Icon(Icons.add),
-              label: const Text("Create bot"),
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(120, 48),
+              child: Icon(
+                CupertinoIcons.add,
+                color: Theme.of(context).colorScheme.tertiary,
               ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 16),
-
-        // List of assistants
-        Expanded(
-          child: _buildAssistantList(),
-        ),
-
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: ElevatedButton.icon(
-            onPressed: () {
-              _knowledgeApiService.getAssistants(context: context);
-            },
-            icon: const Icon(Icons.refresh),
-            label: const Text("Get Assistants"),
-            style: ElevatedButton.styleFrom(
-              minimumSize: const Size(double.infinity, 48),
             ),
           ),
         ),
@@ -367,42 +421,129 @@ class _PersonalPageState extends State<PersonalPage> {
       BuildContext context) {
     return AlertDialog(
       title: const Text("Create Assistant"),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 15),
-          const Text("Assistant name"),
-          const SizedBox(height: 5),
-          CustomTextfield(
-            validator: (p0) => p0!.isEmpty ? "Name is required" : null,
-            hintText: "",
-            initialObscureText: false,
-            controller: assistantNameController,
-          ),
-          const SizedBox(height: 15),
-          const Text("Assistant description"),
-          const SizedBox(height: 5),
-          CustomTextfield(
-            hintText: "",
-            initialObscureText: false,
-            controller: assistantDescriptionController,
-          ),
-          const SizedBox(height: 5),
-        ],
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      contentPadding: const EdgeInsets.all(20),
+      content: SizedBox(
+        width: MediaQuery.of(context).size.width * 0.4,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 15),
+            Text(
+              "Assistant name",
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.inversePrimary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 5),
+            TextFormField(
+              validator: (value) =>
+                  value!.isEmpty ? "Name cannot be empty" : null,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              controller: assistantNameController,
+              maxLength: 1,
+              decoration: InputDecoration(
+                hintText: "Enter a name",
+                hintStyle: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                border: const OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: Colors.blueAccent,
+                  ),
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                ),
+              ),
+              buildCounter: (context,
+                  {required currentLength,
+                  required isFocused,
+                  required maxLength}) {
+                return Text(
+                  "$currentLength / 50",
+                  style: TextStyle(
+                    color: isFocused
+                        ? Colors.blueAccent
+                        : Theme.of(context).colorScheme.primary,
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 15),
+            Text(
+              "Assistant description",
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.inversePrimary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 5),
+            TextFormField(
+              controller: assistantDescriptionController,
+              maxLines: 6,
+              decoration: InputDecoration(
+                hintText: "Enter a description",
+                hintStyle: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                border: const OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: Colors.blueAccent,
+                  ),
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                ),
+              ),
+              buildCounter: (context,
+                  {required currentLength,
+                  required isFocused,
+                  required maxLength}) {
+                return Text(
+                  "$currentLength / 2000",
+                  style: TextStyle(
+                    color: isFocused
+                        ? Colors.blueAccent
+                        : Theme.of(context).colorScheme.primary,
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 5),
+          ],
+        ),
       ),
       actions: [
-        TextButton(
+        ElevatedButton(
           onPressed: () {
             Navigator.of(context).pop();
           },
-          child: const Text("Cancel"),
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.0),
+              side: const BorderSide(
+                color: Colors.redAccent,
+              ),
+            ),
+          ),
+          child: const Text(
+            "Cancel",
+            style: TextStyle(color: Colors.redAccent),
+          ),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             backgroundColor: Colors.blueAccent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.0),
+            ),
           ),
           onPressed: () {
+            _validateFields(assistantNameController, context);
             _createNewAssistant(assistantNameController,
                 assistantDescriptionController, context);
           },
@@ -412,6 +553,21 @@ class _PersonalPageState extends State<PersonalPage> {
           ),
         ),
       ],
+    );
+  }
+
+  void _navigateToAssistantDetails(String assistantId) {
+    // Navigate to the assistant details page
+    print('Navigate to assistant details: $assistantId');
+    AiBotModel selectedAssistant =
+        _assistants.firstWhere((element) => element.id == assistantId);
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            AssistantPage(selectedAssistant: selectedAssistant),
+      ),
     );
   }
 
@@ -444,10 +600,17 @@ class _PersonalPageState extends State<PersonalPage> {
                       },
                     );
                   },
-                  icon: const Icon(Icons.add),
-                  label: const Text("Create Bot Now"),
+                  icon: const Icon(
+                    Icons.add,
+                    color: Colors.white,
+                  ),
+                  label: const Text("Create Bot Now",
+                      style: TextStyle(color: Colors.white)),
                   style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(120, 48),
+                    backgroundColor: Colors.blueAccent,
+                    side: BorderSide(
+                      color: Theme.of(context).colorScheme.inversePrimary,
+                    ),
                   ),
                 ),
               ],
@@ -455,47 +618,122 @@ class _PersonalPageState extends State<PersonalPage> {
           );
         } else {
           final items = snapshot.data!;
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
+          return GridView.builder(
+            shrinkWrap: true,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount:
+                  (MediaQuery.of(context).size.width ~/ 250).toInt(),
+              childAspectRatio: 4,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+            ),
+            padding: const EdgeInsets.all(8),
             itemCount: items.length,
             itemBuilder: (context, index) {
               final assistant = items[index];
-              return Card(
-                elevation: 2,
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: Colors.blue.shade100,
-                    child: const Icon(Icons.smart_toy, color: Colors.blue),
+              return GestureDetector(
+                onTap: () {
+                  _navigateToAssistantDetails(assistant.id);
+                },
+                child: Container(
+                  width: MediaQuery.of(context).size.width * 0.3,
+                  height: MediaQuery.of(context).size.height * 0.1,
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Theme.of(context).colorScheme.primary,
+                        blurRadius: 5,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
                   ),
-                  title: Text(assistant.assistantName ?? 'Unknown Name'),
-                  subtitle:
-                      Text(assistant.description ?? 'No description available'),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
+                  child: Stack(
                     children: [
-                      // IconButton(
-                      //   icon: Icon(
-                      //     assistant['isFavorite'] == true
-                      //         ? Icons.star
-                      //         : Icons.star_border,
-                      //     color: assistant['isFavorite'] == true
-                      //         ? Colors.yellow
-                      //         : null,
-                      //   ),
-                      //   onPressed: () {
-                      //     // Add your logic to toggle favorite status
-                      //     print(
-                      //         'Favorite toggled for: ${assistant['assistantName']}');
-                      //   },
-                      // ),
-                      const SizedBox(width: 16),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline),
-                        onPressed: () {
-                          // Add your logic to delete the assistant
-                          print(
-                              'Deleted: ${assistant.id} - ${assistant.assistantName}');
-                        },
+                      // Assistant details
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Image.asset(
+                              "assets/icons/assistant.png",
+                              width: 45,
+                              height: 45,
+                            ),
+                            const SizedBox(width: 10),
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  assistant.assistantName,
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .inversePrimary,
+                                  ),
+                                ),
+                                Text(
+                                  assistant.description ?? "",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .inversePrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Remove icon
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Tooltip(
+                          message: 'Delete Assistant',
+                          child: IconButton(
+                            icon: const Icon(
+                              CupertinoIcons.trash,
+                              color: Colors.black,
+                            ),
+                            onPressed: () {
+                              _deleteAssistant(assistant.id);
+                            },
+                          ),
+                        ),
+                      ),
+
+                      // Date time
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: Row(
+                          children: [
+                            Icon(
+                              CupertinoIcons.clock,
+                              size: 16,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              DateFormat('dd/MM/yyyy')
+                                  .format(assistant.createdAt),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -508,10 +746,22 @@ class _PersonalPageState extends State<PersonalPage> {
     );
   }
 
-  void _createNewAssistant(
+  void _validateFields(
+      TextEditingController assistantNameController, BuildContext context) {
+    final assistantName = assistantNameController.text.trim();
+
+    if (assistantName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Assistant name cannot be empty')),
+      );
+      return;
+    }
+  }
+
+  Future<void> _createNewAssistant(
       TextEditingController assistantNameController,
       TextEditingController assistantDescriptionController,
-      BuildContext context) {
+      BuildContext context) async {
     final assistantName = assistantNameController.text.trim();
     final assistantDescription = assistantDescriptionController.text.trim();
 
@@ -519,9 +769,12 @@ class _PersonalPageState extends State<PersonalPage> {
     print('Assistant Description: $assistantDescription');
 
     // Call the API to create a new assistant
-    _knowledgeApiService.createAssistant(assistantName, assistantDescription);
-    // Refresh the list of assistants
+    await _knowledgeApiService.createAssistant(
+        context: context, name: assistantName, desc: assistantDescription);
+
     _getAssistants();
+
+    // Close the dialog
     Navigator.of(context).pop();
   }
 }

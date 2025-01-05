@@ -29,21 +29,6 @@ class AiChatModel {
     );
   }
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    if (assistant != null) {
-      data['assistant'] = assistant!.toJson();
-    }
-    data['content'] = content;
-    if (files != null) {
-      data['files'] = files;
-    }
-    if (metadata != null) {
-      data['metadata'] = metadata!.toJson();
-    }
-    return data;
-  }
-
   @override
   String toString() {
     return 'AiChatModel(assistant: $assistant, content: $content, files: $files, metadata: $metadata)';

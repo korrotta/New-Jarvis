@@ -2,7 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:newjarvis/enums/order.dart';
 import 'package:newjarvis/models/ai_bot_model.dart';
+import 'package:newjarvis/models/assistant_knowledge_model.dart';
+import 'package:newjarvis/models/assistant_thread_message_model.dart';
+import 'package:newjarvis/models/assistant_thread_model.dart';
 import 'package:newjarvis/services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -128,10 +132,27 @@ class KnowledgeApiService {
   }
 
   // Get Assitants
-  Future<Map<String, dynamic>> getAssistants({
+  Future<List<AiBotModel>> getAssistants({
     required BuildContext context,
+    String? query,
+    Order? order,
+    String? orderField,
+    int? offset,
+    int? limit,
+    bool? isFavorite,
+    bool? isPublished,
   }) async {
-    final url = Uri.parse('$_baseUrl/kb-core/v1/ai-assistant');
+    final url = Uri.parse('$_baseUrl/kb-core/v1/ai-assistant').replace(
+      queryParameters: {
+        'query': query ?? '',
+        'order': order ?? 'ASC',
+        'orderField': orderField ?? 'createdAt',
+        'offset': offset?.toString() ?? '0',
+        'limit': limit?.toString() ?? '10',
+        'isFavorite': isFavorite?.toString() ?? 'false',
+        'isPublished': isPublished?.toString() ?? 'false',
+      },
+    );
     final token = await _getToken();
     final response = await http.get(
       url,
@@ -143,8 +164,12 @@ class KnowledgeApiService {
     if (response.statusCode == 200) {
       final result = jsonDecode(response.body);
       print(result);
-      return result;
-      ;
+      final data = result['data'] as List;
+      final List<AiBotModel> assistants =
+          data.map((e) => AiBotModel.fromJson(e)).toList();
+
+      final metadata = result['metadata'];
+      return assistants;
     } else {
       _showErrorSnackbar(context,
           'Failed to get assistants, Details: ${jsonDecode(response.body)}');
@@ -155,7 +180,12 @@ class KnowledgeApiService {
   }
 
   // Create a new Assistant
-  Future<Map<String, dynamic>> createAssistant(String name, String desc) async {
+  Future<Map<String, dynamic>> createAssistant({
+    required BuildContext context,
+    required String? name,
+    String? desc,
+    String? instructions,
+  }) async {
     final url = Uri.parse('$_baseUrl/kb-core/v1/ai-assistant');
     final token = await _getToken();
     final response = await http.post(
@@ -165,7 +195,8 @@ class KnowledgeApiService {
       },
       body: {
         'assistantName': name,
-        'description': desc,
+        'description': desc ?? '',
+        'instructions': instructions ?? '',
       },
     );
 
@@ -174,13 +205,19 @@ class KnowledgeApiService {
       print(result);
       return result;
     } else {
-      throw Exception(
+      _showErrorSnackbar(context,
           'Failed to create assistant, code: ${response.statusCode}, body: ${response.body}');
+      print(
+          'Failed to create assistant, code: ${response.statusCode}, body: ${response.body}');
+      throw Exception('Failed to create assistant');
     }
   }
 
   // Delete an Assistant
-  Future<Map<String, dynamic>> deleteAssistant(String assistantId) async {
+  Future<bool> deleteAssistant({
+    required BuildContext context,
+    required String? assistantId,
+  }) async {
     final url = Uri.parse('$_baseUrl/kb-core/v1/ai-assistant/$assistantId');
     final token = await _getToken();
     final response = await http.delete(
@@ -195,7 +232,304 @@ class KnowledgeApiService {
       print(result);
       return result;
     } else {
+      _showErrorSnackbar(context,
+          'Failed to delete assistant, code: ${response.statusCode}, body: ${response.body}');
+      print(
+          'Failed to delete assistant, code: ${response.statusCode}, body: ${response.body}');
       throw Exception('Failed to delete assistant');
+    }
+  }
+
+  // Update an Assistant
+  Future<AiBotModel> updateAssistant({
+    required BuildContext context,
+    required String assistantId,
+    required String? name,
+    String? desc,
+    String? instructions,
+  }) async {
+    final url = Uri.parse('$_baseUrl/kb-core/v1/ai-assistant/$assistantId');
+    final token = await _getToken();
+    final response = await http.patch(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+      body: {
+        'assistantName': name,
+        'description': desc ?? '',
+        'instructions': instructions ?? '',
+      },
+    );
+
+    if (response.statusCode == 201) {
+      final result = jsonDecode(response.body);
+      print(result);
+      return AiBotModel.fromJson(result);
+    } else {
+      _showErrorSnackbar(context,
+          'Failed to update assistant, code: ${response.statusCode}, body: ${response.body}');
+      print(
+          'Failed to update assistant, code: ${response.statusCode}, body: ${response.body}');
+      throw Exception('Failed to update assistant');
+    }
+  }
+
+  // Get Assistant by ID
+  Future<AiBotModel> getAssistantById({
+    required BuildContext context,
+    required String assistantId,
+  }) async {
+    final url = Uri.parse('$_baseUrl/kb-core/v1/ai-assistant/$assistantId');
+    final token = await _getToken();
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final result = jsonDecode(response.body);
+      print(result);
+      return AiBotModel.fromJson(result);
+    } else {
+      _showErrorSnackbar(context,
+          'Failed to get assistant by ID, Details: ${jsonDecode(response.body)}');
+      print(
+          'Failed to get assistant by ID, Details: ${jsonDecode(response.body)}');
+      throw Exception('Failed to get assistant by ID');
+    }
+  }
+
+  // Create Thread for Assistant
+  Future<AssistantThreadModel> createThread({
+    required BuildContext context,
+    required String assistantId,
+    String? firstMessage,
+  }) async {
+    final url = Uri.parse('$_baseUrl/kb-core/v1/ai-assistant/thread');
+    final token = await _getToken();
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+      body: {
+        'assistantId': assistantId,
+        'firstMessage': firstMessage ?? '',
+      },
+    );
+
+    if (response.statusCode == 201) {
+      final result = jsonDecode(response.body);
+      print(result);
+
+      return AssistantThreadModel.fromJson(result);
+      ;
+    } else {
+      _showErrorSnackbar(context,
+          'Failed to create thread, code: ${response.statusCode}, body: ${response.body}');
+      print(
+          'Failed to create thread, code: ${response.statusCode}, body: ${response.body}');
+      throw Exception('Failed to create thread');
+    }
+  }
+
+  // Ask Assistant
+  Future<String> askAssistant({
+    required BuildContext context,
+    required String assistantId,
+    required String? openAiThreadId,
+    required String message,
+    required String additionalInstruction,
+  }) async {
+    final url = Uri.parse('$_baseUrl/kb-core/v1/ai-assistant/$assistantId/ask');
+    final token = await _getToken();
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+      body: {
+        'openAiThreadId': openAiThreadId,
+        'message': message,
+        'additionalInstruction': additionalInstruction,
+      },
+    );
+
+    if (response.statusCode != 401) {
+      final result = response.body;
+      print(result);
+      return result;
+    } else {
+      _showErrorSnackbar(context,
+          'Failed to ask assistant, code: ${response.statusCode}, body: ${response.body}');
+      print(
+          'Failed to ask assistant, code: ${response.statusCode}, body: ${response.body}');
+      throw Exception('Failed to ask assistant');
+    }
+  }
+
+  // Get all threads from assistantId
+  Future<List<AssistantThreadModel>> getThreads({
+    required BuildContext context,
+    required String assistantId,
+  }) async {
+    final url =
+        Uri.parse('$_baseUrl/kb-core/v1/ai-assistant/$assistantId/threads');
+    final token = await _getToken();
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final result = jsonDecode(response.body);
+      print(result);
+      final data = result['data'] as List;
+
+      final List<AssistantThreadModel> threads =
+          data.map((e) => AssistantThreadModel.fromJson(e)).toList();
+
+      final metadata = result['meta'];
+
+      return threads;
+    } else {
+      _showErrorSnackbar(context,
+          'Failed to get threads, code: ${response.statusCode}, body: ${response.body}');
+      print(
+          'Failed to get threads, code: ${response.statusCode}, body: ${response.body}');
+      throw Exception('Failed to get threads');
+    }
+  }
+
+  // Retreive messages from thread /kb-core/v1/ai-assistant/thread/{openAiThreadId}/messages
+  Future<List<AssistantThreadMessageModel>> getMessages({
+    required BuildContext context,
+    required String openAiThreadId,
+  }) async {
+    List<AssistantThreadMessageModel> messages = [];
+    final url = Uri.parse(
+        '$_baseUrl/kb-core/v1/ai-assistant/thread/$openAiThreadId/messages');
+
+    final token = await _getToken();
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> result = jsonDecode(response.body);
+      print('Messages: $result');
+
+      messages =
+          result.map((e) => AssistantThreadMessageModel.fromJson(e)).toList();
+
+      return messages;
+    } else {
+      _showErrorSnackbar(context,
+          'Failed to get messages, code: ${response.statusCode}, body: ${response.body}');
+      print(
+          'Failed to get messages, code: ${response.statusCode}, body: ${response.body}');
+      throw Exception('Failed to get messages');
+    }
+  }
+
+  // Import Knowledge to Assistant
+  Future<bool> importKnowledge({
+    required BuildContext context,
+    required String assistantId,
+    required String knowledgeId,
+  }) async {
+    final url = Uri.parse(
+        '$_baseUrl/kb-core/v1/ai-assistant/$assistantId/knowledges/$knowledgeId');
+    final token = await _getToken();
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final result = jsonDecode(response.body);
+      print(result);
+      return result;
+    } else {
+      _showErrorSnackbar(context,
+          'Failed to import knowledge, code: ${response.statusCode}, body: ${response.body}');
+      print(
+          'Failed to import knowledge, code: ${response.statusCode}, body: ${response.body}');
+      throw Exception('Failed to import knowledge');
+    }
+  }
+
+  // Remove Knowledge from Assistant
+  Future<bool> removeKnowledge({
+    required BuildContext context,
+    required String assistantId,
+    required String knowledgeId,
+  }) async {
+    final url = Uri.parse(
+        '$_baseUrl/kb-core/v1/ai-assistant/$assistantId/knowledges/$knowledgeId');
+    final token = await _getToken();
+    final response = await http.delete(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final result = jsonDecode(response.body);
+      print(result);
+      return result;
+    } else {
+      _showErrorSnackbar(context,
+          'Failed to remove knowledge, code: ${response.statusCode}, body: ${response.body}');
+      print(
+          'Failed to remove knowledge, code: ${response.statusCode}, body: ${response.body}');
+      throw Exception('Failed to remove knowledge');
+    }
+  }
+
+  // Get Knowledge in Assistant
+  Future<List<AssistantKnowledgeModel>> getKnowledgeAssistant({
+    required BuildContext context,
+    required String assistantId,
+  }) async {
+    final url =
+        Uri.parse('$_baseUrl/kb-core/v1/ai-assistant/$assistantId/knowledges');
+    final token = await _getToken();
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final result = jsonDecode(response.body);
+      print(result);
+      final data = result['data'];
+
+      final List<AssistantKnowledgeModel> knowledges =
+          data.map((e) => AssistantKnowledgeModel.fromJson(e)).toList();
+
+      final metadata = result['meta'];
+
+      return knowledges;
+    } else {
+      _showErrorSnackbar(context,
+          'Failed to get knowledge in assistant, code: ${response.statusCode}, body: ${response.body}');
+      print(
+          'Failed to get knowledge in assistant, code: ${response.statusCode}, body: ${response.body}');
+      throw Exception('Failed to get knowledge in assistant');
     }
   }
 }
