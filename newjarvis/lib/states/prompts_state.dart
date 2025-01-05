@@ -16,7 +16,8 @@ class PromptState with ChangeNotifier {
     }
   }
 
-  Future<void> fetchPrompts(BuildContext context, {required bool isPublic, String? category}) async {
+  Future<void> fetchPrompts(BuildContext context,
+      {required bool isPublic, String? category}) async {
     if (isLoading) return; // Prevent fetching if already in progress
 
     // Safely update state outside of the widget build phase
@@ -25,26 +26,26 @@ class PromptState with ChangeNotifier {
     try {
       if (isPublic && selectedCategory == 'public') {
         publicPrompts = await ApiService().getPrompts(
-            context: context,
-            category: category?.isEmpty ?? true ? 'business' : category!,
-            isPublic: isPublic,
-            isFavorite: selectedCategory == 'favorites',
-            limit: 20,
-            );
+          context: context,
+          category: category?.isEmpty ?? true ? 'business' : category!,
+          isPublic: isPublic,
+          isFavorite: selectedCategory == 'favorites',
+          limit: 20,
+        );
       } else if (selectedCategory == 'favorites') {
         favoritesPrompts = await ApiService().getPrompts(
-            context: context,
-            category: category?.isEmpty ?? true ? 'business' : category!,
-            isFavorite: selectedCategory == 'favorites',
-            limit: 20,
-            );
+          context: context,
+          category: category?.isEmpty ?? true ? 'business' : category!,
+          isFavorite: selectedCategory == 'favorites',
+          limit: 20,
+        );
       } else {
         privatePrompts = await ApiService().getPrompts(
-            context: context,
-            isPublic: isPublic,
-            isFavorite: selectedCategory == 'favorites',
-            limit: 20,
-            );
+          context: context,
+          isPublic: isPublic,
+          isFavorite: selectedCategory == 'favorites',
+          limit: 20,
+        );
       }
     } catch (e) {
       print("Error fetching prompts: $e");
