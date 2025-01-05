@@ -386,6 +386,10 @@ class _PersonalPageState extends State<PersonalPage> {
       BuildContext context) {
     return AlertDialog(
       title: const Text("Create Assistant"),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      contentPadding: const EdgeInsets.all(20),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,

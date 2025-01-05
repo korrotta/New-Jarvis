@@ -83,7 +83,11 @@ class _AssistantPageState extends State<AssistantPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.0),
+          ),
           title: const Text("Edit Assistant"),
+          contentPadding: const EdgeInsets.all(20.0),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -690,7 +694,7 @@ class _AssistantPageState extends State<AssistantPage> {
                                             left: 4.0,
                                           )
                                         : const EdgeInsets.only(
-                                            right: 4.0,
+                                            right: 10.0,
                                           ),
                                     alignment: role == 'assistant'
                                         ? Alignment.centerLeft
@@ -754,6 +758,7 @@ class _AssistantPageState extends State<AssistantPage> {
             ),
           ),
         ),
+
         // Knowledge Column
         Expanded(
           flex: 1,
@@ -793,6 +798,20 @@ class _AssistantPageState extends State<AssistantPage> {
                         color: Theme.of(context).colorScheme.inversePrimary,
                         fontWeight: FontWeight.bold,
                       ),
+                    ),
+                  ),
+                ),
+
+                // FAB Add knowledge button
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: FloatingActionButton(
+                    tooltip: 'Add Knowledge to Assistant',
+                    onPressed: () {},
+                    backgroundColor: Colors.blueAccent,
+                    child: const Icon(
+                      CupertinoIcons.add,
+                      color: Colors.white,
                     ),
                   ),
                 ),

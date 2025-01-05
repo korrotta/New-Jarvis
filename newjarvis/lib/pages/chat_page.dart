@@ -384,7 +384,7 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     return SafeArea(
-      left: true,
+      top: true,
       bottom: false,
       minimum: const EdgeInsets.only(top: 20),
       child: Scaffold(

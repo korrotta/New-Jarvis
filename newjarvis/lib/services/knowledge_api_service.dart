@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:newjarvis/enums/order.dart';
 import 'package:newjarvis/models/ai_bot_model.dart';
+import 'package:newjarvis/models/assistant_knowledge_model.dart';
 import 'package:newjarvis/models/assistant_thread_message_model.dart';
 import 'package:newjarvis/models/assistant_thread_model.dart';
 import 'package:newjarvis/services/api_service.dart';
@@ -465,6 +466,70 @@ class KnowledgeApiService {
       print(
           'Failed to import knowledge, code: ${response.statusCode}, body: ${response.body}');
       throw Exception('Failed to import knowledge');
+    }
+  }
+
+  // Remove Knowledge from Assistant
+  Future<bool> removeKnowledge({
+    required BuildContext context,
+    required String assistantId,
+    required String knowledgeId,
+  }) async {
+    final url = Uri.parse(
+        '$_baseUrl/kb-core/v1/ai-assistant/$assistantId/knowledges/$knowledgeId');
+    final token = await _getToken();
+    final response = await http.delete(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final result = jsonDecode(response.body);
+      print(result);
+      return result;
+    } else {
+      _showErrorSnackbar(context,
+          'Failed to remove knowledge, code: ${response.statusCode}, body: ${response.body}');
+      print(
+          'Failed to remove knowledge, code: ${response.statusCode}, body: ${response.body}');
+      throw Exception('Failed to remove knowledge');
+    }
+  }
+
+  // Get Knowledge in Assistant
+  Future<List<AssistantKnowledgeModel>> getKnowledgeAssistant({
+    required BuildContext context,
+    required String assistantId,
+  }) async {
+    final url =
+        Uri.parse('$_baseUrl/kb-core/v1/ai-assistant/$assistantId/knowledges');
+    final token = await _getToken();
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final result = jsonDecode(response.body);
+      print(result);
+      final data = result['data'];
+
+      final List<AssistantKnowledgeModel> knowledges =
+          data.map((e) => AssistantKnowledgeModel.fromJson(e)).toList();
+
+      final metadata = result['meta'];
+
+      return knowledges;
+    } else {
+      _showErrorSnackbar(context,
+          'Failed to get knowledge in assistant, code: ${response.statusCode}, body: ${response.body}');
+      print(
+          'Failed to get knowledge in assistant, code: ${response.statusCode}, body: ${response.body}');
+      throw Exception('Failed to get knowledge in assistant');
     }
   }
 }
