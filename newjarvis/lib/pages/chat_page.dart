@@ -399,67 +399,71 @@ class _ChatPageState extends State<ChatPage> {
     return FutureBuilder<List<ConversationHistoryItemModel>>(
       future: Future.value(_currentConversationHistory),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return const SizedBox.shrink();
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(
-            child: WelcomeChatSection(),
-          );
-        } else {
-          final items = snapshot.data!;
-          // _scrollToBottom();
-          return ListView.builder(
-            controller: _scrollController,
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              final history = items[index];
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    alignment: Alignment.centerRight,
-                    child: ChatBubble(
-                      message: history.query,
-                      isQuery: true,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    margin: const EdgeInsets.only(left: 10),
-                    alignment: Alignment.centerLeft,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            botParticipant.icon,
-                            const SizedBox(width: 5),
-                            Text(
-                              botParticipant.name,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .inversePrimary,
-                              ),
-                            ),
-                          ],
-                        ),
-                        ChatBubble(
-                          message: history.answer,
-                          isQuery: false,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+        switch (snapshot.connectionState) {
+          case ConnectionState.waiting:
+            return const Center(child: CircularProgressIndicator());
+          case ConnectionState.none:
+            return const SizedBox.shrink();
+          case ConnectionState.active:
+            return const Center(child: CircularProgressIndicator());
+          case ConnectionState.done:
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const Center(
+                child: WelcomeChatSection(),
               );
-            },
-          );
+            }
+            final items = snapshot.data!;
+            // _scrollToBottom();
+            return ListView.builder(
+              controller: _scrollController,
+              itemCount: items.length,
+              itemBuilder: (context, index) {
+                final history = items[index];
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      alignment: Alignment.centerRight,
+                      child: ChatBubble(
+                        message: history.query,
+                        isQuery: true,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      margin: const EdgeInsets.only(left: 10),
+                      alignment: Alignment.centerLeft,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              botParticipant.icon,
+                              const SizedBox(width: 5),
+                              Text(
+                                botParticipant.name,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .inversePrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          ChatBubble(
+                            message: history.answer,
+                            isQuery: false,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              },
+            );
         }
       },
     );
