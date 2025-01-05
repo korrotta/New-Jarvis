@@ -16,7 +16,6 @@ class PromptState with ChangeNotifier {
 
   Future<void> fetchPrompts(BuildContext context, {required bool isPublic, String? category}) async {
     isLoading = true;
-    notifyListeners();
   
     try {
       if (isPublic && selectedCategory == 'public') {

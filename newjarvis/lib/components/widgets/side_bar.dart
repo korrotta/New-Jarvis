@@ -147,8 +147,6 @@ class SideBar extends StatelessWidget {
 }
 
 
-
-
   Widget _buildCollapsedMenu(BuildContext context) {
   return ListView.builder(
     itemCount: menuIcons.length,
