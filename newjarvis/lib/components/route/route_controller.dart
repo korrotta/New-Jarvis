@@ -12,7 +12,7 @@ class RouteController {
 
   static const String auth = '/auth';
   static const String chat = '/chat';
-  static const String personal = '/personal';
+  static const String assisant = '/assisant';
   static const String email = '/email';
   static const String search = '/search';
   static const String write = '/write';
@@ -27,7 +27,7 @@ class RouteController {
         return MaterialPageRoute(builder: (_) => const AuthGate());
       case chat:
         return MaterialPageRoute(builder: (_) => const ChatPage());
-      case personal:
+      case assisant:
         return MaterialPageRoute(builder: (_) => const PersonalPage());
       case knowledge:
         return MaterialPageRoute(builder: (_) => const KnowledgePage());
@@ -44,7 +44,7 @@ class RouteController {
         navigatorKey.currentState!.pushReplacementNamed(chat);
         break;
       case 1:
-        navigatorKey.currentState!.pushReplacementNamed(personal);
+        navigatorKey.currentState!.pushReplacementNamed(assisant);
         break;
       case 2:
         navigatorKey.currentState!.pushReplacementNamed(knowledge);
@@ -63,7 +63,7 @@ class RouteController {
     return {
       auth: (context) => const AuthGate(),
       chat: (context) => const ChatPage(),
-      personal: (context) => const PersonalPage(),
+      assisant: (context) => const PersonalPage(),
       knowledge: (context) => const KnowledgePage(),
       email: (context) => const ScreenSetUpEmail(),
     };
@@ -76,9 +76,9 @@ class RouteController {
       'route': chat,
     },
     {
-      'icon': Icons.person_rounded,
-      'label': 'Personal',
-      'route': personal,
+      'icon': Icons.smart_toy_rounded,
+      'label': 'AI Assistant',
+      'route': assistant,
     },
     {
       'icon': Icons.book_rounded,
