@@ -55,6 +55,15 @@ class _AssistantPageState extends State<AssistantPage> {
 
   TextEditingController _assistantPersonaController = TextEditingController();
 
+  // For bottom nav
+  int _selectedIndex = 0;
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -455,7 +464,32 @@ class _AssistantPageState extends State<AssistantPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _buildAppBar(context),
-      body: _buildPageContent(context),
+      body: _getSelectedPage(context),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        selectedItemColor: Colors.blueAccent,
+        unselectedItemColor: Theme.of(context).colorScheme.primary,
+        showUnselectedLabels: true,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.code),
+            label: 'Develop',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(
+              CupertinoIcons.chat_bubble_text,
+            ),
+            label: 'Preview',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(
+              CupertinoIcons.book_circle_fill,
+            ),
+            label: 'Knowledge',
+          ),
+        ],
+      ),
     );
   }
 
@@ -493,18 +527,15 @@ class _AssistantPageState extends State<AssistantPage> {
             context,
           );
         },
-        child: MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: Tooltip(
-            message: 'Edit Assistant',
-            child: Text(
-              _assistant.assistantName,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.inversePrimary,
-                fontWeight: FontWeight.bold,
-                fontSize: 20.0,
-                decoration: TextDecoration.underline,
-              ),
+        child: Tooltip(
+          message: 'Edit Assistant',
+          child: Text(
+            _assistant.assistantName,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.inversePrimary,
+              fontWeight: FontWeight.bold,
+              fontSize: 20.0,
+              decoration: TextDecoration.underline,
             ),
           ),
         ),
@@ -602,311 +633,309 @@ class _AssistantPageState extends State<AssistantPage> {
     );
   }
 
-  Widget _buildPageContent(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Develop Column
-        Expanded(
-          flex: 1,
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border(
-                right: BorderSide(
-                  color: Theme.of(context).colorScheme.primary,
-                  width: 1.0,
-                ),
-                left: BorderSide(
-                  color: Theme.of(context).colorScheme.primary,
-                  width: 1.0,
-                ),
-              ),
-              color: Theme.of(context).colorScheme.surface,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                        bottom: BorderSide(
-                      color: Theme.of(context).colorScheme.primary,
-                      width: 1.0,
-                    )),
-                    color: Theme.of(context).colorScheme.surface,
-                  ),
-                  alignment: Alignment.center,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      'Develop',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Theme.of(context).colorScheme.inversePrimary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
+  Widget _getSelectedPage(BuildContext context) {
+    switch (_selectedIndex) {
+      case 0:
+        return _developSection(context);
+      case 1:
+        return _previewSection(context);
+      case 2:
+        return _knowledgeSection(context);
+      default:
+        return _previewSection(context);
+    }
+  }
 
-                const SizedBox(height: 8.0),
-
-                // Assistant Persona
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextFormField(
-                      controller: _assistantPersonaController,
-                      maxLines: null,
-                      expands: true,
-                      scrollPhysics: const AlwaysScrollableScrollPhysics(),
-                      decoration: InputDecoration(
-                        hintText:
-                            'Design the assistant\'s persona, features and workflows using natural language.',
-                        hintStyle: TextStyle(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        border: InputBorder.none,
-                      ),
-                    ),
-                  ),
-                ),
-
-                // Elevated Button
-                Container(
-                  alignment: Alignment.center,
-                  padding: const EdgeInsets.all(8.0),
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      // Handle update assistant persona
-                      _editAssistantPersona(_assistantPersonaController.text);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueAccent,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    iconAlignment: IconAlignment.start,
-                    icon: Icon(
-                      CupertinoIcons.floppy_disk,
-                      color: Theme.of(context).colorScheme.tertiary,
-                      size: 18,
-                    ),
-                    label: Text(
-                      'Save',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.tertiary,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+  Container _knowledgeSection(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(
+          right: BorderSide(
+            color: Theme.of(context).colorScheme.primary,
+            width: 1.0,
+          ),
+          left: BorderSide(
+            color: Theme.of(context).colorScheme.primary,
+            width: 1.0,
           ),
         ),
-
-        // Preview Column
-        Expanded(
-          flex: 2,
-          child: Container(
+        color: Theme.of(context).colorScheme.surface,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
             decoration: BoxDecoration(
+              border: Border(
+                  bottom: BorderSide(
+                color: Theme.of(context).colorScheme.primary,
+                width: 1.0,
+              )),
               color: Theme.of(context).colorScheme.surface,
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                        bottom: BorderSide(
-                      color: Theme.of(context).colorScheme.primary,
-                      width: 1.0,
-                    )),
-                    color: Theme.of(context).colorScheme.surface,
-                  ),
-                  alignment: Alignment.center,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      'Preview & Chat',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Theme.of(context).colorScheme.inversePrimary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
+            alignment: Alignment.center,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                'Knowledge',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                  fontWeight: FontWeight.bold,
                 ),
-                Expanded(
-                  child: FutureBuilder<List<AssistantThreadMessageModel>>(
-                      future: Future.value(_threadMessages),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        } else if (!snapshot.hasData ||
-                            snapshot.data!.isEmpty) {
-                          return Center(
-                            child: _newThreadAssistantSection(context),
-                          );
-                        } else {
-                          final items = snapshot.data!.reversed.toList();
-                          return ListView.builder(
-                            itemCount: items.length,
-                            itemBuilder: (context, index) {
-                              final history = items[index];
-                              final role = history.role;
-                              final displayContent =
-                                  history.content[0]['text']['value'];
-                              return Column(
+              ),
+            ),
+          ),
+
+          // FAB Add knowledge button
+          Align(
+            alignment: Alignment.bottomRight,
+            child: FloatingActionButton(
+              tooltip: 'Add Knowledge to Assistant',
+              onPressed: () {},
+              backgroundColor: Colors.blueAccent,
+              child: const Icon(
+                CupertinoIcons.add,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Container _previewSection(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Container(
+            decoration: BoxDecoration(
+              border: Border(
+                  bottom: BorderSide(
+                color: Theme.of(context).colorScheme.primary,
+                width: 1.0,
+              )),
+              color: Theme.of(context).colorScheme.surface,
+            ),
+            alignment: Alignment.center,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                'Preview & Chat',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: FutureBuilder<List<AssistantThreadMessageModel>>(
+                future: Future.value(_threadMessages),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return Center(
+                      child: _newThreadAssistantSection(context),
+                    );
+                  } else {
+                    final items = snapshot.data!.reversed.toList();
+                    return ListView.builder(
+                      itemCount: items.length,
+                      itemBuilder: (context, index) {
+                        final history = items[index];
+                        final role = history.role;
+                        final displayContent =
+                            history.content[0]['text']['value'];
+                        return Column(
+                          crossAxisAlignment: role == 'assistant'
+                              ? CrossAxisAlignment.start
+                              : CrossAxisAlignment.end,
+                          children: [
+                            const SizedBox(height: 8.0),
+                            Container(
+                              margin: role == 'assistant'
+                                  ? const EdgeInsets.only(
+                                      left: 4.0,
+                                    )
+                                  : const EdgeInsets.only(
+                                      right: 10.0,
+                                    ),
+                              alignment: role == 'assistant'
+                                  ? Alignment.centerLeft
+                                  : Alignment.centerRight,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: role == 'assistant'
                                     ? CrossAxisAlignment.start
                                     : CrossAxisAlignment.end,
                                 children: [
-                                  const SizedBox(height: 8.0),
-                                  Container(
-                                    margin: role == 'assistant'
-                                        ? const EdgeInsets.only(
-                                            left: 4.0,
-                                          )
-                                        : const EdgeInsets.only(
-                                            right: 10.0,
-                                          ),
-                                    alignment: role == 'assistant'
-                                        ? Alignment.centerLeft
-                                        : Alignment.centerRight,
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      crossAxisAlignment: role == 'assistant'
-                                          ? CrossAxisAlignment.start
-                                          : CrossAxisAlignment.end,
-                                      children: [
-                                        Row(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.center,
-                                          mainAxisAlignment: role == 'assistant'
-                                              ? MainAxisAlignment.start
-                                              : MainAxisAlignment.end,
-                                          children: [
-                                            role == 'assistant'
-                                                ? botParticipant.icon
-                                                : userParticipant.icon,
-                                            const SizedBox(width: 5),
-                                            Text(
-                                              role == 'assistant'
-                                                  ? _assistant.assistantName
-                                                  : _currentUser!.getUsername,
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .inversePrimary,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ],
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    mainAxisAlignment: role == 'assistant'
+                                        ? MainAxisAlignment.start
+                                        : MainAxisAlignment.end,
+                                    children: [
+                                      role == 'assistant'
+                                          ? botParticipant.icon
+                                          : userParticipant.icon,
+                                      const SizedBox(width: 5),
+                                      Text(
+                                        role == 'assistant'
+                                            ? _assistant.assistantName
+                                            : _currentUser!.getUsername,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .inversePrimary,
+                                          fontWeight: FontWeight.bold,
                                         ),
-                                        ChatBubble(
-                                          message: displayContent,
-                                          isQuery: history.role == 'assistant',
-                                        ),
-                                      ],
-                                    ),
+                                      ),
+                                    ],
+                                  ),
+                                  ChatBubble(
+                                    message: displayContent,
+                                    isQuery: history.role == 'assistant',
                                   ),
                                 ],
-                              );
-                            },
-                          );
-                        }
-                      }),
-                ),
-                ChatInputSection(
-                  onSend: (String message) {
-                    _handleSendChat(context, message);
-                  },
-                  onNewConversation: () {
-                    _handleNewThread();
-                  },
-                ),
-                const SizedBox(height: 8.0),
-              ],
-            ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  }
+                }),
+          ),
+          ChatInputSection(
+            onSend: (String message) {
+              _handleSendChat(context, message);
+            },
+            onNewConversation: () {
+              _handleNewThread();
+            },
+          ),
+          const SizedBox(height: 8.0),
+        ],
+      ),
+    );
+  }
+
+  Container _developSection(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(
+          right: BorderSide(
+            color: Theme.of(context).colorScheme.primary,
+            width: 1.0,
+          ),
+          left: BorderSide(
+            color: Theme.of(context).colorScheme.primary,
+            width: 1.0,
           ),
         ),
-
-        // Knowledge Column
-        Expanded(
-          flex: 1,
-          child: Container(
+        color: Theme.of(context).colorScheme.surface,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Container(
             decoration: BoxDecoration(
               border: Border(
-                right: BorderSide(
-                  color: Theme.of(context).colorScheme.primary,
-                  width: 1.0,
-                ),
-                left: BorderSide(
-                  color: Theme.of(context).colorScheme.primary,
-                  width: 1.0,
-                ),
-              ),
+                  bottom: BorderSide(
+                color: Theme.of(context).colorScheme.primary,
+                width: 1.0,
+              )),
               color: Theme.of(context).colorScheme.surface,
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                        bottom: BorderSide(
-                      color: Theme.of(context).colorScheme.primary,
-                      width: 1.0,
-                    )),
-                    color: Theme.of(context).colorScheme.surface,
-                  ),
-                  alignment: Alignment.center,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      'Knowledge',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Theme.of(context).colorScheme.inversePrimary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
+            alignment: Alignment.center,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                'Develop',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                  fontWeight: FontWeight.bold,
                 ),
-
-                // FAB Add knowledge button
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: FloatingActionButton(
-                    tooltip: 'Add Knowledge to Assistant',
-                    onPressed: () {},
-                    backgroundColor: Colors.blueAccent,
-                    child: const Icon(
-                      CupertinoIcons.add,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
-        ),
-      ],
+
+          const SizedBox(height: 8.0),
+
+          // Assistant Persona
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.all(8.0),
+              child: TextFormField(
+                controller: _assistantPersonaController,
+                maxLines: null,
+                expands: true,
+                scrollPhysics: const AlwaysScrollableScrollPhysics(),
+                decoration: InputDecoration(
+                  hintText:
+                      'Design the assistant\'s persona, features and workflows using natural language.',
+                  hintStyle: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  border: InputBorder.none,
+                ),
+              ),
+            ),
+          ),
+
+          // Elevated Button
+          Container(
+            alignment: Alignment.center,
+            padding: const EdgeInsets.all(8.0),
+            child: ElevatedButton.icon(
+              onPressed: () {
+                // Handle update assistant persona
+                _editAssistantPersona(_assistantPersonaController.text);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              iconAlignment: IconAlignment.start,
+              icon: Icon(
+                CupertinoIcons.floppy_disk,
+                color: Theme.of(context).colorScheme.tertiary,
+                size: 18,
+              ),
+              label: Text(
+                'Save',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.tertiary,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _newThreadAssistantSection(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Image.asset(
           'assets/icons/assistant.png',
