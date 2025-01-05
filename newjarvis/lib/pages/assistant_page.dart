@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:newjarvis/components/widgets/chat_bubble.dart';
 import 'package:newjarvis/components/widgets/chat_input_section.dart';
 import 'package:newjarvis/components/widgets/chat_participant.dart';
-import 'package:newjarvis/components/widgets/custom_textfield.dart';
 import 'package:newjarvis/models/ai_bot_model.dart';
 import 'package:newjarvis/models/assistant_thread_message_model.dart';
 import 'package:newjarvis/models/assistant_thread_model.dart';
@@ -12,6 +11,7 @@ import 'package:newjarvis/models/message_text_content_model.dart';
 import 'package:newjarvis/models/thread_message_content_model.dart';
 import 'package:newjarvis/services/api_service.dart';
 import 'package:newjarvis/services/knowledge_api_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AssistantPage extends StatefulWidget {
   final AiBotModel selectedAssistant;
@@ -345,8 +345,19 @@ class _AssistantPageState extends State<AssistantPage> {
     );
   }
 
-  void _handleDocs() {
+  Future<void> _handleDocs() async {
     // Open browser to link
+    if (!await launchUrl(Uri.parse(_docsUrl))) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red,
+          elevation: 0,
+          content: customSnackbar(true, "Failed to open link"),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   void _handlePublish() {}

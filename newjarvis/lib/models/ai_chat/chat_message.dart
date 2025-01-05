@@ -30,4 +30,9 @@ class ChatMessage {
     data['role'] = role;
     return data;
   }
+
+  @override
+  String toString() {
+    return 'ChatMessage(assistant: $assistant, content: $content, files: $files, role: $role)';
+  }
 }
