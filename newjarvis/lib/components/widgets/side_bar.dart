@@ -27,7 +27,7 @@ class SideBar extends StatelessWidget {
         isExpanded ? sideBarWidthExpanded : sideBarWidthCollapsed;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 0),
+      margin: const EdgeInsets.only(bottom: 5),
       width: sidebarWidth,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
@@ -245,7 +245,7 @@ const List<IconData> menuIcons = [
 
 const List<String> menuLabels = [
   'Chat',
-  'AI Assistant',
+  'Assistant',
   'Knowledge Base',
   'Email',
   'Settings',

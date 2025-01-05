@@ -231,116 +231,168 @@ class _PersonalPageState extends State<PersonalPage> {
 
   Widget _buildPageContent(BuildContext context) {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Icon(
-                  Icons.smart_toy_rounded,
-                  size: 32,
-                  color: Theme.of(context).colorScheme.inversePrimary,
-                ),
-                const SizedBox(width: 15),
-                Text(
-                  "AI Assistant",
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+            Flexible(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.smart_toy_rounded,
+                    size: 22,
                     color: Theme.of(context).colorScheme.inversePrimary,
                   ),
-                ),
-              ],
+                  const SizedBox(width: 5),
+                  Text(
+                    "Assistant",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.inversePrimary,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(width: 10),
-            // Display current user name
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                CircleAvatar(
-                  backgroundColor: Colors.blueAccent,
-                  child: _currentUser?.username != null
-                      ? Text(
-                          _currentUser!.username![0].toUpperCase(),
-                          style: const TextStyle(
-                            color: Colors.white,
+            Flexible(
+              flex: 1,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircleAvatar(
+                    backgroundColor: Colors.blueAccent,
+                    radius: 20,
+                    child: _currentUser?.username != null
+                        ? Text(
+                            _currentUser!.username![0].toUpperCase(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )
+                        : const Icon(Icons.person),
+                  ),
+                  const SizedBox(width: 5),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _currentUser?.username ?? "Unknown",
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.inversePrimary,
                             fontWeight: FontWeight.bold,
+                            fontSize: 16,
                           ),
-                        )
-                      : const Icon(Icons.person),
-                ),
-                const SizedBox(width: 8),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _currentUser?.username ?? "Unknown",
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.inversePrimary,
-                        fontWeight: FontWeight.bold,
-                      ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          _currentUser?.email ?? "Unknown",
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.inversePrimary,
+                            fontSize: 12,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ),
-                    Text(
-                      _currentUser?.email ?? "Unknown",
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.inversePrimary,
-                      ),
-                    ),
-                  ],
-                )
-              ],
+                  ),
+                ],
+              ),
             ),
           ],
         ),
 
         const SizedBox(height: 20),
 
-        // Create Assistant & Filter Section
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        // Create Assistant Section
+        Wrap(
+          alignment: WrapAlignment.start,
+          spacing: 10,
+          runSpacing: 10,
+          runAlignment: WrapAlignment.start,
           children: [
-            // Dropdown and Search Bar
-            Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Flexible(
-                    flex: 2,
-                    child: CustomDropdownmenu(
-                      dropdownItems: const ["All", "Published"],
-                      onSelected: (item) {
-                        print('Selected: $item');
-                        setState(() {
-                          _selectedFilter = item!;
-                        });
-                        _performSearchAndFilter(_searchText, _selectedFilter);
-                      },
-                      headingText: "Type: ",
-                    ),
-                  ),
-                  const SizedBox(width: 5),
-                  Flexible(
-                    flex: 5,
-                    child: CustomTextfield(
-                      hintText: "Search",
-                      initialObscureText: false,
-                      controller: _searchController,
-                      onChanged: (text) {
-                        setState(() {
-                          _searchText = text;
-                        });
-                        _performSearchAndFilter(text, _selectedFilter);
-                      },
-                    ),
-                  ),
-                ],
+            SizedBox(
+              width: 200,
+              child: CustomTextfield(
+                hintText: "Search",
+                initialObscureText: false,
+                controller: _searchController,
+                onChanged: (text) {
+                  setState(() {
+                    _searchText = text;
+                  });
+                  _performSearchAndFilter(text, _selectedFilter);
+                },
               ),
             ),
-            // Create button
-            ElevatedButton.icon(
+            CustomDropdownmenu(
+              dropdownItems: const ["All", "Favorite", "Published"],
+              onSelected: (item) {
+                print('Selected: $item');
+                setState(() {
+                  _selectedFilter = item!;
+                });
+                _performSearchAndFilter(_searchText, _selectedFilter);
+              },
+              headingText: "Type: ",
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 5),
+
+        // Create button
+        // ElevatedButton.icon(
+        //   onPressed: () {
+        //     // Show the create bot dialog
+        //     showDialog(
+        //       context: context,
+        //       builder: (context) {
+        //         // Dialog include (title, assistant name*, assistant description, create button, cancel button)
+        //         return _showCreateDialog(_assistantNameController,
+        //             _assistantDescriptionController, context);
+        //       },
+        //     );
+        //   },
+        //   icon: const Icon(Icons.add, color: Colors.white),
+        //   label: const Text(
+        //     "Create bot",
+        //     style: TextStyle(
+        //       color: Colors.white,
+        //     ),
+        //   ),
+        //   style: ElevatedButton.styleFrom(
+        //     minimumSize: const Size(120, 55),
+        //     backgroundColor: Colors.blueAccent,
+        //     side: BorderSide(
+        //       color: Theme.of(context).colorScheme.inversePrimary,
+        //     ),
+        //   ),
+        // ),
+
+        const SizedBox(height: 10),
+
+        // List of assistants
+        Expanded(
+          child: _buildAssistantList(),
+        ),
+
+        Align(
+          alignment: Alignment.bottomRight,
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 20),
+            child: FloatingActionButton(
+              elevation: 0,
+              backgroundColor: Colors.blueAccent,
               onPressed: () {
                 // Show the create bot dialog
                 showDialog(
@@ -352,29 +404,12 @@ class _PersonalPageState extends State<PersonalPage> {
                   },
                 );
               },
-              icon: const Icon(Icons.add, color: Colors.white),
-              label: const Text(
-                "Create bot",
-                style: TextStyle(
-                  color: Colors.white,
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(120, 55),
-                backgroundColor: Colors.blueAccent,
-                side: BorderSide(
-                  color: Theme.of(context).colorScheme.inversePrimary,
-                ),
+              child: Icon(
+                CupertinoIcons.add,
+                color: Theme.of(context).colorScheme.tertiary,
               ),
             ),
-          ],
-        ),
-
-        const SizedBox(height: 16),
-
-        // List of assistants
-        Expanded(
-          child: _buildAssistantList(),
+          ),
         ),
       ],
     );
@@ -390,42 +425,125 @@ class _PersonalPageState extends State<PersonalPage> {
         borderRadius: BorderRadius.circular(12.0),
       ),
       contentPadding: const EdgeInsets.all(20),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 15),
-          const Text("Assistant name"),
-          const SizedBox(height: 5),
-          CustomTextfield(
-            validator: (p0) => p0!.isEmpty ? "Name is required" : null,
-            hintText: "",
-            initialObscureText: false,
-            controller: assistantNameController,
-          ),
-          const SizedBox(height: 15),
-          const Text("Assistant description"),
-          const SizedBox(height: 5),
-          CustomTextfield(
-            hintText: "",
-            initialObscureText: false,
-            controller: assistantDescriptionController,
-          ),
-          const SizedBox(height: 5),
-        ],
+      content: SizedBox(
+        width: MediaQuery.of(context).size.width * 0.4,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 15),
+            Text(
+              "Assistant name",
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.inversePrimary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 5),
+            TextFormField(
+              validator: (value) =>
+                  value!.isEmpty ? "Name cannot be empty" : null,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              controller: assistantNameController,
+              maxLength: 1,
+              decoration: InputDecoration(
+                hintText: "Enter a name",
+                hintStyle: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                border: const OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: Colors.blueAccent,
+                  ),
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                ),
+              ),
+              buildCounter: (context,
+                  {required currentLength,
+                  required isFocused,
+                  required maxLength}) {
+                return Text(
+                  "$currentLength / 50",
+                  style: TextStyle(
+                    color: isFocused
+                        ? Colors.blueAccent
+                        : Theme.of(context).colorScheme.primary,
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 15),
+            Text(
+              "Assistant description",
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.inversePrimary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 5),
+            TextFormField(
+              controller: assistantDescriptionController,
+              maxLines: 6,
+              decoration: InputDecoration(
+                hintText: "Enter a description",
+                hintStyle: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                border: const OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: Colors.blueAccent,
+                  ),
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                ),
+              ),
+              buildCounter: (context,
+                  {required currentLength,
+                  required isFocused,
+                  required maxLength}) {
+                return Text(
+                  "$currentLength / 2000",
+                  style: TextStyle(
+                    color: isFocused
+                        ? Colors.blueAccent
+                        : Theme.of(context).colorScheme.primary,
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 5),
+          ],
+        ),
       ),
       actions: [
-        TextButton(
+        ElevatedButton(
           onPressed: () {
             Navigator.of(context).pop();
           },
-          child: const Text("Cancel"),
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.0),
+              side: const BorderSide(
+                color: Colors.redAccent,
+              ),
+            ),
+          ),
+          child: const Text(
+            "Cancel",
+            style: TextStyle(color: Colors.redAccent),
+          ),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             backgroundColor: Colors.blueAccent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.0),
+            ),
           ),
           onPressed: () {
+            _validateFields(assistantNameController, context);
             _createNewAssistant(assistantNameController,
                 assistantDescriptionController, context);
           },
@@ -482,11 +600,13 @@ class _PersonalPageState extends State<PersonalPage> {
                       },
                     );
                   },
-                  icon: const Icon(Icons.add, color: Colors.white),
+                  icon: const Icon(
+                    Icons.add,
+                    color: Colors.white,
+                  ),
                   label: const Text("Create Bot Now",
                       style: TextStyle(color: Colors.white)),
                   style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(120, 55),
                     backgroundColor: Colors.blueAccent,
                     side: BorderSide(
                       color: Theme.of(context).colorScheme.inversePrimary,
@@ -499,138 +619,123 @@ class _PersonalPageState extends State<PersonalPage> {
         } else {
           final items = snapshot.data!;
           return GridView.builder(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              childAspectRatio: 4 / 2,
-              crossAxisSpacing: 16,
+            shrinkWrap: true,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount:
+                  (MediaQuery.of(context).size.width ~/ 250).toInt(),
+              childAspectRatio: 4,
+              crossAxisSpacing: 8,
               mainAxisSpacing: 8,
             ),
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(8),
             itemCount: items.length,
             itemBuilder: (context, index) {
               final assistant = items[index];
-              return StatefulBuilder(
-                builder: (context, setState) => MouseRegion(
-                  onEnter: (_) => setState(() => _isHovered = true),
-                  onExit: (_) => setState(() => _isHovered = false),
-                  cursor: SystemMouseCursors.click, // Change cursor on hover
-                  child: GestureDetector(
-                    onTap: () {
-                      _navigateToAssistantDetails(assistant.id);
-                    },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: _isHovered
-                                ? Colors.blue.withOpacity(0.5)
-                                : Colors.grey.withOpacity(0.5),
-                            blurRadius: _isHovered ? 10 : 5,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                        border: Border.all(
-                          color: _isHovered
-                              ? Colors.blue
-                              : Colors
-                                  .transparent, // Border color changes on hover
-                          width: 2,
-                        ),
+              return GestureDetector(
+                onTap: () {
+                  _navigateToAssistantDetails(assistant.id);
+                },
+                child: Container(
+                  width: MediaQuery.of(context).size.width * 0.3,
+                  height: MediaQuery.of(context).size.height * 0.1,
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Theme.of(context).colorScheme.primary,
+                        blurRadius: 5,
+                        offset: const Offset(0, 3),
                       ),
-                      child: Stack(
-                        children: [
-                          // Assistant details
-                          Positioned(
-                            top: 0,
-                            left: 0,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Image.asset(
-                                  "assets/icons/assistant.png",
-                                  width: 65,
-                                  height: 65,
-                                ),
-                                const SizedBox(width: 10),
-                                Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      assistant.assistantName,
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .inversePrimary,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 5),
-                                    Text(
-                                      assistant.description ?? "",
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .inversePrimary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                    ],
+                  ),
+                  child: Stack(
+                    children: [
+                      // Assistant details
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Image.asset(
+                              "assets/icons/assistant.png",
+                              width: 45,
+                              height: 45,
                             ),
-                          ),
-
-                          // Remove icon
-                          Positioned(
-                            right: 0,
-                            top: 0,
-                            child: Tooltip(
-                              message: 'Delete Assistant',
-                              child: IconButton(
-                                icon: const Icon(
-                                  CupertinoIcons.trash,
-                                  color: Colors.black,
-                                ),
-                                onPressed: () {
-                                  _deleteAssistant(assistant.id);
-                                },
-                              ),
-                            ),
-                          ),
-
-                          // Date time
-                          Positioned(
-                            right: 0,
-                            bottom: 0,
-                            child: Row(
+                            const SizedBox(width: 10),
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(
-                                  CupertinoIcons.clock,
-                                  size: 16,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                                const SizedBox(width: 5),
                                 Text(
-                                  DateFormat('dd/MM/yyyy')
-                                      .format(assistant.createdAt),
+                                  assistant.assistantName,
                                   style: TextStyle(
-                                    fontSize: 12,
-                                    color:
-                                        Theme.of(context).colorScheme.primary,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .inversePrimary,
+                                  ),
+                                ),
+                                Text(
+                                  assistant.description ?? "",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .inversePrimary,
                                   ),
                                 ),
                               ],
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
+
+                      // Remove icon
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Tooltip(
+                          message: 'Delete Assistant',
+                          child: IconButton(
+                            icon: const Icon(
+                              CupertinoIcons.trash,
+                              color: Colors.black,
+                            ),
+                            onPressed: () {
+                              _deleteAssistant(assistant.id);
+                            },
+                          ),
+                        ),
+                      ),
+
+                      // Date time
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: Row(
+                          children: [
+                            Icon(
+                              CupertinoIcons.clock,
+                              size: 16,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              DateFormat('dd/MM/yyyy')
+                                  .format(assistant.createdAt),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               );
@@ -639,6 +744,18 @@ class _PersonalPageState extends State<PersonalPage> {
         }
       },
     );
+  }
+
+  void _validateFields(
+      TextEditingController assistantNameController, BuildContext context) {
+    final assistantName = assistantNameController.text.trim();
+
+    if (assistantName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Assistant name cannot be empty')),
+      );
+      return;
+    }
   }
 
   Future<void> _createNewAssistant(
