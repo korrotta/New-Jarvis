@@ -52,7 +52,7 @@ class _ChatPageState extends State<ChatPage> {
     ),
   );
 
-  bool _isNewThread = false; // Flag to track if it's a new thread
+  bool? _isNewThread; // Flag to track if it's a new thread
 
   // Storing conversations and conversation history
   List<ConversationItemModel> _conversations = []; // Store all conversations
@@ -124,35 +124,41 @@ class _ChatPageState extends State<ChatPage> {
 
   // Function to handle sending messages
   Future<void> _handleSend(String message) async {
-    setState(() {
-      // Append the message to the current conversation thread
-      ChatMessage chatMessage = ChatMessage(
-        assistant: _assistant,
-        content: message,
-        files: [],
-        role: _currentUser!.roles.first,
-      );
-      _messages.add(chatMessage);
-
-      if (_currentConversationId != null) {
-        _metadata = AiChatMetadata(
-          chatConversation: ChatConversation(
-            id: _currentConversationId!,
-            messages: _messages,
-          ),
+    print('currentConversationId Before setstate: $_currentConversationId');
+    setState(
+      () {
+        // Append the message to the current conversation thread
+        ChatMessage chatMessage = ChatMessage(
+          assistant: _assistant,
+          content: message,
+          files: [],
+          role: _currentUser!.roles.first,
         );
-      }
-    });
+        _messages.add(chatMessage);
+
+        if (_currentConversationId != null) {
+          setState(() {
+            _metadata = AiChatMetadata(
+              chatConversation: ChatConversation(
+                id: _currentConversationId!,
+                messages: _messages,
+              ),
+            );
+          });
+        }
+      },
+    );
 
     // Send the message to the AI
     try {
+      print('metadata: $_metadata');
       final response = await _apiService.sendMessage(
         context: context,
         aiChat: AiChatModel(
           assistant: _assistant,
           content: message,
           files: null,
-          metadata: _isNewThread ? null : _metadata,
+          metadata: _metadata,
         ),
       );
 
@@ -228,13 +234,9 @@ class _ChatPageState extends State<ChatPage> {
         assistant: _assistant,
       );
 
-      if (response.items.isEmpty) {
-        _handleNewConversation();
-        return;
-      }
-
       setState(() {
         if (isInitialFetch) {
+          print('Initial Fetch');
           _conversations = response.items; // Initial fetch
           // Sort the conversations by the latest message
           _conversations.sort((a, b) => b.createdAt.compareTo(a.createdAt));

@@ -24,4 +24,7 @@ class ChatConversation {
     data['messages'] = messages.map((x) => x.toJson()).toList();
     return data;
   }
+
+  @override
+  String toString() => 'ChatConversation(id: $id, messages: $messages)';
 }

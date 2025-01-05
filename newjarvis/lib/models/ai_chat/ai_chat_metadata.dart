@@ -18,4 +18,7 @@ class AiChatMetadata {
     data['chat_conversation'] = chatConversation.toJson();
     return data;
   }
+
+  @override
+  String toString() => 'AiChatMetadata(chatConversation: $chatConversation)';
 }
