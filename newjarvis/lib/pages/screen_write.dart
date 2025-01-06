@@ -93,6 +93,17 @@ class _ScreenSetUpEmail extends State<ScreenSetUpEmail> {
       return;
     }
 
+    // Hiển thị loading dialog
+  showDialog(
+    context: context,
+    barrierDismissible: false, // Không cho phép đóng dialog khi nhấn ra ngoài
+    builder: (BuildContext context) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    },
+  );
+
     // Chuẩn bị dữ liệu để gọi API
     final String content = contentController.text;
     final String mainIdea = mainIdeaController.text;
@@ -107,13 +118,6 @@ class _ScreenSetUpEmail extends State<ScreenSetUpEmail> {
         : "Auto";
     final String language = selectedLanguage!;
 
-    // In ra toàn bộ các giá trị
-    print("Content: $content");
-    print("Main Idea: $mainIdea");
-    print("Length: $length");
-    print("Format: $format");
-    print("Tone: $tone");
-    print("Language: $language");
     // Gọi API thông qua Provider
     final emailProvider = Provider.of<EmailProvider>(context, listen: false);
 
@@ -138,6 +142,9 @@ class _ScreenSetUpEmail extends State<ScreenSetUpEmail> {
 
       // Lấy kết quả từ Provider
       final response = emailProvider.emailResponse;
+
+      // Đóng loading dialog
+      Navigator.of(context).pop();
 
       // Điều hướng sang màn hình hiển thị email response và truyền dữ liệu
       if (response != null) {
@@ -176,13 +183,13 @@ class _ScreenSetUpEmail extends State<ScreenSetUpEmail> {
   Widget build(BuildContext context) {
     return SafeArea(
         child: Scaffold(
-      appBar: _buildAppBar(),
-      body: Stack(
-        children: [
-          _buildBody(),
-          _buildSideBarOrFloatingButton(),
-        ],
-      ),
+        appBar: _buildAppBar(),
+        body: Stack(
+          children: [
+            _buildBody(),
+            _buildSideBarOrFloatingButton(),
+          ],
+        ),
       backgroundColor: const Color.fromARGB(255, 245, 242, 242),
     ));
   }
@@ -234,8 +241,6 @@ class _ScreenSetUpEmail extends State<ScreenSetUpEmail> {
     setState(() {
       _assistant.id = aiId;
     });
-
-    // Fetch all conversations
   }
 
   AppBar _buildAppBar() {
@@ -293,7 +298,7 @@ class _ScreenSetUpEmail extends State<ScreenSetUpEmail> {
         ],
       ),
       elevation: 0,
-      leading: null,
+      automaticallyImplyLeading: false,
     );
   }
 
