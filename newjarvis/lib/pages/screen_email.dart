@@ -45,6 +45,7 @@ class _ScreenEmailState extends State<ScreenEmail> {
 
   late int _fireCount = widget.emailResponse.remainingUsage;
   
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -61,6 +62,7 @@ class _ScreenEmailState extends State<ScreenEmail> {
   @override
   void dispose() {
     _chatController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -129,8 +131,13 @@ class _ScreenEmailState extends State<ScreenEmail> {
     // Thêm nội dung mới của người dùng (màu xanh)
     setState(() {
       _chatWidgets.add(_buildUserChat(newMainIdea));
+      
       _isOptionVisible = false;
       _chatController.clear();
+    });
+    // Cuộn xuống cuối sau khi thêm tin nhắn
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom();
     });
 
     // Gọi API để lấy reply mới từ AI
@@ -143,6 +150,10 @@ class _ScreenEmailState extends State<ScreenEmail> {
         _chatWidgets.add(_buildAIReply(newAIResponse.email)); // Truy cập email nếu không null
         _fireCount = newAIResponse.remainingUsage;
         _isOptionVisible = true;
+      });
+      // Đảm bảo cuộn xuống sau khi AI Reply được thêm
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToBottom();
       });
   } else {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -160,7 +171,7 @@ class _ScreenEmailState extends State<ScreenEmail> {
 
   // Gọi API thông qua Provider
   final emailProvider = Provider.of<EmailProvider>(context, listen: false);
-  await Future.delayed(const Duration(seconds: 2)); // Mô phỏng thời gian chờ
+
 
   try {
     // Chờ kết quả API call
@@ -277,9 +288,7 @@ Widget _buildEmailContentReceived(String content) {
 
 Widget _buildAIReply(String content) {
   
-  return Builder(
-    
-    builder: (context) => Container(
+  return  Container(
       margin: const EdgeInsets.only(top: 10),
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
@@ -373,11 +382,8 @@ Widget _buildAIReply(String content) {
           ),
         ],
       ),
-    ),
   );
 }
-
-
 
 
   Future<void> _handleRefreshReply(String currentReply) async {
@@ -461,6 +467,11 @@ Widget _buildAIReply(String content) {
       _fireCount = newReply.remainingUsage;
       _chatWidgets[replyIndex] = _buildAIReply(newReply.email);
     });
+    // Đảm bảo cuộn sau khi giao diện hoàn thành
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom();
+    });
+
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Không thể tạo reply mới!')),
@@ -734,6 +745,23 @@ Widget _buildFireBadge(int count) {
   );
 }
 
+void _scrollToBottom() {
+  Future.delayed(const Duration(milliseconds: 100), () {
+    if (_scrollController.hasClients) {
+      debugPrint("MaxScrollExtent: ${_scrollController.position.maxScrollExtent}");
+      debugPrint("Current position: ${_scrollController.position.pixels}");
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    } else {
+      debugPrint("ScrollController không hoạt động.");
+    }
+  });
+}
+
+
 
 @override
 Widget build(BuildContext context) {
@@ -747,6 +775,7 @@ Widget build(BuildContext context) {
 
           Expanded(
             child: ListView(
+              controller: _scrollController,
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
               children: [
                 ..._chatWidgets,
