@@ -5,13 +5,11 @@ import 'package:newjarvis/components/widgets/chat_input_section.dart';
 
 class BottomNavSection extends StatefulWidget {
   final Function(String) onSend;
-  final Function(String) onAiSelected;
   final Function()? onNewConversation;
 
   const BottomNavSection({
     super.key,
     required this.onSend,
-    required this.onAiSelected,
     this.onNewConversation,
   });
 
@@ -43,16 +41,13 @@ class _BottomNavSectionState extends State<BottomNavSection> {
           runSpacing: 10,
           alignment: WrapAlignment.start,
           children: [
-            SingleChildScrollView(
+            const SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  // Ai Switch Section
-                  AiModelSelectionSection(
-                    onAiSelected: widget.onAiSelected,
-                  ),
+                  
                   // Prompt Section
-                  const PromptSection(),
+                  PromptSection(),
                 ],
               ),
             ),
