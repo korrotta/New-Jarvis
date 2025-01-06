@@ -388,7 +388,7 @@ class _AssistantPageState extends State<AssistantPage> {
     );
 
     setState(() {
-      _threadMessages = response;
+      _threadMessages.addAll(response);
       print('Thread Messages: $_threadMessages');
     });
   }

@@ -10,6 +10,7 @@ import 'package:newjarvis/components/ai_chat/welcome_chat_section.dart';
 import 'package:newjarvis/enums/id.dart';
 import 'package:newjarvis/models/ai_chat/ai_chat_metadata.dart';
 import 'package:newjarvis/models/ai_chat/ai_chat_model.dart';
+import 'package:newjarvis/models/ai_chat/chat_response_model.dart';
 import 'package:newjarvis/models/assistant_model.dart';
 import 'package:newjarvis/models/basic_user_model.dart';
 import 'package:newjarvis/models/ai_chat/chat_conversation.dart';
@@ -36,12 +37,10 @@ class _ChatPageState extends State<ChatPage> {
   BasicUserModel? _currentUser;
 
   // State variables
+  String? _firstConversationId; // Nullable to handle new conversations
   String? _currentConversationId; // Nullable to handle new conversations
 
-  ChatConversation _currentConversation = ChatConversation(
-    id: '',
-    messages: [],
-  );
+  ChatResponseModel? _chatResponse;
 
   List<ChatMessage> _messages = [];
 
@@ -92,7 +91,7 @@ class _ChatPageState extends State<ChatPage> {
     await _fetchRemainingUsage();
     await _fetchTotalTokens();
     // await _scrollToBottom();
-    print('Current Conversation ID: $_currentConversationId');
+    debugPrint('Current Conversation ID: $_currentConversationId');
   }
 
   Future<void> _getCurentUserInfo() async {
@@ -124,25 +123,22 @@ class _ChatPageState extends State<ChatPage> {
 
   // Function to handle sending messages
   Future<void> _handleSend(String message) async {
-    setState(() {
-      // Append the message to the current conversation thread
-      ChatMessage chatMessage = ChatMessage(
-        assistant: _assistant,
-        content: message,
-        files: [],
-        role: _currentUser!.roles.first,
+    // Continue the conversation if there's a previous response
+    if (_chatResponse != null) {
+      _metadata = AiChatMetadata(
+        chatConversation: ChatConversation(
+          id: _chatResponse!.id,
+        ),
       );
-      _messages.add(chatMessage);
-
-      if (_currentConversationId != null) {
-        _metadata = AiChatMetadata(
-          chatConversation: ChatConversation(
-            id: _currentConversationId!,
-            messages: _messages,
-          ),
-        );
-      }
-    });
+    }
+    // Else check if current conversation is a new thread
+    else if (!_isNewThread) {
+      _metadata = AiChatMetadata(
+        chatConversation: ChatConversation(
+          id: _currentConversationId!,
+        ),
+      );
+    }
 
     // Send the message to the AI
     try {
@@ -161,17 +157,27 @@ class _ChatPageState extends State<ChatPage> {
       setState(() {
         // Reset the new thread flag
         _isNewThread = false;
+
+        // Update the current conversation ID if it's a new thread
+        _currentConversationId ??= response.id;
+
+        // Current chat response (used for continuous conversation)
+        _chatResponse = ChatResponseModel(
+          id: response.id,
+          message: response.message,
+          remainingUsage: response.remainingUsage,
+        );
       });
 
       // Fetch all conversations
-      _fetchAllConversations();
+      await _fetchAllConversations();
 
       // Update current conversation history
-      _getConversationHistory(_currentConversationId!);
+      await _getConversationHistory(_currentConversationId!);
 
       // Update token usages
-      _fetchRemainingUsage();
-      _fetchTotalTokens();
+      await _fetchRemainingUsage();
+      await _fetchTotalTokens();
     } catch (e) {
       // Error sending message
     }
@@ -224,7 +230,6 @@ class _ChatPageState extends State<ChatPage> {
     try {
       final response = await _apiService.getConversations(
         context: context,
-        limit: 100,
         assistant: _assistant,
       );
 
@@ -242,7 +247,7 @@ class _ChatPageState extends State<ChatPage> {
           // Set the current conversation ID to the first conversation
           _currentConversationId = _conversations.first.id;
         } else {
-          _conversations.addAll(response.items);
+          _conversations = response.items;
           // Sort the conversations by the latest message
           _conversations.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
@@ -261,7 +266,6 @@ class _ChatPageState extends State<ChatPage> {
       final response = await _apiService.getConversationHistory(
         context: context,
         conversationId: conversationId,
-        limit: 100,
         assistant: _assistant,
       );
 

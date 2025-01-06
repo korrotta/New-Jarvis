@@ -523,23 +523,29 @@ class ApiService {
           },
           'content': content,
           'files': files,
-          'metadata': metadata,
+          'metadata': {
+            'conversation': {
+              'id': metadata!.chatConversation.id,
+            },
+          },
         }),
       );
 
       if (response.statusCode == 200) {
         // Decode and return the message response
         final data = jsonDecode(response.body);
-        chatResponse = ChatResponseModel.fromJson(data);
 
-        return chatResponse;
+        return ChatResponseModel.fromJson(data);
       } else {
         _showErrorSnackbar(context,
             "Failed to send message. Status Code: ${response.statusCode}");
+        print(
+            "Failed to send message. Status Code: ${response.statusCode}. Details: ${jsonDecode(response.body)['message']}");
         return chatResponse;
       }
     } catch (e) {
       _showErrorSnackbar(context, "Error sending message: $e");
+      print('Error sending message: $e');
       return chatResponse;
     }
   }
@@ -561,8 +567,8 @@ class ApiService {
 
     final url = Uri.parse('$_baseUrl/api/v1/ai-chat/conversations').replace(
       queryParameters: {
-        'cursor': cursor ?? '',
-        'limit': limit?.toString() ?? '100',
+        if (cursor != null) 'cursor': cursor,
+        if (limit != null) 'limit': limit.toString(),
         'assistantId': assistantId,
         'assistantModel': 'dify',
       },
@@ -580,8 +586,6 @@ class ApiService {
       if (response.statusCode == 200) {
         // Decode and return the conversation
         final data = jsonDecode(response.body);
-
-        print('Conversation response: $data');
 
         if (data['items'] == null || data['items'].isEmpty) {
           return ConversationResponseModel(
