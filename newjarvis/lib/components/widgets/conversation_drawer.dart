@@ -21,8 +21,6 @@ class ConversationSidebar extends StatefulWidget {
 }
 
 class _ConversationSidebarState extends State<ConversationSidebar> {
-  bool _isSidebarVisible = false;
-
   String _formatDate(String timestamp) {
     final dateTime = DateTime.fromMillisecondsSinceEpoch(
       int.parse(timestamp) * 1000,
@@ -161,9 +159,7 @@ class _ConversationSidebarState extends State<ConversationSidebar> {
                               ),
                               onTap: () {
                                 widget.onSelectedConversation(conversation.id);
-                                setState(() {
-                                  _isSidebarVisible = false;
-                                });
+                                Navigator.of(context).pop();
                               },
                             );
                           }).toList(),
@@ -177,18 +173,6 @@ class _ConversationSidebarState extends State<ConversationSidebar> {
                       style: TextStyle(fontSize: 14),
                     ),
                   ),
-          ),
-          // Sidebar Footer (Remaining Tokens)
-          Container(
-            padding: const EdgeInsets.all(12.0),
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-            child: Text(
-              'Remaining Tokens: ${widget.remainingTokens} / ${widget.totalTokens}',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-              ),
-            ),
           ),
         ],
       ),

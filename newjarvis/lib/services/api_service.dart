@@ -522,12 +522,13 @@ class ApiService {
             'model': 'dify',
           },
           'content': content,
-          'files': files,
-          'metadata': {
-            'conversation': {
-              'id': metadata!.chatConversation.id,
+          if (files != null) 'files': files,
+          if (metadata != null)
+            'metadata': {
+              'conversation': {
+                'id': metadata.chatConversation.id,
+              },
             },
-          },
         }),
       );
 
@@ -650,6 +651,7 @@ class ApiService {
       if (response.statusCode == 200) {
         // Decode and return the conversation history
         final data = jsonDecode(response.body);
+        print('data: $data');
 
         final List<dynamic> items = data['items'] ?? [];
 

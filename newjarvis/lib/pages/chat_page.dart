@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:newjarvis/components/ai_chat/ai_model_selection_section.dart';
 import 'package:newjarvis/components/widgets/bottom_nav_section.dart';
@@ -64,7 +65,6 @@ class _ChatPageState extends State<ChatPage> {
   bool _isExpanded = false;
   bool _isSidebarVisible = false;
   double _dragOffset = 200.0;
-  final ScrollController _scrollController = ScrollController();
 
   // Token usages
   String _remainingUsage = '0';
@@ -75,27 +75,14 @@ class _ChatPageState extends State<ChatPage> {
     id: Id.CLAUDE_3_HAIKU_20240307.value,
   );
 
-  bool _showScrollToBottom = false;
-
-  void _updateScrollVisibility() {
-    if (_scrollController.hasClients) {
-      setState(() {
-        _showScrollToBottom = _scrollController.offset <
-            _scrollController.position.maxScrollExtent - 100;
-      });
-    }
-  }
-
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_updateScrollVisibility);
     _initializePage();
   }
 
   @override
   void dispose() {
-    _scrollController.dispose();
     super.dispose();
   }
 
@@ -108,7 +95,6 @@ class _ChatPageState extends State<ChatPage> {
     }
     await _fetchRemainingUsage();
     await _fetchTotalTokens();
-    // _scrollToBottom();
   }
 
   Future<void> _getCurentUserInfo() async {
@@ -116,16 +102,6 @@ class _ChatPageState extends State<ChatPage> {
     setState(() {
       _currentUser = response;
     });
-  }
-
-  Future<void> _scrollToBottom() async {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.linear,
-      );
-    }
   }
 
   void _onItemTapped(int index) {
@@ -150,12 +126,12 @@ class _ChatPageState extends State<ChatPage> {
               _handleSelectedAI(context, aiId);
             },
           ),
-          const SizedBox(width: 30),
+          const SizedBox(width: 10),
           _buildFireBadge(_remainingUsage),
         ],
       ),
+
       elevation: 0,
-      automaticallyImplyLeading: false,
     );
   }
 
@@ -208,6 +184,7 @@ class _ChatPageState extends State<ChatPage> {
     }
     // Else check if current conversation is a new thread
     else if (!_isNewThread) {
+      print('Current conversation ID: $_currentConversationId');
       _metadata = AiChatMetadata(
         chatConversation: ChatConversation(
           id: _currentConversationId!,
@@ -234,7 +211,9 @@ class _ChatPageState extends State<ChatPage> {
         _isNewThread = false;
 
         // Update the current conversation ID if it's a new thread
-        _currentConversationId ??= response.id;
+        if (_currentConversationId == null || _currentConversationId!.isEmpty) {
+          _currentConversationId = response.id;
+        }
 
         // Current chat response (used for continuous conversation)
         _chatResponse = ChatResponseModel(
@@ -253,7 +232,6 @@ class _ChatPageState extends State<ChatPage> {
       // Update token usages
       await _fetchRemainingUsage();
       await _fetchTotalTokens();
-      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
     } catch (e) {
       // Error sending message
     }
@@ -263,11 +241,10 @@ class _ChatPageState extends State<ChatPage> {
   void _handleNewConversation() {
     setState(() {
       _isNewThread = true;
-      _messages.clear(); // Clear the previous conversation messages
-      _conversations.clear(); // Clear the previous conversations
+      _messages = []; // Clear the previous conversation messages
       _currentConversationHistory =
           Future.value([]); // Clear the previous conversation history
-      _currentConversationId = null; // Reset conversation ID
+      _currentConversationId = ''; // Reset conversation ID
     });
   }
 
@@ -326,9 +303,6 @@ class _ChatPageState extends State<ChatPage> {
           _conversations = response.items;
           // Sort the conversations by the latest message
           _conversations.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-
-          // Set the current conversation ID to the first conversation
-          _currentConversationId = _conversations.first.id;
         }
       });
     } catch (e) {
@@ -347,8 +321,8 @@ class _ChatPageState extends State<ChatPage> {
 
       setState(() {
         _currentConversationHistory = Future.value(response);
+        _currentConversationId = conversationId;
       });
-      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
       return;
     } catch (e) {
       // Error fetching conversation history
@@ -371,13 +345,16 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void _handleConversationSelect(String id) {
-    // Get the conversation history based on the selected conversation ID
-    _getConversationHistory(id);
-
     setState(() {
       // Update the current conversation ID
       _currentConversationId = id;
+
+      // Reset the new thread flag
+      _isNewThread = false;
     });
+
+    // Get the conversation history based on the selected conversation ID
+    _getConversationHistory(id);
   }
 
   @override
@@ -386,9 +363,17 @@ class _ChatPageState extends State<ChatPage> {
     return SafeArea(
       top: true,
       bottom: false,
-      minimum: const EdgeInsets.only(top: 20),
       child: Scaffold(
         appBar: _buildAppBar(),
+        drawer: Drawer(
+          elevation: 0,
+          child: ConversationSidebar(
+            conversations: _conversations,
+            onSelectedConversation: _handleConversationSelect,
+            remainingTokens: _remainingUsage,
+            totalTokens: _totalUsage,
+          ),
+        ),
         resizeToAvoidBottomInset:
             true, // Ensures the layout adjusts for the keyboard
         body: authProvider.currentUser == null
@@ -399,24 +384,8 @@ class _ChatPageState extends State<ChatPage> {
                     padding:
                         const EdgeInsets.only(top: 20, left: 20, right: 20),
                     duration: const Duration(milliseconds: 300),
-                    margin: EdgeInsets.only(
-                      left: 0,
-                      right: _isSidebarVisible ? (_isExpanded ? 180 : 98) : 0,
-                    ),
                     width: double.infinity,
                     child: _buildChatList(context),
-                  ),
-
-                  // FAB for scrolling to bottom
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 10),
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: ScrollToBottomFAB(
-                        onPressed: _scrollToBottom,
-                        isVisible: _showScrollToBottom,
-                      ),
-                    ),
                   ),
 
                   // Sidebar
@@ -515,7 +484,6 @@ class _ChatPageState extends State<ChatPage> {
                 padding:
                     const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
                 scrollDirection: Axis.vertical,
-                controller: _scrollController,
                 itemCount: items.length,
                 itemBuilder: (context, index) {
                   final history = items[index];

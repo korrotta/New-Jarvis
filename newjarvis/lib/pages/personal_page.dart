@@ -182,9 +182,6 @@ class _PersonalPageState extends State<PersonalPage> {
                     padding:
                         const EdgeInsets.only(top: 20, left: 20, right: 20),
                     duration: const Duration(milliseconds: 300),
-                    margin: EdgeInsets.only(
-                      right: _isSidebarVisible ? (_isExpanded ? 180 : 98) : 0,
-                    ),
                     width: double.infinity,
                     child: _buildPageContent(context),
                   ),
@@ -250,31 +247,30 @@ class _PersonalPageState extends State<PersonalPage> {
       children: [
         Row(
           children: [
-            if (!_isSidebarVisible)
-              Flexible(
-                flex: 2,
-                fit: FlexFit.tight,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.smart_toy_rounded,
-                      size: 22,
+            Flexible(
+              flex: 2,
+              fit: FlexFit.tight,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.smart_toy_rounded,
+                    size: 22,
+                    color: Theme.of(context).colorScheme.inversePrimary,
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    "Assistant",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                       color: Theme.of(context).colorScheme.inversePrimary,
                     ),
-                    const SizedBox(width: 5),
-                    Text(
-                      "Assistant",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.inversePrimary,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
+            ),
             Flexible(
               flex: 3,
               fit: FlexFit.tight,
