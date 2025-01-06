@@ -14,22 +14,25 @@ class AiAgent extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
+        const SizedBox(width: 3),
         ClipOval(
-          child: Image.asset(
-            AiIcon,
-            fit: BoxFit.cover,
-            width: 30,
-            height: 30,
+          child: Container(
+            color: Colors.blue.shade800,
+            child: Image.asset(
+              AiIcon,
+              fit: BoxFit.cover,
+              width: 20,
+              height: 21,
+            ),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.only(left: 4.0),
-          child: Text(
-            AiName,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.inversePrimary,
-              fontSize: 14,
-            ),
+        const SizedBox(width: 7),
+        Text(
+          AiName,
+          style: const TextStyle(
+            color: Colors.black87,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ],

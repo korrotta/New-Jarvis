@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:newjarvis/components/ai_chat/ai_model_selection_section.dart';
 import 'package:newjarvis/components/widgets/bottom_nav_section.dart';
 import 'package:newjarvis/components/widgets/chat_bubble.dart';
 import 'package:newjarvis/components/widgets/chat_participant.dart';
@@ -135,6 +136,64 @@ class _ChatPageState extends State<ChatPage> {
 
     // Navigate to the selected page
     RouteController.navigateTo(index);
+  }
+
+  AppBar _buildAppBar() {
+    return AppBar(
+      backgroundColor: const Color.fromARGB(
+          136, 200, 200, 200), // .fromRGBO(238, 238, 238, 1),
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          AiModelSelectionSection(
+            onAiSelected: (String aiId) {
+              _handleSelectedAI(context, aiId);
+            },
+          ),
+          const SizedBox(width: 30),
+          _buildFireBadge(_remainingUsage),
+        ],
+      ),
+      elevation: 0,
+      automaticallyImplyLeading: false,
+    );
+  }
+
+  Widget _buildFireBadge(String count) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 7.0),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade200, // Nền màu sáng
+        borderRadius: BorderRadius.circular(15.0), // Bo góc
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade300,
+            blurRadius: 4.0, // Hiệu ứng bóng mờ
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Image.asset(
+            "assets/images/fire_blue.png", // Thay bằng đường dẫn icon ngọn lửa của bạn
+            width: 17,
+            height: 17,
+            fit: BoxFit.cover,
+          ),
+          const SizedBox(width: 10), // Khoảng cách giữa icon và số
+          Text(
+            count,
+            style: const TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+              fontSize: 14.0,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   // Function to handle sending messages
@@ -329,29 +388,7 @@ class _ChatPageState extends State<ChatPage> {
       bottom: false,
       minimum: const EdgeInsets.only(top: 20),
       child: Scaffold(
-        drawer: // Conversation Drawer
-            Drawer(
-          child: ConversationSidebar(
-            conversations: _conversations,
-            onSelectedConversation: _handleConversationSelect,
-            remainingTokens: _remainingUsage,
-            totalTokens: _totalUsage,
-          ),
-        ),
-        appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.surface,
-          shadowColor: Colors.transparent,
-          elevation: 0,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: () {
-                _fetchAllConversations();
-              },
-            ),
-            const SizedBox(width: 20),
-          ],
-        ),
+        appBar: _buildAppBar(),
         resizeToAvoidBottomInset:
             true, // Ensures the layout adjusts for the keyboard
         body: authProvider.currentUser == null
@@ -435,7 +472,6 @@ class _ChatPageState extends State<ChatPage> {
         bottomNavigationBar: BottomNavSection(
           onSend: (chat) => _handleSend(chat),
           onNewConversation: () => _handleNewConversation(),
-          onAiSelected: (aiId) => _handleSelectedAI(context, aiId),
         ),
       ),
     );
