@@ -48,7 +48,7 @@ class _AssistantPageState extends State<AssistantPage> {
   String? _currentOpenAiThreadId;
 
   // Thread's Messages
-  List<AssistantThreadMessageModel> _threadMessages = [];
+  Future<List<AssistantThreadMessageModel>>? _threadMessages;
 
   // List of thread's messages' contents
   List<ThreadMessageContentModel> _contents = [];
@@ -388,8 +388,7 @@ class _AssistantPageState extends State<AssistantPage> {
     );
 
     setState(() {
-      _threadMessages.addAll(response);
-      print('Thread Messages: $_threadMessages');
+      _threadMessages = Future.value(response);
     });
   }
 
@@ -434,7 +433,9 @@ class _AssistantPageState extends State<AssistantPage> {
         );
 
         setState(() {
-          _threadMessages.add(message);
+          _threadMessages!.then((value) {
+            value.add(message);
+          });
         });
       }
     } else {
@@ -462,7 +463,9 @@ class _AssistantPageState extends State<AssistantPage> {
         );
 
         setState(() {
-          _threadMessages.add(message);
+          _threadMessages!.then((value) {
+            value.add(message);
+          });
         });
       }
     }
@@ -475,7 +478,7 @@ class _AssistantPageState extends State<AssistantPage> {
       _isNewThread = true;
       _currentOpenAiThreadId = "";
       _threads = [];
-      _threadMessages = [];
+      _threadMessages = Future.value([]);
       _contents = [];
     });
   }
@@ -762,18 +765,24 @@ class _AssistantPageState extends State<AssistantPage> {
           ),
           Expanded(
             child: FutureBuilder<List<AssistantThreadMessageModel>>(
-                future: Future.value(_threadMessages),
+                future: _threadMessages,
                 builder: (context, snapshot) {
                   switch (snapshot.connectionState) {
                     case ConnectionState.waiting:
                       return const Center(
-                        child: CircularProgressIndicator(),
+                        child: Center(
+                            child: CircularProgressIndicator(
+                          color: Colors.blueAccent,
+                        )),
                       );
                     case ConnectionState.none:
                       return const SizedBox.shrink();
                     case ConnectionState.active:
                       return const Center(
-                        child: CircularProgressIndicator(),
+                        child: Center(
+                            child: CircularProgressIndicator(
+                          color: Colors.blueAccent,
+                        )),
                       );
                     case ConnectionState.done:
                       if (!(snapshot.hasData) || snapshot.data!.isEmpty) {
@@ -783,6 +792,7 @@ class _AssistantPageState extends State<AssistantPage> {
                       }
                       final items = snapshot.data!.reversed.toList();
                       return ListView.builder(
+                        shrinkWrap: true,
                         itemCount: items.length,
                         itemBuilder: (context, index) {
                           final AssistantThreadMessageModel history =
@@ -828,7 +838,7 @@ class _AssistantPageState extends State<AssistantPage> {
                                         Text(
                                           role == 'assistant'
                                               ? _assistant.assistantName
-                                              : _currentUser!.getUsername,
+                                              : '',
                                           style: TextStyle(
                                             fontSize: 14,
                                             color: Theme.of(context)

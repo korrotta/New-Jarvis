@@ -121,7 +121,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     Container(
                       margin: const EdgeInsets.only(left: 10),
                       child: const Text(
-                        "Jarvis",
+                        "AIdea",
                         style: TextStyle(
                           color: Colors.blue,
                           fontSize: 30,
@@ -147,7 +147,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 const SizedBox(height: 20),
 
                 Text(
-                  "Get your free Jarvis account now.",
+                  "Get your free AIdea account now.",
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.primary,
                     fontSize: 16,
