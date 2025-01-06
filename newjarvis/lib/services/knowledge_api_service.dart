@@ -433,7 +433,7 @@ class KnowledgeApiService {
 
     if (response.statusCode != 401) {
       final result = response.body;
-      print(result);
+      print('Ask Assistant: $result');
       return result;
     } else {
       _showErrorSnackbar(context,

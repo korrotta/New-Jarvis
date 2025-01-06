@@ -297,7 +297,7 @@ class _LoginPageState extends State<LoginPage> {
             const SizedBox(height: 10),
 
             Text(
-              "Sign in to continue to Jarvis",
+              "Sign in to continue to AIdea",
               style: TextStyle(
                 color: Theme.of(context).colorScheme.primary,
                 fontSize: 16,

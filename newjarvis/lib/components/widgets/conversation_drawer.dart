@@ -70,155 +70,128 @@ class _ConversationSidebarState extends State<ConversationSidebar> {
   @override
   Widget build(BuildContext context) {
     final groupedConversations = _groupConversations();
-    return Stack(
-      children: [
-        // Top-Left Button to Open Sidebar
-        Align(
-          alignment: Alignment.topLeft,
-          child: IconButton(
-            icon: const Icon(Icons.menu_rounded, size: 32),
-            color: Theme.of(context).colorScheme.inversePrimary,
-            onPressed: () {
-              setState(() {
-                _isSidebarVisible = true;
-              });
-            },
+    return Container(
+      width: 250,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 5,
+            spreadRadius: 2,
           ),
+        ],
+        borderRadius: const BorderRadius.only(
+          topRight: Radius.circular(20.0),
+          bottomRight: Radius.circular(20.0),
         ),
-        // Sidebar
-        if (_isSidebarVisible)
-          AnimatedPositioned(
-            duration: const Duration(milliseconds: 300),
-            top: 0,
-            bottom: 0,
-            left: _isSidebarVisible ? 0 : -250,
-            child: Container(
-              width: 250,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.primary,
-                  width: 1,
-                ),
-                borderRadius: const BorderRadius.only(
-                  topRight: Radius.circular(20.0),
-                  bottomRight: Radius.circular(20.0),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Sidebar Header
-                  Container(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Conversations',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () {
-                            setState(() {
-                              _isSidebarVisible = false;
-                            });
-                          },
-                        ),
-                      ],
-                    ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Sidebar Header
+          Container(
+            padding: const EdgeInsets.all(12.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Conversations',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
                   ),
-                  // Conversation List
-                  Expanded(
-                    child: widget.conversations.isNotEmpty
-                        ? ListView(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            children: groupedConversations.entries
-                                .where((entry) => entry.value.isNotEmpty)
-                                .map((entry) {
-                              final sectionTitle = entry.key;
-                              final conversations = entry.value;
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // Section Header
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 12.0, vertical: 8.0),
-                                    child: Text(
-                                      sectionTitle,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ),
-                                  // Conversation Items
-                                  ...conversations.map((conversation) {
-                                    return ListTile(
-                                      title: Text(
-                                        conversation.title[0].toUpperCase() +
-                                            conversation.title.substring(1),
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                        ),
-                                      ),
-                                      subtitle: Text(
-                                        _formatDate(
-                                            conversation.createdAt.toString()),
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurface
-                                              .withOpacity(0.7),
-                                        ),
-                                      ),
-                                      onTap: () {
-                                        widget.onSelectedConversation(
-                                            conversation.id);
-                                        setState(() {
-                                          _isSidebarVisible = false;
-                                        });
-                                      },
-                                    );
-                                  }).toList(),
-                                ],
-                              );
-                            }).toList(),
-                          )
-                        : const Center(
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            ),
+          ),
+          // Conversation List
+          Expanded(
+            child: widget.conversations.isNotEmpty
+                ? ListView(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    children: groupedConversations.entries
+                        .where((entry) => entry.value.isNotEmpty)
+                        .map((entry) {
+                      final sectionTitle = entry.key;
+                      final conversations = entry.value;
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Section Header
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12.0, vertical: 8.0),
                             child: Text(
-                              'No conversations available.',
-                              style: TextStyle(fontSize: 14),
+                              sectionTitle,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
                             ),
                           ),
-                  ),
-                  // Sidebar Footer (Remaining Tokens)
-                  Container(
-                    padding: const EdgeInsets.all(12.0),
-                    color:
-                        Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                          // Conversation Items
+                          ...conversations.map((conversation) {
+                            return ListTile(
+                              title: Text(
+                                conversation.title[0].toUpperCase() +
+                                    conversation.title.substring(1),
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              subtitle: Text(
+                                _formatDate(conversation.createdAt.toString()),
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withOpacity(0.7),
+                                ),
+                              ),
+                              onTap: () {
+                                widget.onSelectedConversation(conversation.id);
+                                setState(() {
+                                  _isSidebarVisible = false;
+                                });
+                              },
+                            );
+                          }).toList(),
+                        ],
+                      );
+                    }).toList(),
+                  )
+                : const Center(
                     child: Text(
-                      'Remaining Tokens: ${widget.remainingTokens} / ${widget.totalTokens}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
+                      'No conversations available.',
+                      style: TextStyle(fontSize: 14),
                     ),
                   ),
-                ],
+          ),
+          // Sidebar Footer (Remaining Tokens)
+          Container(
+            padding: const EdgeInsets.all(12.0),
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+            child: Text(
+              'Remaining Tokens: ${widget.remainingTokens} / ${widget.totalTokens}',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
               ),
             ),
           ),
-      ],
+        ],
+      ),
     );
   }
 }

@@ -5,6 +5,7 @@ import 'package:newjarvis/components/widgets/chat_participant.dart';
 import 'package:newjarvis/components/widgets/conversation_drawer.dart';
 import 'package:newjarvis/components/widgets/floating_button.dart';
 import 'package:newjarvis/components/route/route_controller.dart';
+import 'package:newjarvis/components/widgets/scroll_to_bottom_fab.dart';
 import 'package:newjarvis/components/widgets/side_bar.dart';
 import 'package:newjarvis/components/ai_chat/welcome_chat_section.dart';
 import 'package:newjarvis/enums/id.dart';
@@ -37,7 +38,6 @@ class _ChatPageState extends State<ChatPage> {
   BasicUserModel? _currentUser;
 
   // State variables
-  String? _firstConversationId; // Nullable to handle new conversations
   String? _currentConversationId; // Nullable to handle new conversations
 
   ChatResponseModel? _chatResponse;
@@ -55,14 +55,13 @@ class _ChatPageState extends State<ChatPage> {
 
   // Storing conversations and conversation history
   List<ConversationItemModel> _conversations = []; // Store all conversations
-  List<ConversationHistoryItemModel> _currentConversationHistory =
-      []; // Store all current conversation history
+  Future<List<ConversationHistoryItemModel>>?
+      _currentConversationHistory; // Store all current conversation history
 
   // UI State variables
   int _selectedIndex = 0;
   bool _isExpanded = false;
   bool _isSidebarVisible = false;
-  bool _isDrawerVisible = false;
   double _dragOffset = 200.0;
   final ScrollController _scrollController = ScrollController();
 
@@ -75,10 +74,28 @@ class _ChatPageState extends State<ChatPage> {
     id: Id.CLAUDE_3_HAIKU_20240307.value,
   );
 
+  bool _showScrollToBottom = false;
+
+  void _updateScrollVisibility() {
+    if (_scrollController.hasClients) {
+      setState(() {
+        _showScrollToBottom = _scrollController.offset <
+            _scrollController.position.maxScrollExtent - 100;
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_updateScrollVisibility);
     _initializePage();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _initializePage() async {
@@ -90,8 +107,7 @@ class _ChatPageState extends State<ChatPage> {
     }
     await _fetchRemainingUsage();
     await _fetchTotalTokens();
-    // await _scrollToBottom();
-    debugPrint('Current Conversation ID: $_currentConversationId');
+    // _scrollToBottom();
   }
 
   Future<void> _getCurentUserInfo() async {
@@ -101,15 +117,15 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
-  // Future<void> _scrollToBottom() async {
-  //   if (_scrollController.hasClients) {
-  //     _scrollController.animateTo(
-  //       _scrollController.position.maxScrollExtent,
-  //       duration: const Duration(milliseconds: 500),
-  //       curve: Curves.easeOut,
-  //     );
-  //   }
-  // }
+  Future<void> _scrollToBottom() async {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.linear,
+      );
+    }
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -178,6 +194,7 @@ class _ChatPageState extends State<ChatPage> {
       // Update token usages
       await _fetchRemainingUsage();
       await _fetchTotalTokens();
+      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
     } catch (e) {
       // Error sending message
     }
@@ -189,8 +206,8 @@ class _ChatPageState extends State<ChatPage> {
       _isNewThread = true;
       _messages.clear(); // Clear the previous conversation messages
       _conversations.clear(); // Clear the previous conversations
-      _currentConversationHistory
-          .clear(); // Clear the previous conversation history
+      _currentConversationHistory =
+          Future.value([]); // Clear the previous conversation history
       _currentConversationId = null; // Reset conversation ID
     });
   }
@@ -270,10 +287,9 @@ class _ChatPageState extends State<ChatPage> {
       );
 
       setState(() {
-        _currentConversationHistory = response;
+        _currentConversationHistory = Future.value(response);
       });
-
-      // _scrollToBottom();
+      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
       return;
     } catch (e) {
       // Error fetching conversation history
@@ -313,6 +329,29 @@ class _ChatPageState extends State<ChatPage> {
       bottom: false,
       minimum: const EdgeInsets.only(top: 20),
       child: Scaffold(
+        drawer: // Conversation Drawer
+            Drawer(
+          child: ConversationSidebar(
+            conversations: _conversations,
+            onSelectedConversation: _handleConversationSelect,
+            remainingTokens: _remainingUsage,
+            totalTokens: _totalUsage,
+          ),
+        ),
+        appBar: AppBar(
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          shadowColor: Colors.transparent,
+          elevation: 0,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: () {
+                _fetchAllConversations();
+              },
+            ),
+            const SizedBox(width: 20),
+          ],
+        ),
         resizeToAvoidBottomInset:
             true, // Ensures the layout adjusts for the keyboard
         body: authProvider.currentUser == null
@@ -324,19 +363,23 @@ class _ChatPageState extends State<ChatPage> {
                         const EdgeInsets.only(top: 20, left: 20, right: 20),
                     duration: const Duration(milliseconds: 300),
                     margin: EdgeInsets.only(
-                      left: _isDrawerVisible ? 250 : 0,
+                      left: 0,
                       right: _isSidebarVisible ? (_isExpanded ? 180 : 98) : 0,
                     ),
                     width: double.infinity,
                     child: _buildChatList(context),
                   ),
 
-                  // Conversation Drawer
-                  ConversationSidebar(
-                    conversations: _conversations,
-                    onSelectedConversation: _handleConversationSelect,
-                    remainingTokens: _remainingUsage,
-                    totalTokens: _totalUsage,
+                  // FAB for scrolling to bottom
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: ScrollToBottomFAB(
+                        onPressed: _scrollToBottom,
+                        isVisible: _showScrollToBottom,
+                      ),
+                    ),
                   ),
 
                   // Sidebar
@@ -401,69 +444,91 @@ class _ChatPageState extends State<ChatPage> {
   Widget _buildChatList(BuildContext context) {
     // Return listbuilder of all conversations
     return FutureBuilder<List<ConversationHistoryItemModel>>(
-      future: Future.value(_currentConversationHistory),
+      future: _currentConversationHistory,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return const SizedBox.shrink();
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(
-            child: WelcomeChatSection(),
-          );
-        } else {
-          final items = snapshot.data!;
-          // _scrollToBottom();
-          return ListView.builder(
-            controller: _scrollController,
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              final history = items[index];
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    alignment: Alignment.centerRight,
-                    child: ChatBubble(
-                      message: history.query,
-                      isQuery: true,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    margin: const EdgeInsets.only(left: 10),
-                    alignment: Alignment.centerLeft,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
+        switch (snapshot.connectionState) {
+          case ConnectionState.active:
+            return const Center(
+                child: CircularProgressIndicator(
+              color: Colors.blueAccent,
+            ));
+          case ConnectionState.none:
+            return const Center(
+                child: CircularProgressIndicator(
+              color: Colors.blueAccent,
+            ));
+          case ConnectionState.waiting:
+            return const Center(
+                child: CircularProgressIndicator(
+              color: Colors.blueAccent,
+            ));
+          case ConnectionState.done:
+            if (snapshot.hasError) {
+              return const Center(
+                  child: CircularProgressIndicator(
+                color: Colors.blueAccent,
+              ));
+            }
+            if (snapshot.data!.isEmpty) {
+              return const Center(
+                child: WelcomeChatSection(),
+              );
+            } else {
+              final items = snapshot.data!;
+              return ListView.builder(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+                scrollDirection: Axis.vertical,
+                controller: _scrollController,
+                itemCount: items.length,
+                itemBuilder: (context, index) {
+                  final history = items[index];
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        alignment: Alignment.centerRight,
+                        child: ChatBubble(
+                          message: history.query,
+                          isQuery: true,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Container(
+                        margin: const EdgeInsets.only(left: 10),
+                        alignment: Alignment.centerLeft,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            botParticipant.icon,
-                            const SizedBox(width: 5),
-                            Text(
-                              botParticipant.name,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .inversePrimary,
-                              ),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                botParticipant.icon,
+                                const SizedBox(width: 5),
+                                Text(
+                                  botParticipant.name,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .inversePrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            ChatBubble(
+                              message: history.answer,
+                              isQuery: false,
                             ),
                           ],
                         ),
-                        ChatBubble(
-                          message: history.answer,
-                          isQuery: false,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                      ),
+                    ],
+                  );
+                },
               );
-            },
-          );
+            }
         }
       },
     );

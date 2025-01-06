@@ -1,10 +1,7 @@
-import 'dart:math';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:newjarvis/components/ai_assistant/empty_assistant_section.dart';
-import 'package:newjarvis/components/widgets/custom_dropdownmenu.dart';
 import 'package:newjarvis/components/widgets/custom_textfield.dart';
 import 'package:newjarvis/components/widgets/filter_button.dart';
 import 'package:newjarvis/components/widgets/floating_button.dart';
@@ -25,7 +22,7 @@ class PersonalPage extends StatefulWidget {
 
 class _PersonalPageState extends State<PersonalPage> {
   // List of assistants
-  List<AiBotModel> _assistants = [];
+  Future<List<AiBotModel>>? _assistants;
 
   // API Service Instance
   final ApiService _apiService = ApiService();
@@ -37,10 +34,11 @@ class _PersonalPageState extends State<PersonalPage> {
   BasicUserModel? _currentUser;
 
   // Text Editing Controllers
-  TextEditingController _assistantNameController = TextEditingController();
-  TextEditingController _assistantDescriptionController =
+  final TextEditingController _assistantNameController =
       TextEditingController();
-  TextEditingController _searchController = TextEditingController();
+  final TextEditingController _assistantDescriptionController =
+      TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
 
   // Search Text
   String _searchText = "";
@@ -53,10 +51,6 @@ class _PersonalPageState extends State<PersonalPage> {
   bool _isExpanded = false;
   bool _isSidebarVisible = false;
   double _dragOffset = 200.0;
-  bool _isHovered = false;
-
-  // Loading state
-  bool _isLoading = false;
 
   @override
   void initState() {
@@ -87,13 +81,9 @@ class _PersonalPageState extends State<PersonalPage> {
       final fetchedAssistants = await _knowledgeApiService.getAssistants(
           context: context, isAll: _selectedFilter == "All");
       setState(() {
-        _assistants = fetchedAssistants;
-        _isLoading = false;
+        _assistants = Future.value(fetchedAssistants);
       });
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to load assistants: $e')),
       );
@@ -142,7 +132,7 @@ class _PersonalPageState extends State<PersonalPage> {
         );
 
         setState(() {
-          _assistants = result;
+          _assistants = Future.value(result);
         });
         return;
       }
@@ -155,7 +145,7 @@ class _PersonalPageState extends State<PersonalPage> {
       );
 
       setState(() {
-        _assistants = result;
+        _assistants = Future.value(result);
       });
       return;
     } catch (e) {
@@ -562,32 +552,45 @@ class _PersonalPageState extends State<PersonalPage> {
     );
   }
 
-  void _navigateToAssistantDetails(String assistantId) {
+  void _navigateToAssistantDetails(String assistantId) async {
     // Navigate to the assistant details page
     print('Navigate to assistant details: $assistantId');
-    AiBotModel selectedAssistant =
-        _assistants.firstWhere((element) => element.id == assistantId);
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) =>
-            AssistantPage(selectedAssistant: selectedAssistant),
-      ),
-    );
+    if (_assistants != null) {
+      final assistants = await _assistants;
+      final selectedAssistant =
+          assistants?.firstWhere((element) => element.id == assistantId);
+      if (selectedAssistant != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                AssistantPage(selectedAssistant: selectedAssistant),
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildAssistantList() {
     return FutureBuilder<List<AiBotModel>>(
-      future: Future.value(_assistants),
+      future: _assistants,
       builder: (context, snapshot) {
         switch (snapshot.connectionState) {
           case ConnectionState.active:
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+                child: CircularProgressIndicator(
+              color: Colors.blueAccent,
+            ));
           case ConnectionState.none:
-            return const SizedBox.shrink();
+            return const Center(
+                child: CircularProgressIndicator(
+              color: Colors.blueAccent,
+            ));
           case ConnectionState.waiting:
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+                child: CircularProgressIndicator(
+              color: Colors.blueAccent,
+            ));
           case ConnectionState.done:
             if (snapshot.hasError) {
               return const SizedBox.shrink();
@@ -631,151 +634,158 @@ class _PersonalPageState extends State<PersonalPage> {
               );
             } else {
               final items = snapshot.data!;
-              return ListView.separated(
-                shrinkWrap: true,
-                scrollDirection: Axis.vertical,
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.all(8),
-                itemCount: items.length,
-                separatorBuilder: (context, index) =>
-                    const SizedBox(height: 10),
-                itemBuilder: (context, index) {
-                  final assistant = items[index];
-                  return GestureDetector(
-                    onTap: () {
-                      _navigateToAssistantDetails(assistant.id);
-                    },
-                    child: Container(
-                      width: MediaQuery.of(context).size.width * 0.3,
-                      height: MediaQuery.of(context).size.height * 0.1,
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Theme.of(context).colorScheme.primary,
-                            blurRadius: 5,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: Stack(
-                        children: [
-                          // Assistant details
-                          Positioned(
-                            top: 0,
-                            left: 0,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Image.asset(
-                                  "assets/icons/assistant.png",
-                                  width: 45,
-                                  height: 45,
-                                ),
-                                const SizedBox(width: 10),
-                                Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      assistant.assistantName,
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .inversePrimary,
-                                      ),
-                                    ),
-                                    Text(
-                                      assistant.description ?? "",
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .inversePrimary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+              return RefreshIndicator(
+                onRefresh: () async {
+                  await _getAssistants();
+                },
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  scrollDirection: Axis.vertical,
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.all(8),
+                  itemCount: items.length,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 10),
+                  itemBuilder: (context, index) {
+                    final assistant = items[index];
+                    return GestureDetector(
+                      onTap: () {
+                        _navigateToAssistantDetails(assistant.id);
+                      },
+                      child: Container(
+                        width: MediaQuery.of(context).size.width * 0.3,
+                        height: MediaQuery.of(context).size.height * 0.1,
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surface,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Theme.of(context).colorScheme.primary,
+                              blurRadius: 5,
+                              offset: const Offset(0, 3),
                             ),
-                          ),
-
-                          // Favorite & Remove
-                          Positioned(
-                            right: 0,
-                            top: 0,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                IconButton(
-                                  icon: Icon(
-                                    assistant.isFavorite != null &&
-                                            assistant.isFavorite == true
-                                        ? CupertinoIcons.star_fill
-                                        : CupertinoIcons.star,
-                                    color: assistant.isFavorite != null &&
-                                            assistant.isFavorite == true
-                                        ? Colors.yellowAccent
-                                        : Colors.black,
-                                    size: 16,
+                          ],
+                        ),
+                        child: Stack(
+                          children: [
+                            // Assistant details
+                            Positioned(
+                              top: 0,
+                              left: 0,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  Image.asset(
+                                    "assets/icons/assistant.png",
+                                    width: 45,
+                                    height: 45,
                                   ),
-                                  onPressed: () {
-                                    // Call the API to favorite/unfavorite the assistant
-                                    _knowledgeApiService.favoriteAssistant(
-                                      context: context,
-                                      assistantId: assistant.id,
-                                    );
-                                    _getAssistants();
-                                  },
-                                ),
-                                IconButton(
-                                  icon: const Icon(
-                                    CupertinoIcons.trash,
-                                    color: Colors.black,
-                                    size: 16,
+                                  const SizedBox(width: 10),
+                                  Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        assistant.assistantName,
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .inversePrimary,
+                                        ),
+                                      ),
+                                      Text(
+                                        assistant.description ?? "",
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .inversePrimary,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  onPressed: () {
-                                    _deleteAssistant(assistant.id);
-                                  },
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
 
-                          // Date time
-                          Positioned(
-                            right: 0,
-                            bottom: 0,
-                            child: Row(
-                              children: [
-                                Icon(
-                                  CupertinoIcons.clock,
-                                  size: 16,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                                const SizedBox(width: 5),
-                                Text(
-                                  DateFormat('dd/MM/yyyy')
-                                      .format(assistant.createdAt),
-                                  style: TextStyle(
-                                    fontSize: 12,
+                            // Favorite & Remove
+                            Positioned(
+                              right: 0,
+                              top: 0,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  IconButton(
+                                    icon: Icon(
+                                      assistant.isFavorite != null &&
+                                              assistant.isFavorite == true
+                                          ? CupertinoIcons.star_fill
+                                          : CupertinoIcons.star,
+                                      color: assistant.isFavorite != null &&
+                                              assistant.isFavorite == true
+                                          ? Colors.yellowAccent
+                                          : Colors.black,
+                                      size: 16,
+                                    ),
+                                    onPressed: () {
+                                      // Call the API to favorite/unfavorite the assistant
+                                      _knowledgeApiService.favoriteAssistant(
+                                        context: context,
+                                        assistantId: assistant.id,
+                                      );
+                                      _getAssistants();
+                                    },
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(
+                                      CupertinoIcons.trash,
+                                      color: Colors.black,
+                                      size: 16,
+                                    ),
+                                    onPressed: () {
+                                      _deleteAssistant(assistant.id);
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            // Date time
+                            Positioned(
+                              right: 0,
+                              bottom: 0,
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    CupertinoIcons.clock,
+                                    size: 16,
                                     color:
                                         Theme.of(context).colorScheme.primary,
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    DateFormat('dd/MM/yyyy')
+                                        .format(assistant.createdAt),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               );
             }
         }
