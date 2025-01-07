@@ -1,7 +1,7 @@
 name: newjarvis
-description: "A new Flutter project."
+description: "Chat with AI Assistant"
 publish_to: 'none' 
-version: 1.0.0+1
+version: 1.0.0+2
 
 environment:
   sdk: ^3.5.3
