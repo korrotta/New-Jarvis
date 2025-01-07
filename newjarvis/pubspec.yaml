@@ -24,6 +24,8 @@ dependencies:
   flutter_secure_storage: ^9.2.2
   url_launcher: ^6.3.1
   flutter_markdown: ^0.7.5
+  google_fonts: ^6.2.1
+  scrollable_positioned_list: ^0.3.8
 
 flutter_launcher_icons:
   android: "launcher_icon"
@@ -58,6 +60,7 @@ flutter:
     - assets/icons/assistant.png
     - assets/images/email_marketing.png
     - assets/images/empty_inbox.png
+    - assets/images/fire_blue.png
 
   # fonts:
   #   - family: Schyler

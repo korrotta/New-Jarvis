@@ -9,13 +9,13 @@ class AiChatMetadata {
 
   factory AiChatMetadata.fromJson(Map<String, dynamic> json) {
     return AiChatMetadata(
-      chatConversation: ChatConversation.fromJson(json['chat_conversation']),
+      chatConversation: ChatConversation.fromJson(json['conversation']),
     );
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
-    data['chat_conversation'] = chatConversation.toJson();
+    data['conversation'] = chatConversation.toJson();
     return data;
   }
 

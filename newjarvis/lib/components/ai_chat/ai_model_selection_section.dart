@@ -35,64 +35,46 @@ class _AiModelSelectionSectionState extends State<AiModelSelectionSection> {
 
   @override
   Widget build(BuildContext context) {
-    // Create spinner for AI Agents
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
+      height: 40, // Điều chỉnh chiều cao
+      padding: const EdgeInsets.symmetric(horizontal: 8), // Giảm padding
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.secondary,
-          width: 2,
-        ),
+        color: const Color.fromARGB(150, 114, 189, 255),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color.fromARGB(152, 114, 135, 255), width: 1.5),
       ),
-      child: Row(
-        children: [
-          Tooltip(
-            message: "Select the AI Agent you want",
-            child: DropdownButton<String>(
-              value: _selectedAiId,
-              icon: const Icon(Icons.arrow_drop_down),
-              iconSize: 24,
-              elevation: 16,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.inversePrimary,
-                fontSize: 14,
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: _selectedAiId,
+          icon: const Icon(Icons.arrow_forward_ios, color: Colors.blueAccent, size: 12),
+          borderRadius: BorderRadius.circular(20),
+          dropdownColor: Colors.blue.shade100,
+          onChanged: (String? newValue) {
+            setState(() {
+              _selectedAiId = newValue!;
+              widget.onAiSelected(newValue);
+            });
+          },
+          items: _aiIds.map<DropdownMenuItem<String>>((String value) {
+            String imageName;
+            if (value.contains('claude')) {
+              imageName = 'claude';
+            } else if (value.contains('gemini')) {
+              imageName = 'gemini';
+            } else if (value.contains('gpt')) {
+              imageName = 'gpt';
+            } else {
+              imageName = 'icon';
+            }
+            return DropdownMenuItem<String>(
+              value: value,
+              child: AiAgent(
+                AiIcon: 'assets/icons/$imageName.png',
+                AiName: _formatAiId(value),
               ),
-              underline: Container(
-                height: 2,
-                color: Theme.of(context).colorScheme.surface,
-              ),
-              onChanged: (String? newValue) {
-                setState(() {
-                  _selectedAiId = newValue!;
-                  widget.onAiSelected(newValue);
-                });
-              },
-              items: _aiIds.map<DropdownMenuItem<String>>(
-                (String value) {
-                  String imageName;
-                  if (value.contains('claude')) {
-                    imageName = 'claude';
-                  } else if (value.contains('gemini')) {
-                    imageName = 'gemini';
-                  } else if (value.contains('gpt')) {
-                    imageName = 'gpt';
-                  } else {
-                    imageName = 'icon'; // Fallback image if needed
-                  }
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: AiAgent(
-                      AiIcon: 'assets/icons/$imageName.png',
-                      AiName: _formatAiId(value),
-                    ),
-                  );
-                },
-              ).toList(),
-            ),
-          ),
-        ],
+            );
+          }).toList(),
+        ),
       ),
     );
   }

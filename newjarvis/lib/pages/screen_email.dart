@@ -1,5 +1,7 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:newjarvis/models/response_email_model.dart';
 import 'package:newjarvis/pages/draft_email.dart';
 import 'package:newjarvis/providers/idea_email_provider.dart';
@@ -41,7 +43,9 @@ class _ScreenEmailState extends State<ScreenEmail> {
   final TextEditingController _chatController = TextEditingController();
   bool _isOptionVisible = true;
 
+  late int _fireCount = widget.emailResponse.remainingUsage;
   
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -58,6 +62,7 @@ class _ScreenEmailState extends State<ScreenEmail> {
   @override
   void dispose() {
     _chatController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -89,6 +94,7 @@ class _ScreenEmailState extends State<ScreenEmail> {
 
     // Điều hướng sang màn hình hiển thị email response và truyền dữ liệu
     if (responseDraft != null) {
+      
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -125,8 +131,13 @@ class _ScreenEmailState extends State<ScreenEmail> {
     // Thêm nội dung mới của người dùng (màu xanh)
     setState(() {
       _chatWidgets.add(_buildUserChat(newMainIdea));
+      
       _isOptionVisible = false;
       _chatController.clear();
+    });
+    // Cuộn xuống cuối sau khi thêm tin nhắn
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom();
     });
 
     // Gọi API để lấy reply mới từ AI
@@ -134,10 +145,21 @@ class _ScreenEmailState extends State<ScreenEmail> {
       // Thay bằng hàm gọi API thực tế của bạn
       final newAIResponse = await _onGenerateContinue(newMainIdea);
 
+      if (newAIResponse != null) {
       setState(() {
-        _chatWidgets.add(_buildAIReply(newAIResponse));
+        _chatWidgets.add(_buildAIReply(newAIResponse.email)); // Truy cập email nếu không null
+        _fireCount = newAIResponse.remainingUsage;
         _isOptionVisible = true;
       });
+      // Đảm bảo cuộn xuống sau khi AI Reply được thêm
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToBottom();
+      });
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Failed to generate response!')),
+    );
+  }
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $error')),
@@ -145,11 +167,11 @@ class _ScreenEmailState extends State<ScreenEmail> {
     }
   }
 
-  Future<String> _onGenerateContinue(String newMainIdea) async {
+  Future<EmailResponseModel?> _onGenerateContinue(String newMainIdea) async {
 
   // Gọi API thông qua Provider
   final emailProvider = Provider.of<EmailProvider>(context, listen: false);
-  await Future.delayed(const Duration(seconds: 2)); // Mô phỏng thời gian chờ
+
 
   try {
     // Chờ kết quả API call
@@ -167,68 +189,96 @@ class _ScreenEmailState extends State<ScreenEmail> {
       formality: widget.formality,
       tone: widget.tone,
       language: widget.language,
-      // ignore: use_build_context_synchronously
       contextUI: context,
     );
 
     // Lấy kết quả từ Provider
     final response = emailProvider.emailResponse;
-  // Đảm bảo trả về chuỗi nội dung từ phản hồi của API
-    return response?.email ?? "No response from API";
+
+    return response;
   } catch (error) {
     print("Error generating email: $error");
-    return "Error: $error";
+    return null;
   }
 }
 
-  Widget _buildUserChat(String content) {
-    return Container(
-      margin: const EdgeInsets.only(top: 10),
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-      decoration: BoxDecoration(
-        color: const Color.fromARGB(235, 210, 227, 252),
-        borderRadius: BorderRadius.circular(10.0),
-      ),
-      child: Text(
-        content,
-        style: const TextStyle(
-          fontSize: 14.0,
-          color: Colors.black,
-        ),
-        textAlign: TextAlign.left,
-      ),
-    );
-  }
 
-  Widget _buildEmailContentReceived(String content) {
+Widget _buildUserChat(String content) {
   return Container(
     margin: const EdgeInsets.only(top: 10),
     width: double.infinity,
-    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+    padding: const EdgeInsets.all(16.0),
     decoration: BoxDecoration(
-      color: const Color.fromARGB(255, 220, 220, 220), 
-      borderRadius: BorderRadius.circular(10.0),
+      color: const Color.fromARGB(235, 210, 227, 252), // Nền xanh dương nhạt
+      borderRadius: BorderRadius.circular(15.0), // Góc bo tròn
+      boxShadow: [
+        BoxShadow(
+          color: Colors.grey.shade300,
+          blurRadius: 10.0, // Độ mờ của shadow
+          offset: const Offset(0, 4),
+        ),
+      ],
+      border: Border.all(color: Colors.blue.shade300, width: 1.5), // Viền xanh nhẹ
+    ),
+    child: Text(
+      content,
+      style: GoogleFonts.openSans(
+        textStyle: const TextStyle(
+          fontSize: 14.0,
+          color: Colors.black87, // Màu chữ đen nhạt
+          height: 1.5, // Khoảng cách dòng thoải mái
+        ),
+      ),
+      textAlign: TextAlign.left, // Canh trái nội dung
+    ),
+  );
+}
+
+
+Widget _buildEmailContentReceived(String content) {
+  return Container(
+    margin: const EdgeInsets.only(top: 10),
+    width: double.infinity,
+    padding: const EdgeInsets.all(16.0),
+    decoration: BoxDecoration(
+      color: Colors.white, // Nền trắng chủ đạo
+      borderRadius: BorderRadius.circular(15.0), // Góc bo tròn
+      boxShadow: [
+        BoxShadow(
+          color: Colors.grey.shade300,
+          blurRadius: 10.0, // Độ mờ của shadow
+          offset: const Offset(0, 4),
+        ),
+      ],
+      border: Border.all(color: Colors.orange.shade200, width: 1.5), // Viền cam nhẹ
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          "EmailContent Received",
-          style: TextStyle(
-            fontSize: 14.0,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
+        // Tiêu đề "EmailContent Received"
+        Text(
+          "Content Received",
+          style: GoogleFonts.roboto(
+            textStyle: const TextStyle(
+              fontSize: 14.0,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFFFB8C00), // Màu cam đậm
+            ),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 8.0),
+
+        // Nội dung email
         Text(
           content,
-          style: const TextStyle(
-            fontSize: 14.0,
-            color: Colors.black,
+          style: GoogleFonts.openSans(
+            textStyle: const TextStyle(
+              fontSize: 14.0,
+              color: Colors.black87,
+              height: 1.5, // Khoảng cách giữa các dòng
+            ),
           ),
-          textAlign: TextAlign.left,
+          textAlign: TextAlign.left, // Canh trái nội dung
         ),
       ],
     ),
@@ -236,84 +286,126 @@ class _ScreenEmailState extends State<ScreenEmail> {
 }
 
 
-  Widget _buildAIReply(String content) {
-  return Container(
-    margin: const EdgeInsets.only(top: 10),
-    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(10.0),
-      border: Border.all(color: Colors.grey.shade300),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Jarvis reply",
-          style: TextStyle(
-            fontSize: 15.0,
-            fontWeight: FontWeight.w700,
-            color: Color.fromARGB(255, 26, 115, 232),
+Widget _buildAIReply(String content) {
+  
+  return  Container(
+      margin: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade300,
+            blurRadius: 10.0,
+            offset: const Offset(0, 4),
           ),
-        ),
-        const Divider(),
-        Text(
-          content,
-          style: const TextStyle(fontSize: 14.0),
-        ),
-        const Divider(),
-        const SizedBox(height: 12),
-
-        // Các nút bổ trợ
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                // Nút Copy
-                GestureDetector(
-                  onTap: () {
-                    Clipboard.setData(ClipboardData(text: content));
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Đã copy!')),
-                    );
-                  },
-                  child: const Icon(Icons.content_copy_outlined, size: 20),
-                ),
-                const SizedBox(width: 12),
-
-                // Nút Refresh
-                GestureDetector(
-                  onTap: () async {
-                    await _handleRefreshReply(content);
-                  },
-                  child: const Icon(Icons.refresh, size: 22),
-                ),
-              ],
+        ],
+        border: Border.all(color: Colors.blue.shade100, width: 1.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Tiêu đề "Jarvis reply"
+          Text(
+            "Jarvis reply",
+            style: GoogleFonts.roboto(
+              textStyle: const TextStyle(
+                fontSize: 16.0,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E88E5), // Màu xanh chủ đạo
+              ),
             ),
-          ],
-        ),
-      ],
-    ),
+          ),
+          const SizedBox(height: 8.0),
+
+          // Nội dung câu trả lời
+          Text(
+            content,
+            style: GoogleFonts.openSans(
+              textStyle: const TextStyle(
+                fontSize: 14.0,
+                color: Colors.black87,
+                height: 1.5, // Khoảng cách dòng
+              ),
+            ),
+          ),
+          const SizedBox(height: 12.0),
+
+          // Divider
+          Divider(color: Colors.grey.shade300, thickness: 1),
+
+          // Các nút bổ trợ (Copy và Refresh)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  // Nút Copy
+                  GestureDetector(
+                    onTap: () {
+                      Clipboard.setData(ClipboardData(text: content));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Đã copy!')),
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(8.0),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade50,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.content_copy_outlined,
+                          size: 20, color: Colors.blue),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+
+                  // Nút Refresh
+                  GestureDetector(
+                    onTap: () async {
+                      await _handleRefreshReply(content);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(8.0),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade50,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.refresh,
+                          size: 22, color: Colors.orange),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
   );
 }
 
 
   Future<void> _handleRefreshReply(String currentReply) async {
+  // Tìm chỉ số của reply hiện tại
   final int replyIndex = _chatWidgets.indexWhere((widget) {
-    if (widget is Container && widget.child is Column) {
-      final Column column = widget.child as Column;
-      final Text? replyText = column.children
-          .whereType<Text>()
-          .firstWhere(
-            (child) => child.data == currentReply,
-            orElse: () => const Text(""),
-          );
-      return replyText?.data == currentReply;
+    if (widget is Builder) {
+      final Widget builtWidget = widget.builder(context);
+      if (builtWidget is Container && builtWidget.child is Column) {
+        final Column column = builtWidget.child as Column;
+        final Text? replyText = column.children
+            .whereType<Text>()
+            .firstWhere(
+              (child) => child.data == currentReply,
+              orElse: () => const Text(''),
+            );
+        return replyText != null && replyText.data == currentReply;
+      }
     }
     return false;
   });
 
+  // Nếu không tìm thấy reply, thông báo lỗi
   if (replyIndex == -1) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Không tìm thấy reply để refresh!')),
@@ -321,19 +413,33 @@ class _ScreenEmailState extends State<ScreenEmail> {
     return;
   }
 
-  // Nếu reply đầu tiên, sử dụng emailContent Received
+  // Lấy widget ngay phía trên
   final int aboveIndex = replyIndex - 1;
-  String contentToSend = "";
-
-  if (aboveIndex == 0) {
-    contentToSend = widget.mainIdea; // Dùng mainIdea từ widget
-  } else {
-    final Container aboveWidget = _chatWidgets[aboveIndex] as Container;
-    contentToSend = (aboveWidget.child is Text)
-        ? (aboveWidget.child as Text).data ?? ""
-        : "";
+  if (aboveIndex < 0) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Không thể lấy nội dung phía trên!')),
+    );
+    return;
   }
 
+  // Lấy nội dung từ ô khung chat ngay phía trên
+  String contentToSend = "";
+  final Widget aboveWidget = _chatWidgets[aboveIndex];
+
+  if (aboveWidget is Builder) {
+    final Widget builtWidget = aboveWidget.builder(context);
+    if (builtWidget is Container && builtWidget.child is Text) {
+      contentToSend = (builtWidget.child as Text).data ?? "";
+    } else if (builtWidget is Text) {
+      contentToSend = builtWidget.data ?? "";
+    }
+  } else if (aboveWidget is Container && aboveWidget.child is Text) {
+    contentToSend = (aboveWidget.child as Text).data ?? "";
+  } else if (aboveWidget is Text) {
+    contentToSend = aboveWidget.data ?? "";
+  }
+
+  // Nếu không tìm thấy nội dung, thông báo lỗi
   if (contentToSend.isEmpty) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Không thể lấy nội dung phía trên!')),
@@ -341,160 +447,321 @@ class _ScreenEmailState extends State<ScreenEmail> {
     return;
   }
 
-  // Gọi API để lấy reply mới
-  final String newReply = await _onGenerateContinue(contentToSend);
+  try {
+    // Gọi API để tạo reply mới
+    final newReply = await _onGenerateContinue(contentToSend);
+    
+    if(newReply != null){
 
-  // Cập nhật nội dung reply mới
-  setState(() {
-    _chatWidgets[replyIndex] = _buildAIReply(newReply);
-  });
+    if (newReply.email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Không thể tạo reply mới!')),
+      );
+      return;
+    }
+    }
 
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(content: Text('Đã làm mới reply!')),
-  );
+    if(newReply != null){
+    // Cập nhật reply mới
+    setState(() {
+      _fireCount = newReply.remainingUsage;
+      _chatWidgets[replyIndex] = _buildAIReply(newReply.email);
+    });
+    // Đảm bảo cuộn sau khi giao diện hoàn thành
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom();
+    });
+
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Không thể tạo reply mới!')),
+      );
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Đã làm mới reply!')),
+    );
+  } catch (error) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Lỗi khi refresh: $error')),
+    );
+  }
 }
 
 
 
-  Widget _buildOptionEmail() {
-    final List<String> options = [
-      "🙏 Thanks",
-      "😔 Sorry",
-      "👍 Yes",
-      "👎 No",
-      "🗓️ Follow up",
-      "🤔 Request for more information"
-    ];
 
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Wrap(
-        spacing: 8.0,
-        runSpacing: 8.0,
-        children: List.generate(
-          options.length,
-          (index) => GestureDetector(
-            onTap: () {
-              setState(() {
-                _chatController.text = options[index];
-              });
-            },
-            child: IntrinsicWidth(
-              child: Container(
-                alignment: Alignment.center,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 15.0, vertical: 10.0),
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(169, 192, 226, 255),
-                  borderRadius: BorderRadius.circular(8.0),
+
+
+  Widget _buildOptionEmail() {
+  final List<String> options = [
+    "🙏 Thanks",
+    "😔 Sorry",
+    "👍 Yes",
+    "👎 No",
+    "🗓️ Follow up",
+    "🤔 Request for more information"
+  ];
+
+  return Align(
+    alignment: Alignment.centerLeft,
+    child: Wrap(
+      spacing: 8.0, // Khoảng cách ngang giữa các nút
+      runSpacing: 8.0, // Khoảng cách dọc giữa các dòng nút
+      children: List.generate(
+        options.length,
+        (index) => GestureDetector(
+          onTap: () {
+            setState(() {
+              final selectedOption = options[index];
+              _chatController.text = selectedOption;
+            });
+            _handleSendMessage(); // Gửi UserChat ngay khi bấm nút
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+            decoration: BoxDecoration(
+              color: const Color.fromARGB(169, 192, 226, 255), // Nền xanh nhạt
+              borderRadius: BorderRadius.circular(8.0), // Góc bo tròn
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.blue.shade100,
+                  blurRadius: 4.0,
+                  offset: const Offset(0, 2), // Bóng nhẹ xuống dưới
                 ),
-                child: Text(
-                  options[index],
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 13,
-                    color: Color.fromARGB(255, 26, 115, 232),
-                  ),
-                ),
+              ],
+              border: Border.all(
+                color: Colors.blue.shade200,
+                width: 1.0,
+              ),
+            ),
+            child: Text(
+              options[index],
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+                color: Color.fromARGB(255, 26, 115, 232), // Màu chữ xanh đậm
               ),
             ),
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   Widget _buildBottomChat() {
-    return Container(
-      padding: const EdgeInsets.all(10.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          top: BorderSide(color: Colors.grey.shade300),
-        ),
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      border: Border(
+        top: BorderSide(color: Colors.grey.shade300),
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _chatController,
-              decoration: InputDecoration(
-                hintText: 'Tell Jarvis how you want to reply...',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20.0),
-                  borderSide: BorderSide.none,
+    ),
+    child: Row(
+      children: [
+        // Icon bóng đèn (idea)
+        GestureDetector(
+          onTap: () async {
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => const Center(
+                  child: CircularProgressIndicator(),
                 ),
-                fillColor: Colors.grey.shade200,
-                filled: true,
-              ),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.send, color: Colors.blue),
-            onPressed: _handleSendMessage,
-          ),
-        ],
-      ),
-    );
-  }
+              );
 
-   AppBar _buildAppBar(){
-    return 
-      AppBar(
-        backgroundColor: const Color.fromRGBO(238, 238, 238, 1),
-        title: 
-        Row(
-        children: [
-          
-          const Text(
-            "Email",
-            style: TextStyle(
-              color: Colors.black,
-              fontWeight: FontWeight.bold,
-              fontFamily: "Times New Roman",
-              fontSize: 23,
-            ),
-            textAlign: TextAlign.left,
-          ),
-
-          Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min, 
-                  children: [
-                    Image.asset(
-                      "assets/icons/book.png",
-                      width: 21,
-                      height: 22,
-                      fit: BoxFit.cover,
-                    ),
-                    const SizedBox(width: 5),
-                    
-                    const Text(
-                      "Email Agent",
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontFamily: "Arial",
-                        fontSize: 14,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                      softWrap: false,
-                    ),
-                  ],
+              await onGenerateEmailIdeaDraft();
+            },
+          child: Container(
+            padding: const EdgeInsets.all(8.0),
+            decoration: BoxDecoration(
+              color: Colors.yellow.shade100,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.shade300,
+                  blurRadius: 6.0,
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
+            child: const Icon(
+              Icons.lightbulb_outline,
+              color: Colors.orange,
+              size: 24.0,
+            ),
           ),
-        ],
         ),
-        elevation: 0,
-        leading: null,
+        const SizedBox(width: 10.0),
+
+        // Hộp nhập chat
+        Expanded(
+          child: TextField(
+            controller: _chatController,
+            decoration: InputDecoration(
+              hintText: 'Tell Jarvis how you want to reply...',
+              hintStyle: const TextStyle(color: Colors.grey, fontSize: 14.0),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(25.0),
+                borderSide: BorderSide.none,
+              ),
+              fillColor: Colors.grey.shade200,
+              filled: true,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 12.0,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 10.0),
+
+        // Nút gửi (send)
+        GestureDetector(
+          onTap: _handleSendMessage,
+          child: Container(
+            padding: const EdgeInsets.all(12.0),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade600,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.blue.shade200,
+                  blurRadius: 6.0,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.send,
+              color: Colors.white,
+              size: 20.0,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+
+  AppBar _buildAppBar() {
+  return AppBar(
+    backgroundColor: const Color.fromRGBO(238, 238, 238, 1),
+    title: Row(
+      children: [
+        const Text(
+          "Email",
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontFamily: "Times New Roman",
+            fontSize: 23,
+          ),
+          textAlign: TextAlign.left,
+        ),
+        Expanded(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  
+                  _buildFireBadge(_fireCount), // Gọi hàm hiển thị ngọn lửa
+                  
+                  const SizedBox(width: 10),
+                  
+                  /*Image.asset(
+                    "assets/icons/book.png",
+                    width: 22,
+                    height: 24,
+                    fit: BoxFit.cover,
+                  ),
+                  const SizedBox(width: 5),
+                  const Text(
+                    "Email Agent",
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontFamily: "Arial",
+                      fontSize: 15,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    softWrap: false,
+                  ),*/
+                ],
+              ),
+              
+              
+            ],
+          ),
+        ),
+      ],
+    ),
+    elevation: 0,
+    leading: null,
+  );
+}
+
+// Hàm xây dựng biểu tượng ngọn lửa kèm số
+Widget _buildFireBadge(int count) {
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+    decoration: BoxDecoration(
+      color: Colors.grey.shade200, // Nền màu sáng
+      borderRadius: BorderRadius.circular(15.0), // Bo góc
+      boxShadow: [
+        BoxShadow(
+          color: Colors.grey.shade300,
+          blurRadius: 4.0, // Hiệu ứng bóng mờ
+          offset: const Offset(0, 2),
+        ),
+      ],
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Image.asset(
+          "assets/images/fire_blue.png", // Thay bằng đường dẫn icon ngọn lửa của bạn
+          width: 18,
+          height: 18,
+          fit: BoxFit.cover,
+        ),
+        const SizedBox(width: 10), // Khoảng cách giữa icon và số
+        Text(
+          "$count", // Hiển thị số integer
+          style: const TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 16.0,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+void _scrollToBottom() {
+  Future.delayed(const Duration(milliseconds: 100), () {
+    if (_scrollController.hasClients) {
+      debugPrint("MaxScrollExtent: ${_scrollController.position.maxScrollExtent}");
+      debugPrint("Current position: ${_scrollController.position.pixels}");
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
       );
-  }
+    } else {
+      debugPrint("ScrollController không hoạt động.");
+    }
+  });
+}
+
+
 
 @override
 Widget build(BuildContext context) {
@@ -502,12 +769,13 @@ Widget build(BuildContext context) {
     child: Scaffold(
       backgroundColor: const Color.fromARGB(255, 245, 242, 242),
       appBar: _buildAppBar(),
-      resizeToAvoidBottomInset: true, // Đảm bảo resize khi bàn phím hiện lên
+      resizeToAvoidBottomInset: true, 
       body: Column(
         children: [
-          // Nội dung chính của màn hình
+
           Expanded(
             child: ListView(
+              controller: _scrollController,
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
               children: [
                 ..._chatWidgets,
@@ -519,30 +787,33 @@ Widget build(BuildContext context) {
         ],
       ),
       // Điều chỉnh bottomNavigationBar
-      bottomNavigationBar: Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom, // Đẩy lên khi bàn phím xuất hiện
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(child: _buildBottomChat()),
-            IconButton(
-            icon: const Icon(Icons.drafts, color: Colors.blue),
-            onPressed: () async {
-              showDialog(
-                context: context,
-                barrierDismissible: false,
-                builder: (context) => const Center(
-                  child: CircularProgressIndicator(),
-                ),
-              );
-
-              await onGenerateEmailIdeaDraft();
-            },
-          ),
-
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.shade300,
+              blurRadius: 8.0,
+              offset: const Offset(0, -4), 
+            ),
           ],
+          border: Border(
+            top: BorderSide(
+              color: Colors.grey.shade300,
+              width: 1.0, 
+            ),
+          ),
+        ),
+        child: Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(child: _buildBottomChat()),
+            ],
+          ),
         ),
       ),
     ),
