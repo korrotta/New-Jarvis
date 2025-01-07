@@ -21,6 +21,7 @@ class _CreateUnitDialogFromConfluenceState
   bool _showWikiPageError = false;
   bool _showUsernameError = false;
   bool _showAccessTokenError = false;
+  bool _isLoading = false; // Trạng thái loading cho nút "Connect"
 
   @override
   void initState() {
@@ -72,7 +73,7 @@ class _CreateUnitDialogFromConfluenceState
     super.dispose();
   }
 
-  void _submit() {
+  void _submit() async {
     setState(() {
       _showNameError = _nameController.text.trim().isEmpty;
       _showWikiPageError = _wikiPageController.text.trim().isEmpty;
@@ -84,13 +85,25 @@ class _CreateUnitDialogFromConfluenceState
         !_showWikiPageError &&
         !_showUsernameError &&
         !_showAccessTokenError) {
-      widget.onConfirm(
-        _nameController.text.trim(),
-        _wikiPageController.text.trim(),
-        _usernameController.text.trim(),
-        _accessTokenController.text.trim(),
-      );
-      Navigator.pop(context);
+      setState(() {
+        _isLoading = true; // Bật trạng thái loading
+      });
+
+      try {
+        await widget.onConfirm(
+          _nameController.text.trim(),
+          _wikiPageController.text.trim(),
+          _usernameController.text.trim(),
+          _accessTokenController.text.trim(),
+        );
+      } catch (e) {
+        print('Error: $e');
+      } finally {
+        setState(() {
+          _isLoading = false; // Tắt trạng thái loading
+        });
+        Navigator.pop(context); // Đóng dialog sau khi xử lý xong
+      }
     }
   }
 
@@ -246,24 +259,27 @@ class _CreateUnitDialogFromConfluenceState
           child: const Text('Cancel'),
         ),
         ElevatedButton(
-          onPressed: _submit,
+          onPressed: _isLoading
+              ? null // Vô hiệu hóa nút khi đang xử lý
+              : _submit,
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.blue,
           ),
-          child: const Text(
-            'Connect',
-            style: TextStyle(color: Colors.white),
-          ),
+          child: _isLoading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Text(
+                  'Connect',
+                  style: TextStyle(color: Colors.white),
+                ),
         ),
       ],
     );
   }
 }
-
-
-
-
-
-
-
-

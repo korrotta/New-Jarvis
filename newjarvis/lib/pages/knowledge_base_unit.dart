@@ -44,16 +44,27 @@ class _KnowledgeUnitScreenState extends State<KnowledgeUnitScreen> {
                     final knowledgeProvider = Provider.of<KnowledgeBaseProvider>(context, listen: false);
                     return CreateUnitDialogFromWeb(
                       onConfirm: (name, url) async{
+
+                        try{
                         // Xử lý logic khi xác nhận từ giao diện Website
-                        unitProvider.addUnitFromWeb(name, url);
+                        await unitProvider.addUnitFromWeb(name, url); 
 
                         // Sau khi upload file thành công, load lại danh sách knowledge
                         await knowledgeProvider.loadKnowledgeList();
+               
+                        if (Navigator.canPop(dialogContext)) {
+                          Navigator.pop(dialogContext);
+                        }
+                        } catch (e) {
+                          print('Lỗi upload file: $e');
+                          const SnackBar(content: Text('Failed to upload file'));
+                        }
                       },
                     );
                   },
                 );
-                break;
+              break;
+
               case "Local Files":
               showDialog(
                 context: context,
@@ -119,7 +130,7 @@ class _KnowledgeUnitScreenState extends State<KnowledgeUnitScreen> {
                         await unitProvider.addUnitFromConfluence(name, pageUrl, userName, accessToken);
 
                         // Sau khi upload file thành công, load lại danh sách knowledge
-                      await knowledgeProvider.loadKnowledgeList();
+                        await knowledgeProvider.loadKnowledgeList();
                       },
                     );
                   },
