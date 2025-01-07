@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:newjarvis/components/route/route_controller.dart';
 import 'package:newjarvis/components/widgets/chat_bubble.dart';
 import 'package:newjarvis/components/widgets/chat_input_section.dart';
@@ -7,6 +8,7 @@ import 'package:newjarvis/components/widgets/chat_participant.dart';
 import 'package:newjarvis/components/widgets/conversation_drawer.dart';
 import 'package:newjarvis/components/widgets/thread_drawer.dart';
 import 'package:newjarvis/models/ai_bot_model.dart';
+import 'package:newjarvis/models/assistant_knowledge_model.dart';
 import 'package:newjarvis/models/assistant_thread_message_model.dart';
 import 'package:newjarvis/models/assistant_thread_model.dart';
 import 'package:newjarvis/models/basic_user_model.dart';
@@ -14,6 +16,7 @@ import 'package:newjarvis/models/knowledge_base_model.dart';
 import 'package:newjarvis/models/message_text_content_model.dart';
 import 'package:newjarvis/models/thread_message_content_model.dart';
 import 'package:newjarvis/services/api_service.dart';
+import 'package:newjarvis/services/kbase_knowledge_service.dart';
 import 'package:newjarvis/services/knowledge_api_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -38,6 +41,8 @@ class _AssistantPageState extends State<AssistantPage> {
 
   // Knowledge API Instance
   final KnowledgeApiService _knowledgeApiService = KnowledgeApiService();
+  final KnowledgeBaseApiService _knowledgeBaseApiService =
+      KnowledgeBaseApiService();
 
   // Current user
   BasicUserModel? _currentUser;
@@ -53,6 +58,9 @@ class _AssistantPageState extends State<AssistantPage> {
 
   // List of knowledges
   List<Knowledge> _knowledges = [];
+
+  // List of assistant's knowledges
+  Future<List<AssistantKnowledgeModel>>? _assistantKnowledges;
 
   // Thread's Messages
   Future<List<AssistantThreadMessageModel>>? _threadMessages;
@@ -85,6 +93,7 @@ class _AssistantPageState extends State<AssistantPage> {
   void initState() {
     super.initState();
     _initAssistant();
+    _initKnowledge();
   }
 
   void _initAssistant() async {
@@ -93,6 +102,30 @@ class _AssistantPageState extends State<AssistantPage> {
     await _getCurentUserInfo();
     await _fetchThreads();
     await _fetchThreadMessages(_currentOpenAiThreadId!);
+    await _getAssistantKnowledges();
+  }
+
+  void _initKnowledge() async {
+    final response = await _knowledgeBaseApiService.getKnowledge();
+
+    setState(() {
+      _knowledges = response;
+    });
+
+    print('Knowledges created: $_knowledges');
+  }
+
+  Future<void> _getAssistantKnowledges() async {
+    final response = await _knowledgeApiService.getKnowledgeAssistant(
+      context: context,
+      assistantId: _assistant.id,
+    );
+
+    print('Assistant Knowledges: $response');
+
+    setState(() {
+      _assistantKnowledges = Future.value(response);
+    });
   }
 
   Future<void> _getCurentUserInfo() async {
@@ -129,49 +162,59 @@ class _AssistantPageState extends State<AssistantPage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TextFormField(
-              controller: _knowledgeTextController,
-              maxLength: 1,
-              decoration: InputDecoration(
-                prefixIcon: const Icon(
-                  CupertinoIcons.search,
-                  color: Colors.blueAccent,
-                ),
-                hintText: "Search knowledge",
-                hintStyle: TextStyle(
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                border: const OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: Colors.blueAccent,
+            Row(
+              children: [
+                Expanded(
+                  flex: 2, // Adjust flex as needed
+                  child: TextFormField(
+                    controller: _knowledgeTextController,
+                    maxLength: 1,
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(
+                        CupertinoIcons.search,
+                        color: Colors.blueAccent,
+                      ),
+                      hintText: "Search knowledge",
+                      hintStyle: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      border: const OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Colors.blueAccent,
+                        ),
+                        borderRadius: BorderRadius.all(Radius.circular(12)),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 0.0,
+                        horizontal: 16.0,
+                      ),
+                    ),
                   ),
-                  borderRadius: BorderRadius.all(Radius.circular(12)),
                 ),
-                contentPadding: const EdgeInsets.symmetric(
-                  vertical: 0.0,
-                  horizontal: 16.0,
+                const SizedBox(
+                    width: 8), // Add spacing between TextField and button
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 10),
+                    backgroundColor: Colors.blueAccent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                  ),
+                  onPressed: () {
+                    // Navigate to Create Knowledge Page
+                    RouteController.navigateReplacementNamed(
+                        RouteController.knowledge);
+                  },
+                  child: const Text(
+                    "Create Knowledge",
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
-              ),
+              ],
             ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                backgroundColor: Colors.blueAccent,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-              ),
-              onPressed: () {
-                // Navigate to Create Knowledge Page
-                RouteController.navigateReplacementNamed(
-                    RouteController.knowledge);
-              },
-              child: const Text(
-                "Create Knowledge",
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
+            const SizedBox(height: 16), // Add spacing between row and the list
 
             // Fetched Knowledges
             Expanded(
@@ -184,8 +227,12 @@ class _AssistantPageState extends State<AssistantPage> {
                       color: Colors.redAccent,
                     ),
                     title: Text(_knowledges[index].name),
-                    subtitle: Text(_knowledges[index].createdAt),
+                    subtitle: Text(
+                      _knowledges[index].createdAt,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
                           icon: const Icon(
@@ -283,7 +330,8 @@ class _AssistantPageState extends State<AssistantPage> {
                         value!.isEmpty ? "Name cannot be empty" : null,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                     controller: assistantNameController,
-                    maxLength: 1,
+                    maxLength: 50,
+                    maxLines: 1,
                     decoration: InputDecoration(
                       hintText: "Enter a name",
                       hintStyle: TextStyle(
@@ -321,7 +369,7 @@ class _AssistantPageState extends State<AssistantPage> {
                   const SizedBox(height: 5),
                   TextFormField(
                     controller: assistantDescriptionController,
-                    maxLines: 5,
+                    maxLines: 2000,
                     decoration: InputDecoration(
                       hintText: "Enter a description",
                       hintStyle: TextStyle(
@@ -855,20 +903,116 @@ class _AssistantPageState extends State<AssistantPage> {
 
           // Knowledge Section
           Expanded(
-            child: ListView.builder(
-              itemCount: 10,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text('Knowledge $index'),
-                  subtitle: Text('Knowledge description $index'),
-                  trailing: IconButton(
-                    icon: const Icon(
-                      CupertinoIcons.book,
-                      color: Colors.redAccent,
-                    ),
-                    onPressed: () {},
-                  ),
-                );
+            child: FutureBuilder<List<AssistantKnowledgeModel>>(
+              future: _assistantKnowledges,
+              builder: (context, snapshot) {
+                switch (snapshot.connectionState) {
+                  case ConnectionState.waiting:
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        color: Colors.blueAccent,
+                      ),
+                    );
+                  case ConnectionState.none:
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        color: Colors.blueAccent,
+                      ),
+                    );
+                  case ConnectionState.active:
+                    return const Center(
+                      child: Center(
+                          child: CircularProgressIndicator(
+                        color: Colors.blueAccent,
+                      )),
+                    );
+
+                  case ConnectionState.done:
+                    if (snapshot!.hasError) {
+                      return Center(
+                        child: Text(
+                          'Error: ${snapshot.error}',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.inversePrimary,
+                          ),
+                        ),
+                      );
+                    } else if (snapshot.data!.isEmpty) {
+                      // Empty
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Image.asset(
+                              'assets/images/empty-folder.png',
+                              width: 100,
+                              height: 100,
+                            ),
+                            const SizedBox(height: 4.0),
+                            Text(
+                              'No knowledge found',
+                              style: TextStyle(
+                                fontSize: 22,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .inversePrimary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 8.0),
+                            Text(
+                              'Add knowledge to the assistant\nby clicking the button below.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    } else {
+                      return ListView.builder(
+                        itemCount: snapshot.data!.length,
+                        itemBuilder: (context, index) {
+                          final AssistantKnowledgeModel knowledge =
+                              snapshot.data![index];
+                          return ListTile(
+                            leading: const Icon(
+                              CupertinoIcons.book,
+                              color: Colors.redAccent,
+                            ),
+                            title: Text(knowledge.knowledgeName),
+                            subtitle: Text(
+                              DateFormat.yMMMd().format(knowledge.createdAt),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: Icon(
+                                    CupertinoIcons.eye,
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
+                                  ),
+                                  onPressed: () {},
+                                ),
+                                IconButton(
+                                  icon: Icon(
+                                    CupertinoIcons.trash,
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
+                                  ),
+                                  onPressed: () {},
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      );
+                    }
+                }
               },
             ),
           ),
@@ -878,7 +1022,7 @@ class _AssistantPageState extends State<AssistantPage> {
             alignment: Alignment.bottomRight,
             child: Container(
               margin: const EdgeInsets.only(right: 15.0, bottom: 15.0),
-              child: FloatingActionButton.small(
+              child: FloatingActionButton(
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),

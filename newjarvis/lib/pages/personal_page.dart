@@ -167,79 +167,115 @@ class _PersonalPageState extends State<PersonalPage> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      top: true,
-      bottom: false,
-      minimum: const EdgeInsets.only(top: 20),
-      child: Scaffold(
-        resizeToAvoidBottomInset:
-            true, // Ensures the layout adjusts for the keyboard
-        body: _currentUser == null
-            ? const Center(
-                child: CircularProgressIndicator(
-                  color: Colors.blueAccent,
-                ),
-              )
-            : Stack(
-                children: [
-                  AnimatedContainer(
-                    padding:
-                        const EdgeInsets.only(top: 20, left: 20, right: 20),
-                    duration: const Duration(milliseconds: 300),
-                    width: double.infinity,
-                    child: _buildPageContent(context),
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      child: SafeArea(
+        top: true,
+        bottom: false,
+        minimum: const EdgeInsets.only(top: 20),
+        child: Scaffold(
+          resizeToAvoidBottomInset:
+              true, // Ensures the layout adjusts for the keyboard
+          body: _currentUser == null
+              ? const Center(
+                  child: CircularProgressIndicator(
+                    color: Colors.blueAccent,
                   ),
+                )
+              : Stack(
+                  children: [
+                    AnimatedContainer(
+                      padding:
+                          const EdgeInsets.only(top: 20, left: 20, right: 20),
+                      duration: const Duration(milliseconds: 300),
+                      width: double.infinity,
+                      child: _buildPageContent(context),
+                    ),
 
-                  // Sidebar
-                  if (_isSidebarVisible)
-                    Positioned(
-                      top: 0,
-                      bottom: 0,
-                      right: 0,
-                      child: SideBar(
-                        isExpanded: _isExpanded,
-                        selectedIndex: _selectedIndex,
-                        onItemSelected: _onItemTapped,
-                        onExpandToggle: () {
-                          setState(() {
-                            _isExpanded = !_isExpanded;
-                          });
-                        },
-                        onClose: () {
-                          setState(() {
-                            _isSidebarVisible = false;
-                          });
-                        },
+                    // Sidebar
+                    if (_isSidebarVisible)
+                      Positioned(
+                        top: 0,
+                        bottom: 0,
+                        right: 0,
+                        child: SideBar(
+                          isExpanded: _isExpanded,
+                          selectedIndex: _selectedIndex,
+                          onItemSelected: _onItemTapped,
+                          onExpandToggle: () {
+                            setState(() {
+                              _isExpanded = !_isExpanded;
+                            });
+                          },
+                          onClose: () {
+                            setState(() {
+                              _isSidebarVisible = false;
+                            });
+                          },
+                        ),
+                      ),
+
+                    Align(
+                      alignment: Alignment.bottomRight,
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 20, right: 20),
+                        child: FloatingActionButton(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20.0),
+                          ),
+                          elevation: 0,
+                          backgroundColor: Colors.blueAccent,
+                          onPressed: () {
+                            // Show the create bot dialog
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                // Dialog include (title, assistant name*, assistant description, create button, cancel button)
+                                return _showCreateDialog(
+                                    _assistantNameController,
+                                    _assistantDescriptionController,
+                                    context);
+                              },
+                            );
+                          },
+                          child: Icon(
+                            CupertinoIcons.add,
+                            color: Theme.of(context).colorScheme.tertiary,
+                          ),
+                        ),
                       ),
                     ),
 
-                  // Nửa hình tròn khi sidebar bị ẩn (Floating Button)
-                  if (!_isSidebarVisible)
-                    FloatingButton(
-                      dragOffset: _dragOffset,
-                      onDragUpdate: (delta) {
-                        setState(
-                          () {
-                            _dragOffset += delta;
-                            if (_dragOffset < 0) _dragOffset = 0;
-                            if (_dragOffset >
-                                MediaQuery.of(context).size.height - 100) {
-                              _dragOffset =
-                                  MediaQuery.of(context).size.height - 100;
-                            }
-                          },
-                        );
-                      },
-                      onTap: () {
-                        setState(
-                          () {
-                            _isSidebarVisible = true;
-                          },
-                        );
-                      },
-                    ),
-                ],
-              ),
+                    // Nửa hình tròn khi sidebar bị ẩn (Floating Button)
+                    if (!_isSidebarVisible)
+                      FloatingButton(
+                        dragOffset: _dragOffset,
+                        onDragUpdate: (delta) {
+                          setState(
+                            () {
+                              _dragOffset += delta;
+                              if (_dragOffset < 0) _dragOffset = 0;
+                              if (_dragOffset >
+                                  MediaQuery.of(context).size.height - 100) {
+                                _dragOffset =
+                                    MediaQuery.of(context).size.height - 100;
+                              }
+                            },
+                          );
+                        },
+                        onTap: () {
+                          setState(
+                            () {
+                              _isSidebarVisible = true;
+                            },
+                          );
+                        },
+                      ),
+                  ],
+                ),
+        ),
       ),
     );
   }
@@ -371,31 +407,7 @@ class _PersonalPageState extends State<PersonalPage> {
           child: _buildAssistantList(),
         ),
 
-        Align(
-          alignment: Alignment.bottomRight,
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 20),
-            child: FloatingActionButton(
-              elevation: 0,
-              backgroundColor: Colors.blueAccent,
-              onPressed: () {
-                // Show the create bot dialog
-                showDialog(
-                  context: context,
-                  builder: (context) {
-                    // Dialog include (title, assistant name*, assistant description, create button, cancel button)
-                    return _showCreateDialog(_assistantNameController,
-                        _assistantDescriptionController, context);
-                  },
-                );
-              },
-              child: Icon(
-                CupertinoIcons.add,
-                color: Theme.of(context).colorScheme.tertiary,
-              ),
-            ),
-          ),
-        ),
+        const SizedBox(height: 10),
       ],
     );
   }
@@ -417,7 +429,7 @@ class _PersonalPageState extends State<PersonalPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 15),
+              const SizedBox(height: 10),
               Text(
                 "Assistant name",
                 style: TextStyle(
@@ -431,7 +443,8 @@ class _PersonalPageState extends State<PersonalPage> {
                     value!.isEmpty ? "Name cannot be empty" : null,
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 controller: assistantNameController,
-                maxLength: 1,
+                maxLength: 50,
+                maxLines: 1,
                 decoration: InputDecoration(
                   hintText: "Enter a name",
                   hintStyle: TextStyle(
@@ -469,7 +482,8 @@ class _PersonalPageState extends State<PersonalPage> {
               const SizedBox(height: 5),
               TextFormField(
                 controller: assistantDescriptionController,
-                maxLines: 6,
+                maxLength: 2000,
+                maxLines: 5,
                 decoration: InputDecoration(
                   hintText: "Enter a description",
                   hintStyle: TextStyle(
