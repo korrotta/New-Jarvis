@@ -75,6 +75,9 @@ class _ChatPageState extends State<ChatPage> {
     id: Id.CLAUDE_3_HAIKU_20240307.value,
   );
 
+  // Scroll controller
+  final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
@@ -101,6 +104,18 @@ class _ChatPageState extends State<ChatPage> {
     final response = await _apiService.getCurrentUser(context);
     setState(() {
       _currentUser = response;
+    });
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.linear,
+        );
+      }
     });
   }
 
@@ -174,6 +189,22 @@ class _ChatPageState extends State<ChatPage> {
 
   // Function to handle sending messages
   Future<void> _handleSend(String message) async {
+    // Add the user message to the current conversation history
+
+    final _userMessage = ConversationHistoryItemModel(
+      answer: '...',
+      createdAt: DateTime.now().millisecondsSinceEpoch,
+      files: [],
+      query: message,
+    );
+
+    List<ConversationHistoryItemModel> currentHistory =
+        await _currentConversationHistory!;
+    currentHistory = [...currentHistory, _userMessage];
+    setState(() {
+      _currentConversationHistory = Future.value(currentHistory);
+    });
+
     // Continue the conversation if there's a previous response
     if (_chatResponse != null) {
       _metadata = AiChatMetadata(
@@ -184,7 +215,6 @@ class _ChatPageState extends State<ChatPage> {
     }
     // Else check if current conversation is a new thread
     else if (!_isNewThread) {
-      print('Current conversation ID: $_currentConversationId');
       _metadata = AiChatMetadata(
         chatConversation: ChatConversation(
           id: _currentConversationId!,
@@ -203,8 +233,6 @@ class _ChatPageState extends State<ChatPage> {
           metadata: _isNewThread ? null : _metadata,
         ),
       );
-
-      print('Response _handleSend: $response');
 
       setState(() {
         // Reset the new thread flag
@@ -241,9 +269,10 @@ class _ChatPageState extends State<ChatPage> {
   void _handleNewConversation() {
     setState(() {
       _isNewThread = true;
-      _messages = []; // Clear the previous conversation messages
-      _currentConversationHistory =
-          Future.value([]); // Clear the previous conversation history
+      // Clear the previous conversation messages
+      _messages = [];
+      // Clear the previous conversation history
+      _currentConversationHistory = Future.value([]);
       _currentConversationId = ''; // Reset conversation ID
     });
   }
@@ -323,6 +352,9 @@ class _ChatPageState extends State<ChatPage> {
         _currentConversationHistory = Future.value(response);
         _currentConversationId = conversationId;
       });
+
+      // Scroll to bottom
+      _scrollToBottom();
       return;
     } catch (e) {
       // Error fetching conversation history
@@ -370,8 +402,6 @@ class _ChatPageState extends State<ChatPage> {
           child: ConversationSidebar(
             conversations: _conversations,
             onSelectedConversation: _handleConversationSelect,
-            remainingTokens: _remainingUsage,
-            totalTokens: _totalUsage,
           ),
         ),
         resizeToAvoidBottomInset:
@@ -480,7 +510,12 @@ class _ChatPageState extends State<ChatPage> {
               );
             } else {
               final items = snapshot.data!;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _scrollToBottom();
+              });
               return ListView.builder(
+                physics: const BouncingScrollPhysics(),
+                controller: _scrollController,
                 padding:
                     const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
                 scrollDirection: Axis.vertical,
