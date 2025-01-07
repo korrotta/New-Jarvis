@@ -1,11 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:newjarvis/pages/knowledge_base_unit.dart';
+import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:newjarvis/components/route/route_controller.dart';
 import 'package:newjarvis/components/widgets/chat_bubble.dart';
 import 'package:newjarvis/components/widgets/chat_input_section.dart';
 import 'package:newjarvis/components/widgets/chat_participant.dart';
-import 'package:newjarvis/components/widgets/conversation_drawer.dart';
 import 'package:newjarvis/components/widgets/thread_drawer.dart';
 import 'package:newjarvis/models/ai_bot_model.dart';
 import 'package:newjarvis/models/assistant_knowledge_model.dart';
@@ -15,6 +16,7 @@ import 'package:newjarvis/models/basic_user_model.dart';
 import 'package:newjarvis/models/knowledge_base_model.dart';
 import 'package:newjarvis/models/message_text_content_model.dart';
 import 'package:newjarvis/models/thread_message_content_model.dart';
+import 'package:newjarvis/providers/knowledge_base_unit_provider.dart';
 import 'package:newjarvis/services/api_service.dart';
 import 'package:newjarvis/services/kbase_knowledge_service.dart';
 import 'package:newjarvis/services/knowledge_api_service.dart';
@@ -83,6 +85,9 @@ class _AssistantPageState extends State<AssistantPage> {
   // For bottom nav
   int _selectedIndex = 1;
 
+  // Selected Knowledge
+  String? _selectedKnowledgeId;
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -113,6 +118,11 @@ class _AssistantPageState extends State<AssistantPage> {
     });
 
     print('Knowledges created: $_knowledges');
+  }
+
+  String _formatDate(String date) {
+    final parsedDate = DateTime.parse(date);
+    return DateFormat('dd/MM/yyyy HH:mm:ss').format(parsedDate);
   }
 
   Future<void> _getAssistantKnowledges() async {
@@ -147,17 +157,50 @@ class _AssistantPageState extends State<AssistantPage> {
     });
   }
 
+  Widget _buildBadge(String label, Color color) {
+    if (color == Colors.blueAccent) {
+      label = '$label unit';
+    } else if (color == Colors.redAccent) {
+      label = '$label byte';
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
   Widget _showImportKnowledgeDialog(BuildContext context) {
     return AlertDialog(
-      elevation: 0,
+      elevation: 4,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0),
+        borderRadius: BorderRadius.circular(16.0),
       ),
-      title: const Text("Select Knowledge"),
-      contentPadding: const EdgeInsets.all(20.0),
+      title: Center(
+        child: Text(
+          "Select Knowledge",
+          style: TextStyle(
+            fontSize: 18,
+            color: Theme.of(context).colorScheme.inversePrimary,
+          ),
+        ),
+      ),
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
       content: SizedBox(
-        height: MediaQuery.of(context).size.height * 0.4,
-        width: MediaQuery.of(context).size.width * 0.6,
+        height: MediaQuery.of(context).size.height * 0.5,
+        width: MediaQuery.of(context).size.width * 0.7,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -165,90 +208,130 @@ class _AssistantPageState extends State<AssistantPage> {
             Row(
               children: [
                 Expanded(
-                  flex: 2, // Adjust flex as needed
+                  flex: 2,
                   child: TextFormField(
                     controller: _knowledgeTextController,
-                    maxLength: 1,
                     decoration: InputDecoration(
                       prefixIcon: const Icon(
                         CupertinoIcons.search,
                         color: Colors.blueAccent,
                       ),
-                      hintText: "Search knowledge",
+                      hintText: "Search",
                       hintStyle: TextStyle(
                         color: Theme.of(context).colorScheme.primary,
                       ),
-                      border: const OutlineInputBorder(
-                        borderSide: BorderSide(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
                           color: Colors.blueAccent,
                         ),
-                        borderRadius: BorderRadius.all(Radius.circular(12)),
                       ),
                       contentPadding: const EdgeInsets.symmetric(
-                        vertical: 0.0,
+                        vertical: 12.0,
                         horizontal: 16.0,
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(
-                    width: 8), // Add spacing between TextField and button
-                ElevatedButton(
+                const SizedBox(width: 10),
+                ElevatedButton.icon(
+                  icon: const Icon(
+                    CupertinoIcons.add,
+                    color: Colors.white,
+                  ),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 10),
+                        horizontal: 20, vertical: 12),
                     backgroundColor: Colors.blueAccent,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12.0),
                     ),
+                    shadowColor: Colors.black.withOpacity(0.2), // Button shadow
+                    elevation: 5,
                   ),
                   onPressed: () {
                     // Navigate to Create Knowledge Page
                     RouteController.navigateReplacementNamed(
                         RouteController.knowledge);
                   },
-                  child: const Text(
-                    "Create Knowledge",
+                  label: const Text(
+                    "Knowledge",
                     style: TextStyle(color: Colors.white),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16), // Add spacing between row and the list
-
-            // Fetched Knowledges
+            const SizedBox(height: 16),
             Expanded(
               child: ListView.builder(
                 itemCount: _knowledges.length,
                 itemBuilder: (context, index) {
-                  return ListTile(
-                    leading: const Icon(
-                      CupertinoIcons.book,
-                      color: Colors.redAccent,
-                    ),
-                    title: Text(_knowledges[index].name),
-                    subtitle: Text(
-                      _knowledges[index].createdAt,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(
-                            CupertinoIcons.eye,
-                            color: Colors.blueAccent,
-                          ),
-                          onPressed: () {},
-                        ),
-                        IconButton(
-                          icon: const Icon(
-                            CupertinoIcons.trash,
-                            color: Colors.redAccent,
-                          ),
-                          onPressed: () {},
+                  final knowledge = _knowledges[index];
+                  return Container(
+                    margin: const EdgeInsets.symmetric(vertical: 8.0),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.3),
+                          blurRadius: 6,
+                          offset: const Offset(0, 3),
                         ),
                       ],
+                      color: Theme.of(context).colorScheme.surface,
+                    ),
+                    child: ListTile(
+                      leading: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.orangeAccent,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Image.asset(
+                          'assets/images/coins.png',
+                          width: 30,
+                          height: 30,
+                          color: Theme.of(context).colorScheme.tertiary,
+                        ),
+                      ),
+                      title: Text(
+                        knowledge.name,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: Theme.of(context).colorScheme.inversePrimary,
+                        ),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              _buildBadge(knowledge.numUnits.toString(),
+                                  Colors.blueAccent),
+                              const SizedBox(width: 8),
+                              _buildBadge(knowledge.totalSize.toString(),
+                                  Colors.redAccent),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(Icons.access_time,
+                                  size: 16,
+                                  color: Theme.of(context).colorScheme.primary),
+                              const SizedBox(width: 4),
+                              Text(
+                                _formatDate(knowledge.createdAt),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 },
@@ -258,38 +341,58 @@ class _AssistantPageState extends State<AssistantPage> {
         ),
       ),
       actions: [
-        ElevatedButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            backgroundColor: Theme.of(context).colorScheme.surface,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12.0),
-              side: const BorderSide(
-                color: Colors.redAccent,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              style: ElevatedButton.styleFrom(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                backgroundColor: Theme.of(context).colorScheme.tertiary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+                foregroundColor: Colors.redAccent,
+                shadowColor: const Color.fromRGBO(0, 0, 0, 1)
+                    .withOpacity(1), // Button shadow
+                elevation: 2,
+              ),
+              child: const Text(
+                "Cancel",
+                style: TextStyle(fontSize: 16),
               ),
             ),
-          ),
-          child: const Text(
-            "Cancel",
-            style: TextStyle(color: Colors.redAccent),
-          ),
-        ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            backgroundColor: Colors.blueAccent,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12.0),
+            ElevatedButton(
+              onPressed: () {
+                if (_selectedKnowledgeId != null) {
+                  _importKnowledgeToAssistant(_selectedKnowledgeId!);
+                  Navigator.of(context).pop();
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text("Please select a knowledge first")),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                backgroundColor: Colors.blueAccent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+                shadowColor: Colors.black.withOpacity(0.2), // Button shadow
+                elevation: 5,
+              ),
+              child: const Text(
+                "Import",
+                style: TextStyle(color: Colors.white, fontSize: 16),
+              ),
             ),
-          ),
-          onPressed: () {},
-          child: const Text(
-            "Ok",
-            style: TextStyle(color: Colors.white),
-          ),
+          ],
         ),
       ],
     );
@@ -555,6 +658,52 @@ class _AssistantPageState extends State<AssistantPage> {
         )
       ],
     );
+  }
+
+  Future<void> _importKnowledgeToAssistant(String knowledgeId) async {
+    // Import Knowledge to Assistant
+    final response = await _knowledgeApiService.importKnowledge(
+      context: context,
+      assistantId: _assistant.id,
+      knowledgeId: knowledgeId,
+    );
+
+    print("Imported Knowledge: $response");
+
+    // Show SnackBar
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.green,
+        elevation: 0,
+        content: customSnackbar(false, "Knowledge imported successfully"),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+
+    _getAssistantKnowledges();
+  }
+
+  void _removeKnowledgeFromAssistant(String knowledgeId) {
+    // Remove Knowledge from Assistant
+    _knowledgeApiService.removeKnowledge(
+      context: context,
+      assistantId: _assistant.id,
+      knowledgeId: knowledgeId,
+    );
+
+    // Show SnackBar
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.green,
+        elevation: 0,
+        content: customSnackbar(false, "Knowledge removed successfully"),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+
+    _getAssistantKnowledges();
   }
 
   Future<void> _handleDocs() async {
@@ -977,36 +1126,131 @@ class _AssistantPageState extends State<AssistantPage> {
                         itemBuilder: (context, index) {
                           final AssistantKnowledgeModel knowledge =
                               snapshot.data![index];
-                          return ListTile(
-                            leading: const Icon(
-                              CupertinoIcons.book,
-                              color: Colors.redAccent,
+                          return Container(
+                            margin: const EdgeInsets.symmetric(
+                              vertical: 8.0,
+                              horizontal: 4.0,
                             ),
-                            title: Text(knowledge.knowledgeName),
-                            subtitle: Text(
-                              DateFormat.yMMMd().format(knowledge.createdAt),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: Icon(
-                                    CupertinoIcons.eye,
-                                    color:
-                                        Theme.of(context).colorScheme.primary,
-                                  ),
-                                  onPressed: () {},
-                                ),
-                                IconButton(
-                                  icon: Icon(
-                                    CupertinoIcons.trash,
-                                    color:
-                                        Theme.of(context).colorScheme.primary,
-                                  ),
-                                  onPressed: () {},
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.3),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 3),
                                 ),
                               ],
+                              color: Theme.of(context).colorScheme.surface,
+                            ),
+                            child: ListTile(
+                              leading: Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.orangeAccent,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Image.asset(
+                                  'assets/images/coins.png',
+                                  width: 25,
+                                  height: 25,
+                                  color: Theme.of(context).colorScheme.tertiary,
+                                ),
+                              ),
+                              title: Text(
+                                knowledge.knowledgeName,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .inversePrimary,
+                                ),
+                              ),
+                              subtitle: Text(
+                                _formatDate(knowledge.createdAt.toString()),
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: Icon(
+                                      CupertinoIcons.eye,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .inversePrimary,
+                                    ),
+                                    onPressed: () {
+                                      // Navigate to Knowledge Page
+                                      final unitProvider =
+                                          Provider.of<UnitProvider>(context,
+                                              listen: false);
+
+                                      // Hiển thị loading dialog
+                                      showDialog(
+                                        context: context,
+                                        barrierDismissible: false,
+                                        builder: (BuildContext context) {
+                                          return const Center(
+                                            child: CircularProgressIndicator(),
+                                          );
+                                        },
+                                      );
+
+                                      // Thiết lập dữ liệu và tải danh sách trước khi chuyển màn hình
+                                      unitProvider.setKnowledgeDetails(
+                                        name: knowledge.knowledgeName,
+                                        id: knowledge.knowledgeId,
+                                        description: knowledge.description,
+                                        units: _knowledges
+                                            .where(
+                                              (element) {
+                                                return element.id ==
+                                                    knowledge.knowledgeId;
+                                              },
+                                            )
+                                            .first
+                                            .numUnits,
+                                      );
+
+                                      unitProvider
+                                          .loadUnitListOfKnowledge()
+                                          .then(
+                                        (_) {
+                                          // Đóng loading dialog
+                                          Navigator.of(context).pop();
+
+                                          // Chuyển sang màn hình mới
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const KnowledgeUnitScreen(),
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    },
+                                  ),
+                                  IconButton(
+                                    icon: Icon(
+                                      CupertinoIcons.trash,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .inversePrimary,
+                                    ),
+                                    onPressed: () {
+                                      // Remove Knowledge from Assistant
+                                      _removeKnowledgeFromAssistant(
+                                          knowledge.knowledgeId);
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
                           );
                         },
