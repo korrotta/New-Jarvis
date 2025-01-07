@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:newjarvis/components/ai_chat/ai_model_selection_section.dart';
-import 'package:newjarvis/components/language_component.dart';
+import 'package:newjarvis/components/email/language_component.dart';
 import 'package:newjarvis/enums/id.dart';
 import 'package:newjarvis/models/assistant_model.dart';
 import 'package:newjarvis/models/token_usage_model.dart';
