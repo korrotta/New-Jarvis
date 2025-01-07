@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:newjarvis/components/route/route_controller.dart';
 import 'package:newjarvis/components/widgets/chat_bubble.dart';
 import 'package:newjarvis/components/widgets/chat_input_section.dart';
 import 'package:newjarvis/components/widgets/chat_participant.dart';
@@ -68,6 +69,9 @@ class _AssistantPageState extends State<AssistantPage> {
   // Assistant Persona Controller
   TextEditingController _assistantPersonaController = TextEditingController();
 
+  // Knowledge Text Controller
+  TextEditingController _knowledgeTextController = TextEditingController();
+
   // For bottom nav
   int _selectedIndex = 1;
 
@@ -108,6 +112,111 @@ class _AssistantPageState extends State<AssistantPage> {
         );
       }
     });
+  }
+
+  void _showImportKnowledgeDialog(BuildContext context) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.0),
+            ),
+            title: const Text("Select Knowledge"),
+            contentPadding: const EdgeInsets.all(20.0),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    TextField(
+                      controller: _knowledgeTextController,
+                      maxLength: 1,
+                      decoration: InputDecoration(
+                        prefixIcon: const Icon(
+                          CupertinoIcons.search,
+                          color: Colors.blueAccent,
+                        ),
+                        hintText: "Search knowledge",
+                        hintStyle: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        border: const OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.blueAccent,
+                          ),
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 0.0,
+                          horizontal: 16.0,
+                        ),
+                      ),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 10),
+                        backgroundColor: Colors.blueAccent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                      ),
+                      onPressed: () {
+                        // Navigate to Create Knowledge Page
+                        RouteController.navigateReplacementNamed(
+                            RouteController.knowledge);
+                      },
+                      child: const Text(
+                        "Create Knowledge",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+              ],
+            ),
+            actions: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                style: ElevatedButton.styleFrom(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  backgroundColor: Theme.of(context).colorScheme.surface,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                    side: const BorderSide(
+                      color: Colors.redAccent,
+                    ),
+                  ),
+                ),
+                child: const Text(
+                  "Cancel",
+                  style: TextStyle(color: Colors.redAccent),
+                ),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  backgroundColor: Colors.blueAccent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                ),
+                onPressed: () {},
+                child: const Text(
+                  "Ok",
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          );
+        });
   }
 
   void _showEditAssistantDialog(
@@ -745,6 +854,7 @@ class _AssistantPageState extends State<AssistantPage> {
                 tooltip: 'Add Knowledge to Assistant',
                 onPressed: () {
                   // Handle Add Knowledge
+                  _showImportKnowledgeDialog(context);
                 },
                 backgroundColor: Colors.blueAccent,
                 child: const Icon(
