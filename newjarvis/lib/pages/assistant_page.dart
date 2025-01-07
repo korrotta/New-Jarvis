@@ -114,109 +114,138 @@ class _AssistantPageState extends State<AssistantPage> {
     });
   }
 
-  void _showImportKnowledgeDialog(BuildContext context) {
-    showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
+  Widget _showImportKnowledgeDialog(BuildContext context) {
+    return AlertDialog(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      title: const Text("Select Knowledge"),
+      contentPadding: const EdgeInsets.all(20.0),
+      content: SizedBox(
+        height: MediaQuery.of(context).size.height * 0.4,
+        width: MediaQuery.of(context).size.width * 0.6,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextFormField(
+              controller: _knowledgeTextController,
+              maxLength: 1,
+              decoration: InputDecoration(
+                prefixIcon: const Icon(
+                  CupertinoIcons.search,
+                  color: Colors.blueAccent,
+                ),
+                hintText: "Search knowledge",
+                hintStyle: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                border: const OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: Colors.blueAccent,
+                  ),
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 0.0,
+                  horizontal: 16.0,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                backgroundColor: Colors.blueAccent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+              ),
+              onPressed: () {
+                // Navigate to Create Knowledge Page
+                RouteController.navigateReplacementNamed(
+                    RouteController.knowledge);
+              },
+              child: const Text(
+                "Create Knowledge",
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+
+            // Fetched Knowledges
+            Expanded(
+              child: ListView.builder(
+                itemCount: _knowledges.length,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    leading: const Icon(
+                      CupertinoIcons.book,
+                      color: Colors.redAccent,
+                    ),
+                    title: Text(_knowledges[index].name),
+                    subtitle: Text(_knowledges[index].createdAt),
+                    trailing: Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(
+                            CupertinoIcons.eye,
+                            color: Colors.blueAccent,
+                          ),
+                          onPressed: () {},
+                        ),
+                        IconButton(
+                          icon: const Icon(
+                            CupertinoIcons.trash,
+                            color: Colors.redAccent,
+                          ),
+                          onPressed: () {},
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        ElevatedButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.0),
+              side: const BorderSide(
+                color: Colors.redAccent,
+              ),
+            ),
+          ),
+          child: const Text(
+            "Cancel",
+            style: TextStyle(color: Colors.redAccent),
+          ),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            backgroundColor: Colors.blueAccent,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12.0),
             ),
-            title: const Text("Select Knowledge"),
-            contentPadding: const EdgeInsets.all(20.0),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    TextField(
-                      controller: _knowledgeTextController,
-                      maxLength: 1,
-                      decoration: InputDecoration(
-                        prefixIcon: const Icon(
-                          CupertinoIcons.search,
-                          color: Colors.blueAccent,
-                        ),
-                        hintText: "Search knowledge",
-                        hintStyle: TextStyle(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        border: const OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Colors.blueAccent,
-                          ),
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 0.0,
-                          horizontal: 16.0,
-                        ),
-                      ),
-                    ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 10),
-                        backgroundColor: Colors.blueAccent,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.0),
-                        ),
-                      ),
-                      onPressed: () {
-                        // Navigate to Create Knowledge Page
-                        RouteController.navigateReplacementNamed(
-                            RouteController.knowledge);
-                      },
-                      child: const Text(
-                        "Create Knowledge",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-              ],
-            ),
-            actions: [
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                style: ElevatedButton.styleFrom(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  backgroundColor: Theme.of(context).colorScheme.surface,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                    side: const BorderSide(
-                      color: Colors.redAccent,
-                    ),
-                  ),
-                ),
-                child: const Text(
-                  "Cancel",
-                  style: TextStyle(color: Colors.redAccent),
-                ),
-              ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  backgroundColor: Colors.blueAccent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                ),
-                onPressed: () {},
-                child: const Text(
-                  "Ok",
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ],
-          );
-        });
+          ),
+          onPressed: () {},
+          child: const Text(
+            "Ok",
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+      ],
+    );
   }
 
   void _showEditAssistantDialog(
@@ -234,91 +263,94 @@ class _AssistantPageState extends State<AssistantPage> {
           title: const Text("Edit Assistant"),
           contentPadding: const EdgeInsets.all(20.0),
           content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 15),
-                Text(
-                  "Assistant name",
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.inversePrimary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                TextFormField(
-                  validator: (value) =>
-                      value!.isEmpty ? "Name cannot be empty" : null,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  controller: assistantNameController,
-                  maxLength: 1,
-                  decoration: InputDecoration(
-                    hintText: "Enter a name",
-                    hintStyle: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    border: const OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Colors.blueAccent,
-                      ),
-                      borderRadius: BorderRadius.all(Radius.circular(12)),
+            child: SizedBox(
+              width: MediaQuery.of(context).size.height * 0.4,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 15),
+                  Text(
+                    "Assistant name",
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.inversePrimary,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  buildCounter: (context,
-                      {required currentLength,
-                      required isFocused,
-                      required maxLength}) {
-                    return Text(
-                      "$currentLength / 50",
-                      style: TextStyle(
-                        color: isFocused
-                            ? Colors.blueAccent
-                            : Theme.of(context).colorScheme.primary,
+                  const SizedBox(height: 5),
+                  TextFormField(
+                    validator: (value) =>
+                        value!.isEmpty ? "Name cannot be empty" : null,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    controller: assistantNameController,
+                    maxLength: 1,
+                    decoration: InputDecoration(
+                      hintText: "Enter a name",
+                      hintStyle: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
                       ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 15),
-                Text(
-                  "Assistant description",
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.inversePrimary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                TextFormField(
-                  controller: assistantDescriptionController,
-                  maxLines: 5,
-                  decoration: InputDecoration(
-                    hintText: "Enter a description",
-                    hintStyle: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
+                      border: const OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Colors.blueAccent,
+                        ),
+                        borderRadius: BorderRadius.all(Radius.circular(12)),
+                      ),
                     ),
-                    border: const OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Colors.blueAccent,
-                      ),
-                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                    buildCounter: (context,
+                        {required currentLength,
+                        required isFocused,
+                        required maxLength}) {
+                      return Text(
+                        "$currentLength / 50",
+                        style: TextStyle(
+                          color: isFocused
+                              ? Colors.blueAccent
+                              : Theme.of(context).colorScheme.primary,
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 15),
+                  Text(
+                    "Assistant description",
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.inversePrimary,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  buildCounter: (context,
-                      {required currentLength,
-                      required isFocused,
-                      required maxLength}) {
-                    return Text(
-                      "$currentLength / 2000",
-                      style: TextStyle(
-                        color: isFocused
-                            ? Colors.blueAccent
-                            : Theme.of(context).colorScheme.primary,
+                  const SizedBox(height: 5),
+                  TextFormField(
+                    controller: assistantDescriptionController,
+                    maxLines: 5,
+                    decoration: InputDecoration(
+                      hintText: "Enter a description",
+                      hintStyle: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
                       ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 5),
-              ],
+                      border: const OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Colors.blueAccent,
+                        ),
+                        borderRadius: BorderRadius.all(Radius.circular(12)),
+                      ),
+                    ),
+                    buildCounter: (context,
+                        {required currentLength,
+                        required isFocused,
+                        required maxLength}) {
+                      return Text(
+                        "$currentLength / 2000",
+                        style: TextStyle(
+                          color: isFocused
+                              ? Colors.blueAccent
+                              : Theme.of(context).colorScheme.primary,
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 5),
+                ],
+              ),
             ),
           ),
           actions: [
@@ -845,7 +877,7 @@ class _AssistantPageState extends State<AssistantPage> {
           Align(
             alignment: Alignment.bottomRight,
             child: Container(
-              margin: const EdgeInsets.only(right: 10.0, bottom: 10.0),
+              margin: const EdgeInsets.only(right: 15.0, bottom: 15.0),
               child: FloatingActionButton.small(
                 elevation: 0,
                 shape: RoundedRectangleBorder(
@@ -854,7 +886,12 @@ class _AssistantPageState extends State<AssistantPage> {
                 tooltip: 'Add Knowledge to Assistant',
                 onPressed: () {
                   // Handle Add Knowledge
-                  _showImportKnowledgeDialog(context);
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return _showImportKnowledgeDialog(context);
+                    },
+                  );
                 },
                 backgroundColor: Colors.blueAccent,
                 child: const Icon(
