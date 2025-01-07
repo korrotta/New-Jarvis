@@ -4,9 +4,9 @@ import 'package:newjarvis/components/knowledge_base/knowledge_base_createkb.dart
 import 'package:newjarvis/components/widgets/floating_button.dart';
 import 'package:newjarvis/components/route/route_controller.dart';
 import 'package:newjarvis/components/widgets/side_bar.dart';
-import 'package:newjarvis/pages/knowledge_base_unit.dart';
-import 'package:newjarvis/providers/knowledge_base_provider.dart';
-import 'package:newjarvis/providers/knowledge_base_unit_provider.dart';
+import 'package:newjarvis/pages/knowledge_base/knowledge_base_unit.dart';
+import 'package:newjarvis/providers/knowledge_base_provider/knowledge_base_provider.dart';
+import 'package:newjarvis/providers/knowledge_base_provider/knowledge_base_unit_provider.dart';
 import 'package:provider/provider.dart';
 
 class KnowledgePage extends StatefulWidget {

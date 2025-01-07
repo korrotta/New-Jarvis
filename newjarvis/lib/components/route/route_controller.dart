@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:newjarvis/pages/knowledge_base.dart';
+import 'package:newjarvis/pages/knowledge_base/knowledge_base.dart';
 import 'package:newjarvis/pages/personal_page.dart';
 import 'package:newjarvis/pages/chat_page.dart';
-import 'package:newjarvis/pages/screen_write.dart';
+import 'package:newjarvis/pages/email/screen_write.dart';
 import 'package:newjarvis/services/auth_gate.dart';
 import 'package:flutter/cupertino.dart';
 

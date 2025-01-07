@@ -8,8 +8,8 @@ import 'package:newjarvis/components/knowledge_base/knowledge_unit_drive.dart';
 import 'package:newjarvis/components/knowledge_base/knowledge_unit_local_file.dart';
 import 'package:newjarvis/components/knowledge_base/knowledge_unit_slack.dart';
 import 'package:newjarvis/components/knowledge_base/knowledge_unit_web.dart';
-import 'package:newjarvis/providers/knowledge_base_provider.dart';
-import 'package:newjarvis/providers/knowledge_base_unit_provider.dart';
+import 'package:newjarvis/providers/knowledge_base_provider/knowledge_base_provider.dart';
+import 'package:newjarvis/providers/knowledge_base_provider/knowledge_base_unit_provider.dart';
 import 'package:provider/provider.dart';
 
 

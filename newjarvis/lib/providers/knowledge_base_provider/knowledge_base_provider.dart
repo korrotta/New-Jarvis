@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:newjarvis/models/knowledge_base_model.dart';
+import 'package:newjarvis/models/knowledge_base/knowledge_base_model.dart';
 import 'package:newjarvis/services/kbase_knowledge_service.dart';
 
 class KnowledgeBaseProvider with ChangeNotifier{

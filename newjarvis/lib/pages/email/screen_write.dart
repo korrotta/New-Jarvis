@@ -9,8 +9,8 @@ import 'package:provider/provider.dart';
 import 'package:newjarvis/components/route/route_controller.dart';
 import 'package:newjarvis/components/widgets/floating_button.dart';
 import 'package:newjarvis/components/widgets/side_bar.dart';
-import 'package:newjarvis/pages/screen_email.dart';
-import 'package:newjarvis/providers/response_email_provider.dart';
+import 'package:newjarvis/pages/email/screen_email.dart';
+import 'package:newjarvis/providers/email_provider/response_email_provider.dart';
 
 class ScreenSetUpEmail extends StatefulWidget {
   const ScreenSetUpEmail({super.key});

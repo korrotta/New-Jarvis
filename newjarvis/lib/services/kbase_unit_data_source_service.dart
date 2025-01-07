@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
-import 'package:newjarvis/models/unit_of_knowledgebase_model.dart';
+import 'package:newjarvis/models/knowledge_base/unit_of_knowledgebase_model.dart';
 import 'package:newjarvis/services/kbase_knowledge_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
