@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:newjarvis/pages/kbase_unit_add_method.dart';
 import 'package:newjarvis/pages/kbase_unit_confluence.dart';
 import 'package:newjarvis/pages/kbase_unit_edit_kb.dart';
@@ -151,6 +152,52 @@ Color _getBackgroundColor(String unitName) {
   }
 }
 
+// Hàm trả về logo dựa trên loại nguồn
+String _getLogoAsset(String type) {
+  switch (type.toLowerCase()) {
+    case 'local_file':
+      return 'assets/icons/iconLocalfile.png';
+    case 'confluence':
+      return 'assets/icons/iconConfluence.png';
+    case 'slack':
+      return 'assets/icons/iconSlack.png';
+    case 'web':
+      return 'assets/icons/iconWeb.png';
+    case 'drive':
+      return 'assets/icons/iconDrive.png';
+    default:
+      return 'assets/icons/iconLocalfile.png';
+  }
+}
+
+String formatSize(int bytes) {
+  if (bytes >= 1000000000) {
+    // Lớn hơn hoặc bằng 1 GB
+    return '${(bytes / 1000000000).toStringAsFixed(2)} GB';
+  } else if (bytes >= 1000000) {
+    // Lớn hơn hoặc bằng 1 MB
+    return '${(bytes / 1000000).toStringAsFixed(2)} MB';
+  } else if (bytes >= 1000) {
+    // Lớn hơn hoặc bằng 1 KB
+    return '${(bytes / 1000).toStringAsFixed(2)} KB';
+  } else {
+    // Dưới 1 KB, hiển thị nguyên byte
+    return '$bytes bytes';
+  }
+}
+
+
+String formatDate(String isoDate) {
+  try {
+    final DateTime dateTime = DateTime.parse(isoDate);
+    return DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime); // Định dạng thành "Năm-Tháng-Ngày Giờ:Phút:Giây"
+  } catch (e) {
+    return isoDate; // Trả về nguyên nếu lỗi
+  }
+}
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -261,266 +308,209 @@ Color _getBackgroundColor(String unitName) {
             const SizedBox(height: 8.0),
             // Add Unit Button
             Align(
-            alignment: Alignment.centerRight,
-            child: ElevatedButton.icon(
-              onPressed: _showAddUnitDialog,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green.shade800,
-              ),
-              icon: const Icon(
-                Icons.add,  
-                color: Colors.white,
-              ),
-              label: const Text(
-                'Add Unit',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              alignment: Alignment.centerRight,
+              child: ElevatedButton.icon(
+                onPressed: _showAddUnitDialog,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green.shade800,
+                ),
+                icon: const Icon(
+                  Icons.add,  
+                  color: Colors.white,
+                ),
+                label: const Text(
+                  'Add Unit',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
               ),
             ),
-          ),
 
             const SizedBox(height: 8.0),
-
-
-          // Units List
-          Expanded(
+            
+            // List of Units
+                      // Units List
+            Expanded(
             child: filteredUnitList.isEmpty
-              ? const Center(
-                  child: Text(
-                    'No units found. Click "Add Unit" to add one.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16.0),
-                  ),
-                )
-              : ListView.builder(
-                  itemCount: filteredUnitList.length,
-                  itemBuilder: (context, index) {
-                    final unit = filteredUnitList[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(
-                          vertical: 8.0, horizontal: 4.0),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.0),
-                        side: BorderSide(
-                          color: Colors.grey.shade700,
-                          width: 1.0,
-                        ),
-                      ),
-                      elevation: 6.0,
-                      child: Column(
-                        children: [
-                          // Top Section with File Name
-                          Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(10.0),
-                          decoration: BoxDecoration(
-                            color: _getBackgroundColor(unit.type),
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(12.0),
-                              topRight: Radius.circular(12.0),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.insert_drive_file_outlined, 
-                                color: Colors.white,     
-                              ),
-                              const SizedBox(width: 5), 
-                              Text(
-                                unit.name,
-                                style: const TextStyle(
-                                  fontSize: 14.0,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-
-                        // Bottom Section with Attributes
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 8.0,
-                            horizontal: 12.0,
-                          ),
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.only(
-                              bottomLeft: Radius.circular(12.0),
-                              bottomRight: Radius.circular(12.0),
-                            ),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Source
-                              Row(
-                                children: [
-                                  const Text(
-                                    "Source: ",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 13.0
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                      unit.type,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.normal,
-                                        fontSize: 13.0,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 5.0),
-                              // Size
-                              Row(
-                                children: [
-                                  const Text(
-                                    "Size: ",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 13.0
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                      "${unit.size}",
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.normal,
-                                        fontSize: 13.0
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 5.0),
-                              // Create Time
-                              Row(
-                                children: [
-                                  const Text(
-                                    "Create Time: ",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 13.0
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                      unit.createdAt,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.normal,
-                                        fontSize: 13.0
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 5.0),
-                              // Latest Update
-                              Row(
-                                children: [
-                                  const Text(
-                                    "Latest Update: ",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 13.0
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                      unit.updatedAt,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.normal,
-                                        fontSize: 13.0
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 5.0),
-                              // Enable Button
-                              Row(
-                                children: [
-                                  const Text(
-                                    "Status: ",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 13.0
-                                    ),
-                                  ),
-                                  Text(
-                                    unit.status ? "Enabled" : "Disabled",
-                                    style: TextStyle(
-                                      color: unit.status
-                                          ? Colors.green
-                                          : Colors.red,
-                                      fontWeight: FontWeight.normal,
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                  // Enable Toggle Button
-                                  Switch(
-                                    value: unit.status,
-                                    onChanged: (value) async{
-                                      await unitProvider.toggleUnitStatus(unit.id, value);
-                                    },
-                                    activeColor: Colors.green,
-                                    inactiveThumbColor: Colors.red,
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Delete Button
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.black54),
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    title: const Text('Delete Confirmation'),
-                                    content: const Text(
-                                        'Are you sure you want to delete this unit?'),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                        child: const Text('Cancel', style: TextStyle(color: Colors.black),),
-                                      ),
-                                      ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.red,
-                                        ),
-                                        onPressed: () async {
-                                          Navigator.of(context).pop();
-                                          await unitProvider.deleteUnit(unit.id, unit.knowledgeId);
-                                        },
-                                        child: const Text('Delete', style: TextStyle(color: Colors.white),),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                        ),
-                      ],
+                ? const Center(
+                    child: Text(
+                      'No units found. Click "Add Unit" to add one.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 16.0),
                     ),
-                  );
-                },
+                  )
+                : ListView.builder(
+                    itemCount: filteredUnitList.length,
+                    itemBuilder: (context, index) {
+                      final unit = filteredUnitList[index];
+                      return Column(
+                        children: [
+                          Card(
+                            margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                              side: BorderSide(
+                                color: Colors.grey.shade300,
+                                width: 1.0,
+                              ),
+                            ),
+                            elevation: 3.0,
+                            child: Padding(
+                              padding: const EdgeInsets.all(10.0),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Logo Section (Cố định độ rộng)
+                                  SizedBox(
+                                    width: 60, // Đảm bảo kích thước cố định
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Image.asset(
+                                          _getLogoAsset(unit.type),
+                                          width: 35,
+                                          height: 40,
+                                          fit: BoxFit.contain,
+                                        ),
+                                        const SizedBox(height: 10),
+                                        Text(
+                                          formatSize(unit.size),
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black54,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        const SizedBox(height: 5),
+                                        Text(
+                                          unit.type,
+                                          style: const TextStyle(
+                                            fontSize: 11.5,
+                                            color: Colors.black87,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 20),
+
+                                  // Unit Information Section (Expand để chiếm phần giữa)
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          unit.name,
+                                          style: const TextStyle(
+                                            fontSize: 15.0,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 23),
+                                        Text(
+                                          'Create: ${formatDate(unit.createdAt)}', 
+                                          style: const TextStyle(
+                                            fontSize: 12.0,
+                                            color: Colors.black54,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 10),
+                                        Text(
+                                          'Update: ${formatDate(unit.updatedAt)}', 
+                                          style: const TextStyle(
+                                            fontSize: 12.0,
+                                            color: Colors.black54,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+
+                                  // Actions Section (Cố định độ rộng)
+                                  SizedBox(
+                                    width: 80, // Đảm bảo kích thước cố định
+                                    child: Column(
+                                      children: [
+                                        // Enable Toggle Button
+                                        Switch(
+                                          value: unit.status,
+                                          onChanged: (value) async {
+                                            await unitProvider.toggleUnitStatus(unit.id, value);
+                                          },
+                                          activeColor: Colors.green,
+                                          inactiveThumbColor: Colors.red,
+                                        ),
+                                        const SizedBox(height: 10),
+                                        // Delete Button
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.delete,
+                                            color: Colors.black54,
+                                          ),
+                                          onPressed: () {
+                                            showDialog(
+                                              context: context,
+                                              builder: (BuildContext context) {
+                                                final knowledgeProvider = Provider.of<KnowledgeBaseProvider>(context, listen: false);
+                                                return AlertDialog(
+                                                  title: const Text('Delete Confirmation'),
+                                                  content: const Text(
+                                                      'Are you sure you want to delete this unit?'),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () {
+                                                        Navigator.of(context).pop();
+                                                      },
+                                                      child: const Text(
+                                                        'Cancel',
+                                                        style: TextStyle(color: Colors.black),
+                                                      ),
+                                                    ),
+                                                    ElevatedButton(
+                                                      style: ElevatedButton.styleFrom(
+                                                        backgroundColor: Colors.red,
+                                                      ),
+                                                      onPressed: () async {
+                                                        Navigator.of(context).pop();
+                                                        await unitProvider.deleteUnit(
+                                                            unit.id, unit.knowledgeId);
+                                                        
+                                                        await knowledgeProvider.loadKnowledgeList();
+                                                      },
+                                                      child: const Text(
+                                                        'Delete',
+                                                        style: TextStyle(color: Colors.white),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                );
+                                              },
+                                            );
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          // Divider
+                          if (index < filteredUnitList.length - 1)
+                          Divider(
+                            color: Colors.grey.shade400,
+                            height: 1.0,
+                            thickness: 1.0,
+                          ),
+                        ],
+                      );
+                    },
+                  ),
               ),
-            ),
           ],
         ),
       ),

@@ -61,6 +61,8 @@ flutter:
     - assets/images/email_marketing.png
     - assets/images/empty_inbox.png
     - assets/images/fire_blue.png
+    - assets/icons/iconLocalfile.png
+    - assets/icons/iconWeb.png
 
   # fonts:
   #   - family: Schyler
