@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:newjarvis/components/ai_chat/ai_model_selection_section.dart';
 import 'package:newjarvis/components/widgets/bottom_nav_section.dart';
@@ -7,7 +6,6 @@ import 'package:newjarvis/components/widgets/chat_participant.dart';
 import 'package:newjarvis/components/widgets/conversation_drawer.dart';
 import 'package:newjarvis/components/widgets/floating_button.dart';
 import 'package:newjarvis/components/route/route_controller.dart';
-import 'package:newjarvis/components/widgets/scroll_to_bottom_fab.dart';
 import 'package:newjarvis/components/widgets/side_bar.dart';
 import 'package:newjarvis/components/ai_chat/welcome_chat_section.dart';
 import 'package:newjarvis/enums/id.dart';
@@ -282,7 +280,13 @@ class _ChatPageState extends State<ChatPage> {
     try {
       final TokenUsageModel tokenUsage = await _apiService.getTokenUsage();
       setState(() {
+        if(tokenUsage.unlimited == true){
+          _remainingUsage = 'Unlimited';
+        } 
+        else{ 
         _remainingUsage = tokenUsage.remainingTokens;
+        }
+
       });
     } catch (e) {
       // Error fetching remaining tokens

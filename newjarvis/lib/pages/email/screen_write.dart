@@ -83,7 +83,7 @@ class _ScreenSetUpEmail extends State<ScreenSetUpEmail> {
 
   void _onItemTapped(int index) {
     setState(() {
-      selectedIndex = index;
+      selectedIndexSideBar = index;
       isSidebarVisible = false;
     });
     // Navigate to the selected page
@@ -97,11 +97,18 @@ class _ScreenSetUpEmail extends State<ScreenSetUpEmail> {
   }
 
 
+  // Fetch remaining usage
   Future<void> _fetchRemainingUsage() async {
     try {
       final TokenUsageModel tokenUsage = await _apiService.getTokenUsage();
       setState(() {
+        if(tokenUsage.unlimited == true){
+          _remainingUsage = 'Unlimited';
+        } 
+        else{ 
         _remainingUsage = tokenUsage.remainingTokens;
+        }
+
       });
     } catch (e) {
       // Error fetching remaining tokens

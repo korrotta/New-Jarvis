@@ -23,11 +23,18 @@ class _KnowledgeState extends State<KnowledgePage> {
   bool isDrawerVisible = false;
   double dragOffset = 200.0;
 
-  
-
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final knowledgeProvider = Provider.of<KnowledgeBaseProvider>(context, listen: false);
+      knowledgeProvider.loadKnowledgeList();
+    });
+  }
 
   void _onItemTapped(int index) {
     setState(() {
+
       selectedIndex = index;
       isSidebarVisible = false;
     });
@@ -66,7 +73,7 @@ class _KnowledgeState extends State<KnowledgePage> {
     final knowledgeProvider = Provider.of<KnowledgeBaseProvider>(context);
     final knowledgeList = knowledgeProvider.knowledgeList;
     final filteredKnowledgeList = knowledgeProvider.filteredKnowledgeList;
-    final isLoading = knowledgeProvider.isLoading;
+
 
     return Scaffold(
       appBar: AppBar(
@@ -85,12 +92,7 @@ class _KnowledgeState extends State<KnowledgePage> {
       ),
       body: Stack(
         children: [
-
-          if(isLoading)
-            const Center(
-              child: CircularProgressIndicator(),
-            )
-          else
+          if (!knowledgeProvider.isLoading)
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Column(
@@ -452,8 +454,13 @@ class _KnowledgeState extends State<KnowledgePage> {
                 );
               },
             ),
-  ],
-  
+          // CircularProgressIndicator khi isLoading
+          // Loading Indicator
+        if (knowledgeProvider.isLoading)
+          const Center(
+            child: CircularProgressIndicator(),
+          ),
+        ],   
       ),
     );
   }

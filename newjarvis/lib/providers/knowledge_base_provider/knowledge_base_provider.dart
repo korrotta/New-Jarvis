@@ -10,17 +10,20 @@ class KnowledgeBaseProvider with ChangeNotifier{
   List<Knowledge> filteredKnowledgeList = [];
   final TextEditingController searchController = TextEditingController();
   bool isLoading = false;
+  bool isLoggedIn = false; // Trạng thái đăng nhập
 
   KnowledgeBaseProvider() {
+    
   _initialize();
 }
 
 Future<void> _initialize() async {
-  await _loginKnowledgeApi();
-  await loadKnowledgeList();
-  _filterKnowledgeList(); 
-  searchController.addListener(_filterKnowledgeList);
-}
+    await _loginKnowledgeApi(); // Đăng nhập trước
+    if (isLoggedIn) {
+      await loadKnowledgeList(); // Chỉ tải danh sách khi đăng nhập thành công
+    }
+    searchController.addListener(_filterKnowledgeList);
+  }
 
   @override
   void dispose() {
@@ -39,37 +42,38 @@ Future<void> _initialize() async {
 
   Future<void> _loginKnowledgeApi() async {
     try {
+      isLoading = true;
+      notifyListeners();
+
       await _knowledgeApiService.SignInKB();
+      isLoggedIn = true;
       print('Successfully logged in to the knowledge API');
     } catch (e) {
+      isLoggedIn = false;
       print('Error during auto login: $e');
+    } finally {
+      isLoading = false;
+      notifyListeners();
     }
-    notifyListeners();
   }
 
   Future<void> loadKnowledgeList() async {
-
     try {
+      isLoading = true;
+      notifyListeners();
 
-    isLoading = true; // Bật trạng thái loading
-    notifyListeners();
-
-    final fetchedKnowledge = await _knowledgeApiService.getKnowledge();
-
+      final fetchedKnowledge = await _knowledgeApiService.getKnowledge();
       knowledgeList = fetchedKnowledge;
       filteredKnowledgeList = knowledgeList;
-      notifyListeners();
     } catch (e) {
-      
-      notifyListeners();
       print('Error fetching knowledge: $e');
       throw Exception('Failed to load knowledge: $e');
+    } finally {
+      isLoading = false;
+      notifyListeners();
     }
-    finally {
-    isLoading = false; // Tắt trạng thái loading
-    notifyListeners();
   }
-  }
+
 
   void updateKnowldege(String knowledgeId, String newName, String description) async {
     try {

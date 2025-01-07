@@ -5,7 +5,6 @@ import 'package:newjarvis/components/route/route_controller.dart';
 import 'package:newjarvis/components/widgets/chat_bubble.dart';
 import 'package:newjarvis/components/widgets/chat_input_section.dart';
 import 'package:newjarvis/components/widgets/chat_participant.dart';
-import 'package:newjarvis/components/widgets/conversation_drawer.dart';
 import 'package:newjarvis/components/widgets/thread_drawer.dart';
 import 'package:newjarvis/models/ai_bot_model.dart';
 import 'package:newjarvis/models/assistant_knowledge_model.dart';
@@ -928,7 +927,7 @@ class _AssistantPageState extends State<AssistantPage> {
                     );
 
                   case ConnectionState.done:
-                    if (snapshot!.hasError) {
+                    if (snapshot.hasError) {
                       return Center(
                         child: Text(
                           'Error: ${snapshot.error}',
