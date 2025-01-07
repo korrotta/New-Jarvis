@@ -389,30 +389,33 @@ class _ScreenSetUpEmail extends State<ScreenSetUpEmail> {
               const SizedBox(height: 5.0),
 
               Container(
-                height: 90,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0, vertical: 12.0),
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(117, 231, 227, 227),
-                  borderRadius: BorderRadius.circular(16.0),
-                ),
-                child: Column(children: [
-                  TextField(
-                    controller: contentController, // Gắn controller,
-                    decoration: const InputDecoration(
-                      hintText:
-                          'Enter the text content you want AI to help answer',
-                      hintStyle: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 12,
-                        fontFamily: 'Arial',
-                      ),
-                      border: InputBorder.none,
-                    ),
-                    maxLines: null,
-                  ),
-                ]),
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.3, // Giới hạn chiều cao tối đa
               ),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              decoration: BoxDecoration(
+                color: const Color.fromARGB(117, 231, 227, 227),
+                borderRadius: BorderRadius.circular(16.0),
+              ),
+              child: SingleChildScrollView(
+                child: TextField(
+                  controller: contentController,
+                  decoration: const InputDecoration(
+                    hintText: 'Enter the text content you want AI to help answer',
+                    hintStyle: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 12,
+                      fontFamily: 'Arial',
+                    ),
+                    border: InputBorder.none,
+                  ),
+                  keyboardType: TextInputType.multiline,
+                  maxLines: null, // Cho phép nhập nhiều dòng
+                  scrollPhysics: const BouncingScrollPhysics(), // Cuộn nội dung
+                ),
+              ),
+            ),
+
 
               const SizedBox(height: 11.0),
 
@@ -431,29 +434,33 @@ class _ScreenSetUpEmail extends State<ScreenSetUpEmail> {
               const SizedBox(height: 5.0),
 
               Container(
-                height: 90,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0, vertical: 12.0),
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(117, 231, 227, 227),
-                  borderRadius: BorderRadius.circular(16.0),
-                ),
-                child: Column(children: [
-                  TextField(
-                    controller: mainIdeaController, // Gắn controller,
-                    decoration: const InputDecoration(
-                      hintText: 'Main idea of the answer you want to generate',
-                      hintStyle: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 12,
-                        fontFamily: 'Arial',
-                      ),
-                      border: InputBorder.none,
-                    ),
-                    maxLines: null,
-                  ),
-                ]),
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.3, // Giới hạn chiều cao tối đa
               ),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              decoration: BoxDecoration(
+                color: const Color.fromARGB(117, 231, 227, 227),
+                borderRadius: BorderRadius.circular(16.0),
+              ),
+              child: SingleChildScrollView(
+                child: TextField(
+                  controller: mainIdeaController,
+                  decoration: const InputDecoration(
+                    hintText: 'Main idea of the answer you want to generate',
+                    hintStyle: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 12,
+                      fontFamily: 'Arial',
+                    ),
+                    border: InputBorder.none,
+                  ),
+                  keyboardType: TextInputType.multiline,
+                  maxLines: null, // Cho phép nhập nhiều dòng
+                  scrollPhysics: const BouncingScrollPhysics(), // Cuộn nội dung
+                ),
+              ),
+            ),
+
 
               const SizedBox(height: 11.0),
 
