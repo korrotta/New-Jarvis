@@ -9,6 +9,7 @@ import 'package:newjarvis/models/ai_bot_model.dart';
 import 'package:newjarvis/models/assistant_thread_message_model.dart';
 import 'package:newjarvis/models/assistant_thread_model.dart';
 import 'package:newjarvis/models/basic_user_model.dart';
+import 'package:newjarvis/models/knowledge_base_model.dart';
 import 'package:newjarvis/models/message_text_content_model.dart';
 import 'package:newjarvis/models/thread_message_content_model.dart';
 import 'package:newjarvis/services/api_service.dart';
@@ -48,6 +49,9 @@ class _AssistantPageState extends State<AssistantPage> {
 
   // Current OpenAIThreadID
   String? _currentOpenAiThreadId;
+
+  // List of knowledges
+  List<Knowledge> _knowledges = [];
 
   // Thread's Messages
   Future<List<AssistantThreadMessageModel>>? _threadMessages;
