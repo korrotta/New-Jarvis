@@ -589,10 +589,12 @@ class KnowledgeApiService {
     if (response.statusCode == 200) {
       final result = jsonDecode(response.body);
       print(result);
-      final data = result['data'];
+      final List<dynamic> data = result['data'];
 
-      final List<AssistantKnowledgeModel> knowledges =
-          data.map((e) => AssistantKnowledgeModel.fromJson(e)).toList();
+      final List<AssistantKnowledgeModel> knowledges = data
+          .map((e) =>
+              AssistantKnowledgeModel.fromJson(e as Map<String, dynamic>))
+          .toList();
 
       final metadata = result['meta'];
 

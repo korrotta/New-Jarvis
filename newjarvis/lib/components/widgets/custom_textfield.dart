@@ -37,6 +37,7 @@ class _CustomTextfieldState extends State<CustomTextfield> {
       padding: const EdgeInsets.symmetric(horizontal: 25.0),
       child: TextFormField(
         autofocus: false,
+
         obscureText: _obscureText, // Use local state
         controller: widget.controller,
         validator: widget.validator,
