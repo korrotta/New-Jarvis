@@ -354,41 +354,38 @@ class _LoginPageState extends State<LoginPage> {
 
                   // Remebmer me and forgot password
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    padding: const EdgeInsets.symmetric(horizontal: 25),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        Row(
-                          children: [
-                            Checkbox(
-                              activeColor: Colors.blueAccent,
-                              checkColor: Colors.white,
-                              value: rememberMe,
-                              onChanged: (value) {
-                                setState(() {
-                                  rememberMe = value!;
-                                });
-                              },
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  rememberMe = !rememberMe;
-                                });
-                              },
-                              child: MouseRegion(
-                                cursor: SystemMouseCursors.click,
-                                child: Text(
-                                  "Remember me",
-                                  style: TextStyle(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .primary),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                        // Row(
+                        //   children: [
+                        //     Checkbox(
+                        //       activeColor: Colors.blueAccent,
+                        //       checkColor: Colors.white,
+                        //       value: rememberMe,
+                        //       onChanged: (value) {
+                        //         setState(() {
+                        //           rememberMe = value!;
+                        //         });
+                        //       },
+                        //     ),
+                        //     GestureDetector(
+                        //       onTap: () {
+                        //         setState(() {
+                        //           rememberMe = !rememberMe;
+                        //         });
+                        //       },
+                        //       child: Text(
+                        //         "Remember me",
+                        //         style: TextStyle(
+                        //             color: Theme.of(context)
+                        //                 .colorScheme
+                        //                 .primary),
+                        //       ),
+                        //     ),
+                        //   ],
+                        // ),
                         GestureDetector(
                           onTap: () {},
                           child: const Text(
@@ -407,7 +404,9 @@ class _LoginPageState extends State<LoginPage> {
 
                   // Login button
                   isLoading
-                      ? const CircularProgressIndicator()
+                      ? const CircularProgressIndicator(
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.blue))
                       : CustomButton(
                           text: "Login",
                           onTap: signIn,

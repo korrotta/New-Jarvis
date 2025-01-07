@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:newjarvis/components/widgets/chat_bubble.dart';
 import 'package:newjarvis/components/widgets/chat_input_section.dart';
 import 'package:newjarvis/components/widgets/chat_participant.dart';
+import 'package:newjarvis/components/widgets/conversation_drawer.dart';
+import 'package:newjarvis/components/widgets/thread_drawer.dart';
 import 'package:newjarvis/models/ai_bot_model.dart';
 import 'package:newjarvis/models/assistant_thread_message_model.dart';
 import 'package:newjarvis/models/assistant_thread_model.dart';
@@ -56,6 +58,10 @@ class _AssistantPageState extends State<AssistantPage> {
   // Flag to check if current thread is new
   bool _isNewThread = false;
 
+  // Scroll Controller
+  ScrollController _scrollController = ScrollController();
+
+  // Assistant Persona Controller
   TextEditingController _assistantPersonaController = TextEditingController();
 
   // For bottom nav
@@ -75,6 +81,7 @@ class _AssistantPageState extends State<AssistantPage> {
 
   void _initAssistant() async {
     _assistant = widget.selectedAssistant;
+    _assistantPersonaController.text = _assistant.instructions ?? '';
     await _getCurentUserInfo();
     await _fetchThreads();
     await _fetchThreadMessages(_currentOpenAiThreadId!);
@@ -84,6 +91,18 @@ class _AssistantPageState extends State<AssistantPage> {
     final response = await _apiService.getCurrentUser(context);
     setState(() {
       _currentUser = response;
+    });
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.linear,
+        );
+      }
     });
   }
 
@@ -374,7 +393,7 @@ class _AssistantPageState extends State<AssistantPage> {
     });
 
     if (_threads.isNotEmpty) {
-      _currentOpenAiThreadId = _threads.first.openAiThreadId;
+      _currentOpenAiThreadId = _threads.last.openAiThreadId;
     } else {
       _handleNewThread();
     }
@@ -390,11 +409,51 @@ class _AssistantPageState extends State<AssistantPage> {
     setState(() {
       _threadMessages = Future.value(response);
     });
+
+    _scrollToBottom();
   }
 
   Future<void> _handleSendChat(BuildContext context, String message) async {
     // Handle sending message
     print('Sending message: $message');
+    // Append assistant message ('...') and user message
+    List<AssistantThreadMessageModel>? currentThreadMessages =
+        await _threadMessages;
+
+    final userMessage = AssistantThreadMessageModel(
+      content: [
+        ThreadMessageContentModel(
+          type: 'text',
+          text: MessageTextContentModel(value: message),
+        ),
+      ],
+      createdAt: DateTime.now().millisecondsSinceEpoch,
+      role: _currentUser!.roles.first,
+    );
+
+    final assistantMessage = AssistantThreadMessageModel(
+      content: [
+        ThreadMessageContentModel(
+          type: 'text',
+          text: MessageTextContentModel(value: '...'),
+        ),
+      ],
+      createdAt: DateTime.now().millisecondsSinceEpoch,
+      role: 'assistant',
+    );
+
+    if (currentThreadMessages != null && currentThreadMessages.isNotEmpty) {
+      print('Not empty');
+      currentThreadMessages.insert(0, userMessage);
+      currentThreadMessages.insert(0, assistantMessage);
+    } else {
+      print('Empty');
+      currentThreadMessages = [assistantMessage, userMessage];
+    }
+
+    setState(() {
+      _threadMessages = Future.value(currentThreadMessages);
+    });
 
     if (_isNewThread) {
       // Create new thread
@@ -424,26 +483,12 @@ class _AssistantPageState extends State<AssistantPage> {
           text: MessageTextContentModel(value: assistantResponse),
         ));
       });
-
-      if (assistantResponse.isNotEmpty) {
-        final message = AssistantThreadMessageModel(
-          content: _contents,
-          createdAt: DateTime.now().millisecondsSinceEpoch.toInt(),
-          role: _currentUser!.roles.first,
-        );
-
-        setState(() {
-          _threadMessages!.then((value) {
-            value.add(message);
-          });
-        });
-      }
     } else {
       final response = await _knowledgeApiService.askAssistant(
         context: context,
         assistantId: _assistant.id,
         message: message,
-        openAiThreadId: _assistant.openAiThreadIdPlay,
+        openAiThreadId: _currentOpenAiThreadId,
         additionalInstruction: _assistant.instructions ?? '',
       );
 
@@ -452,22 +497,7 @@ class _AssistantPageState extends State<AssistantPage> {
           type: 'text',
           text: MessageTextContentModel(value: response),
         ));
-        print('Contents: $_contents');
       });
-
-      if (response.isNotEmpty) {
-        final message = AssistantThreadMessageModel(
-          content: _contents,
-          createdAt: DateTime.now().millisecondsSinceEpoch.toInt(),
-          role: _currentUser!.roles.first,
-        );
-
-        setState(() {
-          _threadMessages!.then((value) {
-            value.add(message);
-          });
-        });
-      }
     }
     _fetchThreads();
     _fetchThreadMessages(_currentOpenAiThreadId!);
@@ -476,17 +506,35 @@ class _AssistantPageState extends State<AssistantPage> {
   Future<void> _handleNewThread() async {
     setState(() {
       _isNewThread = true;
-      _currentOpenAiThreadId = "";
-      _threads = [];
+      _currentOpenAiThreadId = '';
       _threadMessages = Future.value([]);
       _contents = [];
     });
+  }
+
+  void _handleThreadSelect(String openAiThreadId) {
+    setState(() {
+      _currentOpenAiThreadId = openAiThreadId;
+
+      _isNewThread = false;
+    });
+
+    _fetchThreadMessages(openAiThreadId);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: true,
+      drawer: (_selectedIndex == 1)
+          ? Drawer(
+              elevation: 0,
+              child: ThreadDrawer(
+                threads: _threads,
+                onSelectedThread: _handleThreadSelect,
+              ),
+            )
+          : null,
       appBar: _buildAppBar(context),
       body: _getSelectedPage(context),
       bottomNavigationBar: BottomNavigationBar(
@@ -534,18 +582,6 @@ class _AssistantPageState extends State<AssistantPage> {
       ),
       centerTitle: true,
       backgroundColor: Theme.of(context).colorScheme.surface,
-      leading: IconButton(
-        icon: const Icon(
-          CupertinoIcons.chevron_back,
-          size: 24,
-        ),
-        tooltip: 'Back',
-        mouseCursor: WidgetStateMouseCursor.clickable,
-        color: Theme.of(context).colorScheme.inversePrimary,
-        onPressed: () {
-          Navigator.pop(context);
-        },
-      ),
       title: GestureDetector(
         onTap: () {
           // Handle Assistant Name tap
@@ -643,7 +679,6 @@ class _AssistantPageState extends State<AssistantPage> {
   Widget _getSelectedPage(BuildContext context) {
     switch (_selectedIndex) {
       case 0:
-        print('Persona: ${_assistant.instructions}');
         return _developSection(context);
       case 1:
         return _previewSection(context);
@@ -671,28 +706,7 @@ class _AssistantPageState extends State<AssistantPage> {
       ),
       child: Column(
         children: [
-          Container(
-            decoration: BoxDecoration(
-              border: Border(
-                  bottom: BorderSide(
-                color: Theme.of(context).colorScheme.primary,
-                width: 1.0,
-              )),
-              color: Theme.of(context).colorScheme.surface,
-            ),
-            alignment: Alignment.center,
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                'Knowledge',
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Theme.of(context).colorScheme.inversePrimary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
+          const SizedBox(height: 8.0),
 
           // Knowledge Section
           Expanded(
@@ -717,13 +731,22 @@ class _AssistantPageState extends State<AssistantPage> {
           // FAB Add knowledge button
           Align(
             alignment: Alignment.bottomRight,
-            child: FloatingActionButton(
-              tooltip: 'Add Knowledge to Assistant',
-              onPressed: () {},
-              backgroundColor: Colors.blueAccent,
-              child: const Icon(
-                CupertinoIcons.add,
-                color: Colors.white,
+            child: Container(
+              margin: const EdgeInsets.only(right: 10.0, bottom: 10.0),
+              child: FloatingActionButton.small(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                tooltip: 'Add Knowledge to Assistant',
+                onPressed: () {
+                  // Handle Add Knowledge
+                },
+                backgroundColor: Colors.blueAccent,
+                child: const Icon(
+                  CupertinoIcons.add,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),
@@ -737,144 +760,177 @@ class _AssistantPageState extends State<AssistantPage> {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
         children: [
-          // Header
-          Container(
-            decoration: BoxDecoration(
-              border: Border(
-                  bottom: BorderSide(
-                color: Theme.of(context).colorScheme.primary,
-                width: 1.0,
-              )),
-              color: Theme.of(context).colorScheme.surface,
-            ),
-            alignment: Alignment.center,
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                'Preview & Chat',
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Theme.of(context).colorScheme.inversePrimary,
-                  fontWeight: FontWeight.bold,
-                ),
+          Positioned(
+            top: 16.0,
+            left: 16.0,
+            child: FloatingActionButton.small(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              backgroundColor: Colors.blueAccent,
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Icon(
+                Icons.arrow_back,
+                color: Colors.white,
               ),
             ),
           ),
-          Expanded(
-            child: FutureBuilder<List<AssistantThreadMessageModel>>(
-                future: _threadMessages,
-                builder: (context, snapshot) {
-                  switch (snapshot.connectionState) {
-                    case ConnectionState.waiting:
-                      return const Center(
-                        child: Center(
+          Container(
+            margin: EdgeInsets.only(
+              top: MediaQuery.of(context).size.height * 0.1,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: FutureBuilder<List<AssistantThreadMessageModel>>(
+                    future: _threadMessages,
+                    builder: (context, snapshot) {
+                      switch (snapshot.connectionState) {
+                        case ConnectionState.waiting:
+                          return const Center(
                             child: CircularProgressIndicator(
-                          color: Colors.blueAccent,
-                        )),
-                      );
-                    case ConnectionState.none:
-                      return const SizedBox.shrink();
-                    case ConnectionState.active:
-                      return const Center(
-                        child: Center(
+                              color: Colors.blueAccent,
+                            ),
+                          );
+                        case ConnectionState.none:
+                          return const Center(
                             child: CircularProgressIndicator(
-                          color: Colors.blueAccent,
-                        )),
-                      );
-                    case ConnectionState.done:
-                      if (!(snapshot.hasData) || snapshot.data!.isEmpty) {
-                        return Center(
-                          child: _newThreadAssistantSection(context),
-                        );
-                      }
-                      final items = snapshot.data!.reversed.toList();
-                      return ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: items.length,
-                        itemBuilder: (context, index) {
-                          final AssistantThreadMessageModel history =
-                              items[index];
-                          final role = history.role;
-                          final List<ThreadMessageContentModel> displayContent =
-                              history.content;
-                          final displayText = displayContent.first.text.value;
-                          return Column(
-                            crossAxisAlignment: role == 'assistant'
-                                ? CrossAxisAlignment.start
-                                : CrossAxisAlignment.end,
-                            children: [
-                              const SizedBox(height: 8.0),
-                              Container(
-                                margin: role == 'assistant'
-                                    ? const EdgeInsets.only(
-                                        left: 4.0,
-                                      )
-                                    : const EdgeInsets.only(
-                                        right: 10.0,
-                                      ),
-                                alignment: role == 'assistant'
-                                    ? Alignment.centerLeft
-                                    : Alignment.centerRight,
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
+                              color: Colors.blueAccent,
+                            ),
+                          );
+                        case ConnectionState.active:
+                          return const Center(
+                            child: Center(
+                                child: CircularProgressIndicator(
+                              color: Colors.blueAccent,
+                            )),
+                          );
+                        case ConnectionState.done:
+                          if (snapshot.hasError) {
+                            return Center(
+                              child: Text(
+                                'Error: ${snapshot.error}',
+                                style: TextStyle(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .inversePrimary,
+                                ),
+                              ),
+                            );
+                          } else if (snapshot.data!.isEmpty) {
+                            return Center(
+                              child: _newThreadAssistantSection(context),
+                            );
+                          } else {
+                            final items = snapshot.data!.reversed.toList();
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              _scrollToBottom();
+                            });
+                            return ListView.builder(
+                              controller: _scrollController,
+                              physics: const BouncingScrollPhysics(),
+                              shrinkWrap: true,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8.0,
+                                vertical: 8.0,
+                              ),
+                              itemCount: items.length,
+                              itemBuilder: (context, index) {
+                                final AssistantThreadMessageModel history =
+                                    items[index];
+                                final role = history.role;
+                                final List<ThreadMessageContentModel>
+                                    displayContent = history.content;
+                                final displayText =
+                                    displayContent.first.text.value;
+                                return Column(
                                   crossAxisAlignment: role == 'assistant'
                                       ? CrossAxisAlignment.start
                                       : CrossAxisAlignment.end,
                                   children: [
-                                    Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      mainAxisAlignment: role == 'assistant'
-                                          ? MainAxisAlignment.start
-                                          : MainAxisAlignment.end,
-                                      children: [
-                                        role == 'assistant'
-                                            ? botParticipant.icon
-                                            : userParticipant.icon,
-                                        const SizedBox(width: 5),
-                                        Text(
-                                          role == 'assistant'
-                                              ? _assistant.assistantName
-                                              : '',
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .inversePrimary,
-                                            fontWeight: FontWeight.bold,
+                                    const SizedBox(height: 8.0),
+                                    Container(
+                                      margin: role == 'assistant'
+                                          ? const EdgeInsets.only(
+                                              left: 4.0,
+                                            )
+                                          : const EdgeInsets.only(
+                                              right: 10.0,
+                                            ),
+                                      alignment: role == 'assistant'
+                                          ? Alignment.centerLeft
+                                          : Alignment.centerRight,
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment: role == 'assistant'
+                                            ? CrossAxisAlignment.start
+                                            : CrossAxisAlignment.end,
+                                        children: [
+                                          Row(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
+                                            mainAxisAlignment:
+                                                role == 'assistant'
+                                                    ? MainAxisAlignment.start
+                                                    : MainAxisAlignment.end,
+                                            children: [
+                                              role == 'assistant'
+                                                  ? botParticipant.icon
+                                                  : userParticipant.icon,
+                                              if (role == 'assistant')
+                                                const SizedBox(width: 5.0),
+                                              Text(
+                                                role == 'assistant'
+                                                    ? _assistant.assistantName
+                                                    : '',
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .inversePrimary,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                    ChatBubble(
-                                      message: displayText,
-                                      isQuery: history.role == 'assistant',
+                                          ChatBubble(
+                                            message: displayText,
+                                            isQuery: history.role == 'user',
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ],
-                                ),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                  }
-                }),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: ChatInputSection(
-              onSend: (String message) {
-                _handleSendChat(context, message);
-              },
-              onNewConversation: () {
-                _handleNewThread();
-              },
+                                );
+                              },
+                            );
+                          }
+                      }
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: ChatInputSection(
+                    onSend: (String message) {
+                      _handleSendChat(context, message);
+                    },
+                    onNewConversation: () {
+                      _handleNewThread();
+                    },
+                  ),
+                ),
+                const SizedBox(height: 8.0),
+              ],
             ),
           ),
-          const SizedBox(height: 8.0),
         ],
       ),
     );
@@ -898,30 +954,6 @@ class _AssistantPageState extends State<AssistantPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
-          Container(
-            decoration: BoxDecoration(
-              border: Border(
-                  bottom: BorderSide(
-                color: Theme.of(context).colorScheme.primary,
-                width: 1.0,
-              )),
-              color: Theme.of(context).colorScheme.surface,
-            ),
-            alignment: Alignment.center,
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                'Develop',
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Theme.of(context).colorScheme.inversePrimary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-
           const SizedBox(height: 8.0),
 
           // Assistant Persona
