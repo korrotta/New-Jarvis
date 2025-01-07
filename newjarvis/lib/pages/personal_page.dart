@@ -175,7 +175,11 @@ class _PersonalPageState extends State<PersonalPage> {
         resizeToAvoidBottomInset:
             true, // Ensures the layout adjusts for the keyboard
         body: _currentUser == null
-            ? const Center(child: CircularProgressIndicator())
+            ? const Center(
+                child: CircularProgressIndicator(
+                  color: Colors.blueAccent,
+                ),
+              )
             : Stack(
                 children: [
                   AnimatedContainer(
@@ -246,80 +250,71 @@ class _PersonalPageState extends State<PersonalPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Flexible(
-              flex: 2,
-              fit: FlexFit.tight,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.smart_toy_rounded,
-                    size: 22,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.smart_toy_rounded,
+                  size: 22,
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  "Assistant",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                     color: Theme.of(context).colorScheme.inversePrimary,
                   ),
-                  const SizedBox(width: 5),
-                  Text(
-                    "Assistant",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.inversePrimary,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
-            Flexible(
-              flex: 3,
-              fit: FlexFit.tight,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircleAvatar(
-                    backgroundColor: Colors.blueAccent,
-                    radius: 20,
-                    child: _currentUser?.username != null
-                        ? Text(
-                            _currentUser!.username![0].toUpperCase(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          )
-                        : const Icon(Icons.person),
-                  ),
-                  const SizedBox(width: 5),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _currentUser?.username ?? "Unknown",
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.inversePrimary,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircleAvatar(
+                  backgroundColor: Colors.blueAccent,
+                  radius: 20,
+                  child: _currentUser?.username != null
+                      ? Text(
+                          _currentUser!.username![0].toUpperCase(),
+                          style: const TextStyle(
+                            color: Colors.white,
                             fontWeight: FontWeight.bold,
-                            fontSize: 16,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          _currentUser?.email ?? "Unknown",
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.inversePrimary,
-                            fontSize: 12,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
+                        )
+                      : const Icon(Icons.person),
+                ),
+                const SizedBox(width: 5),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _currentUser?.username ?? "Unknown",
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.inversePrimary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                ],
-              ),
+                    Text(
+                      _currentUser?.email ?? "Unknown",
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.inversePrimary,
+                        fontSize: 12,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ],
             ),
           ],
         ),
@@ -664,6 +659,7 @@ class _PersonalPageState extends State<PersonalPage> {
                           ],
                         ),
                         child: Stack(
+                          clipBehavior: Clip.none,
                           children: [
                             // Assistant details
                             Positioned(
@@ -710,10 +706,10 @@ class _PersonalPageState extends State<PersonalPage> {
 
                             // Favorite & Remove
                             Positioned(
-                              right: 0,
                               top: 0,
+                              right: 0,
                               child: Row(
-                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
                                   IconButton(
@@ -744,7 +740,73 @@ class _PersonalPageState extends State<PersonalPage> {
                                       size: 16,
                                     ),
                                     onPressed: () {
-                                      _deleteAssistant(assistant.id);
+                                      // Open a dialog to confirm the deletion
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) {
+                                          return AlertDialog(
+                                            title:
+                                                const Text("Delete Assistant"),
+                                            content: const Text(
+                                                "Are you sure you want to delete this assistant?"),
+                                            actions: [
+                                              ElevatedButton(
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                },
+                                                style: ElevatedButton.styleFrom(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 20,
+                                                      vertical: 10),
+                                                  backgroundColor:
+                                                      Theme.of(context)
+                                                          .colorScheme
+                                                          .surface,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12.0),
+                                                    side: const BorderSide(
+                                                      color: Colors.redAccent,
+                                                    ),
+                                                  ),
+                                                ),
+                                                child: const Text(
+                                                  "Cancel",
+                                                  style: TextStyle(
+                                                      color: Colors.redAccent),
+                                                ),
+                                              ),
+                                              ElevatedButton(
+                                                style: ElevatedButton.styleFrom(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 20,
+                                                      vertical: 10),
+                                                  backgroundColor:
+                                                      Colors.redAccent,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12.0),
+                                                  ),
+                                                ),
+                                                onPressed: () {
+                                                  _deleteAssistant(
+                                                      assistant.id);
+                                                  Navigator.of(context).pop();
+                                                },
+                                                child: const Text(
+                                                  "Delete",
+                                                  style: TextStyle(
+                                                      color: Colors.white),
+                                                ),
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      );
                                     },
                                   ),
                                 ],

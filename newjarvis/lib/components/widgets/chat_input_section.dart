@@ -110,6 +110,7 @@ class _ChatInputSectionState extends State<ChatInputSection> {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: TextField(
+                          autofocus: false,
                           focusNode: _focusNode,
                           onSubmitted: (_) => _sendChat(context),
                           onChanged: (value) => _onTextChanged(context, value),

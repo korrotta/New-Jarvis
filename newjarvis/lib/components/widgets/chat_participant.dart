@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class ChatParticipant {
@@ -10,7 +11,7 @@ class ChatParticipant {
 final userParticipant = ChatParticipant(
   name: 'You',
   icon: const Icon(
-    Icons.person_outline_outlined,
+    CupertinoIcons.person_alt,
     color: Colors.black,
     size: 18,
   ),
@@ -20,7 +21,7 @@ final botParticipant = ChatParticipant(
   name: 'Assistant',
   icon: const Icon(
     Icons.smart_toy_rounded,
-    color: Colors.blue,
+    color: Colors.blueAccent,
     size: 18,
   ),
 );

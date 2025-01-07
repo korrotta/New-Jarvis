@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:newjarvis/models/ai_chat/conversation_item_model.dart';
+import 'package:newjarvis/models/assistant_thread_model.dart';
 
-class ConversationSidebar extends StatefulWidget {
-  final List<ConversationItemModel> conversations;
-  final Function(String) onSelectedConversation;
+class ThreadDrawer extends StatefulWidget {
+  final List<AssistantThreadModel> threads;
+  final Function(String) onSelectedThread;
 
-  const ConversationSidebar({
+  const ThreadDrawer({
     super.key,
-    required this.conversations,
-    required this.onSelectedConversation,
+    required this.threads,
+    required this.onSelectedThread,
   });
 
   @override
-  State<ConversationSidebar> createState() => _ConversationSidebarState();
+  State<ThreadDrawer> createState() => _ThreadDrawerState();
 }
 
-class _ConversationSidebarState extends State<ConversationSidebar> {
+class _ThreadDrawerState extends State<ThreadDrawer> {
   bool _isLoading = true; // Initially loading
 
   @override
@@ -38,21 +38,19 @@ class _ConversationSidebarState extends State<ConversationSidebar> {
   }
 
   String _formatDate(String timestamp) {
-    final dateTime = DateTime.fromMillisecondsSinceEpoch(
-      int.parse(timestamp) * 1000,
-    );
+    final dateTime = DateTime.parse(timestamp);
     final dateFormat = DateFormat('dd/MM/yyyy HH:mm');
     return dateFormat.format(dateTime);
   }
 
-  Map<String, List<ConversationItemModel>> _groupConversations() {
+  Map<String, List<AssistantThreadModel>> _groupThreads() {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final yesterday = today.subtract(const Duration(days: 1));
     final weekAgo = today.subtract(const Duration(days: 7));
     final monthAgo = today.subtract(const Duration(days: 30));
 
-    final Map<String, List<ConversationItemModel>> groupedConversations = {
+    final Map<String, List<AssistantThreadModel>> groupedConversations = {
       'Today': [],
       'Yesterday': [],
       'Previous 7 Days': [],
@@ -60,21 +58,19 @@ class _ConversationSidebarState extends State<ConversationSidebar> {
       'Older': [],
     };
 
-    for (var conversation in widget.conversations) {
-      final createdAt = DateTime.fromMillisecondsSinceEpoch(
-        int.parse(conversation.createdAt.toString()) * 1000,
-      );
+    for (var thread in widget.threads) {
+      final createdAt = DateTime.parse(thread.createdAt.toString());
 
       if (createdAt.isAfter(today)) {
-        groupedConversations['Today']?.add(conversation);
+        groupedConversations['Today']?.add(thread);
       } else if (createdAt.isAfter(yesterday)) {
-        groupedConversations['Yesterday']?.add(conversation);
+        groupedConversations['Yesterday']?.add(thread);
       } else if (createdAt.isAfter(weekAgo)) {
-        groupedConversations['Previous 7 Days']?.add(conversation);
+        groupedConversations['Previous 7 Days']?.add(thread);
       } else if (createdAt.isAfter(monthAgo)) {
-        groupedConversations['Previous 30 Days']?.add(conversation);
+        groupedConversations['Previous 30 Days']?.add(thread);
       } else {
-        groupedConversations['Older']?.add(conversation);
+        groupedConversations['Older']?.add(thread);
       }
     }
 
@@ -108,7 +104,7 @@ class _ConversationSidebarState extends State<ConversationSidebar> {
       );
     }
 
-    final groupedConversations = _groupConversations();
+    final groupedThreads = _groupThreads();
     return Container(
       width: 250,
       decoration: BoxDecoration(
@@ -135,7 +131,7 @@ class _ConversationSidebarState extends State<ConversationSidebar> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'Conversations',
+                  'Threads',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -152,14 +148,14 @@ class _ConversationSidebarState extends State<ConversationSidebar> {
           ),
           // Conversation List
           Expanded(
-            child: widget.conversations.isNotEmpty
+            child: widget.threads.isNotEmpty
                 ? ListView(
                     padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    children: groupedConversations.entries
+                    children: groupedThreads.entries
                         .where((entry) => entry.value.isNotEmpty)
                         .map((entry) {
                       final sectionTitle = entry.key;
-                      final conversations = entry.value;
+                      final threads = entry.value;
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -177,11 +173,11 @@ class _ConversationSidebarState extends State<ConversationSidebar> {
                             ),
                           ),
                           // Conversation Items
-                          ...conversations.map((conversation) {
+                          ...threads.map((thread) {
                             return ListTile(
                               title: Text(
-                                conversation.title[0].toUpperCase() +
-                                    conversation.title.substring(1),
+                                thread.threadName[0].toUpperCase() +
+                                    thread.threadName.substring(1),
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
@@ -189,7 +185,7 @@ class _ConversationSidebarState extends State<ConversationSidebar> {
                                 ),
                               ),
                               subtitle: Text(
-                                _formatDate(conversation.createdAt.toString()),
+                                _formatDate(thread.createdAt.toString()),
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: Theme.of(context)
@@ -199,7 +195,7 @@ class _ConversationSidebarState extends State<ConversationSidebar> {
                                 ),
                               ),
                               onTap: () {
-                                widget.onSelectedConversation(conversation.id);
+                                widget.onSelectedThread(thread.openAiThreadId);
                                 Navigator.of(context).pop();
                               },
                             );
@@ -210,7 +206,7 @@ class _ConversationSidebarState extends State<ConversationSidebar> {
                   )
                 : const Center(
                     child: Text(
-                      'No conversations available.',
+                      'No threads available.',
                       style: TextStyle(fontSize: 14),
                     ),
                   ),
