@@ -1,4 +1,4 @@
-/*import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 class CreateKnowledgeDialog extends StatefulWidget {
   final Function(String, String) onConfirm;
@@ -151,4 +151,4 @@ class _CreateKnowledgeDialogState extends State<CreateKnowledgeDialog> {
       ],
     );
   }
-}*/
+}

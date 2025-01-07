@@ -1,30 +1,45 @@
-/*import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
-class CreateKnowledgeDialog extends StatefulWidget {
+class EditKnowledgeDialog extends StatefulWidget {
   final Function(String, String) onConfirm;
+  final String kbName;
+  final String kbDescription;
 
-  const CreateKnowledgeDialog({required this.onConfirm, super.key});
+  const EditKnowledgeDialog({
+    required this.onConfirm,
+    required this.kbName,
+    required this.kbDescription,
+    super.key,
+  });
 
   @override
-  State<CreateKnowledgeDialog> createState() => _CreateKnowledgeDialogState();
+  State<EditKnowledgeDialog> createState() => _EditKnowledgeDialogState();
 }
 
-class _CreateKnowledgeDialogState extends State<CreateKnowledgeDialog> {
-
-  final _nameController = TextEditingController();
-
-  final _descriptionController = TextEditingController();
+class _EditKnowledgeDialogState extends State<EditKnowledgeDialog> {
+  late TextEditingController _nameController;
+  late TextEditingController _descriptionController;
 
   final _formKey = GlobalKey<FormState>();
 
+  // Để theo dõi số ký tự trong mô tả
   int _descriptionCharCount = 0;
 
   @override
   void initState() {
     super.initState();
+
+    // Khởi tạo TextEditingController với giá trị ban đầu
+    _nameController = TextEditingController(text: widget.kbName);
+    _descriptionController = TextEditingController(text: widget.kbDescription);
+
+    // Cập nhật số ký tự còn lại ngay khi mở dialog
+    _descriptionCharCount = _descriptionController.text.length;
+
+    // Lắng nghe thay đổi trong TextEditingController
     _descriptionController.addListener(_updateDescriptionCharCount);
     _nameController.addListener(() {
-      setState(() {}); 
+      setState(() {}); // Cập nhật để hiển thị số ký tự còn lại
     });
   }
 
@@ -55,10 +70,10 @@ class _CreateKnowledgeDialogState extends State<CreateKnowledgeDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20.0),
+        borderRadius: BorderRadius.circular(20.0), 
       ),
       title: const Text(
-        'Create New Knowledge',
+        'Edit Knowledge',
         style: TextStyle(fontWeight: FontWeight.bold),
       ),
       content: SingleChildScrollView(
@@ -67,7 +82,7 @@ class _CreateKnowledgeDialogState extends State<CreateKnowledgeDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-             
+              // Trường tên Knowledge với dấu * đỏ
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
@@ -85,7 +100,7 @@ class _CreateKnowledgeDialogState extends State<CreateKnowledgeDialog> {
                   ),
                   hintText: 'Enter name',
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
+                    borderRadius: BorderRadius.circular(8.0), 
                   ),
                   counterText:
                       '${50 - _nameController.text.length} / 50', 
@@ -116,7 +131,7 @@ class _CreateKnowledgeDialogState extends State<CreateKnowledgeDialog> {
                       '${1000 - _descriptionCharCount} / 1000', 
                 ),
                 maxLines: 5,
-                maxLength: 1000, 
+                maxLength: 1000, // Giới hạn 1000 ký tự
                 validator: (value) {
                   if (value != null && value.trim().isNotEmpty) {
                     if (value.trim().length > 1000) {
@@ -141,7 +156,7 @@ class _CreateKnowledgeDialogState extends State<CreateKnowledgeDialog> {
           onPressed: _submit,
           style: ElevatedButton.styleFrom(
             backgroundColor:
-                const Color.fromARGB(255, 51, 68, 179),
+                const Color.fromARGB(255, 51, 68, 179), 
           ),
           child: const Text(
             'Confirm',
@@ -151,4 +166,4 @@ class _CreateKnowledgeDialogState extends State<CreateKnowledgeDialog> {
       ],
     );
   }
-}*/
+}

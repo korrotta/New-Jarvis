@@ -11,12 +11,16 @@ class KnowledgeBaseProvider with ChangeNotifier{
   final TextEditingController searchController = TextEditingController();
   bool isLoading = false;
 
-  KnowledgeBaseProvider(){
-    _loginKnowledgeApi();
-    loadKnowledgeList();
-    _filterKnowledgeList();
-    searchController.addListener(_filterKnowledgeList); 
-  }
+  KnowledgeBaseProvider() {
+  _initialize();
+}
+
+Future<void> _initialize() async {
+  await _loginKnowledgeApi();
+  await loadKnowledgeList();
+  _filterKnowledgeList(); 
+  searchController.addListener(_filterKnowledgeList);
+}
 
   @override
   void dispose() {
@@ -44,10 +48,13 @@ class KnowledgeBaseProvider with ChangeNotifier{
   }
 
   Future<void> loadKnowledgeList() async {
+
     try {
-      
-      final fetchedKnowledge =
-          await _knowledgeApiService.getKnowledge();
+
+    isLoading = true; // Bật trạng thái loading
+    notifyListeners();
+
+    final fetchedKnowledge = await _knowledgeApiService.getKnowledge();
 
       knowledgeList = fetchedKnowledge;
       filteredKnowledgeList = knowledgeList;
@@ -58,6 +65,10 @@ class KnowledgeBaseProvider with ChangeNotifier{
       print('Error fetching knowledge: $e');
       throw Exception('Failed to load knowledge: $e');
     }
+    finally {
+    isLoading = false; // Tắt trạng thái loading
+    notifyListeners();
+  }
   }
 
   void updateKnowldege(String knowledgeId, String newName, String description) async {

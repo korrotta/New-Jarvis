@@ -1,4 +1,4 @@
-/*import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 class SelectMethodDialog extends StatefulWidget {
   final Function(String) onMethodSelected;
@@ -113,4 +113,4 @@ class _SelectMethodDialogState extends State<SelectMethodDialog> {
       ],
     );
   }
-}*/
+}

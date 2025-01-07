@@ -1,4 +1,4 @@
-/*import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 class CreateUnitDialogFromSlack extends StatefulWidget {
   final Function(String name, String workspace, String botToken) onConfirm;
@@ -286,4 +286,4 @@ class _CreateSlackUnitDialogState extends State<CreateUnitDialogFromSlack> {
       ],
     );
   }
-}*/
+}

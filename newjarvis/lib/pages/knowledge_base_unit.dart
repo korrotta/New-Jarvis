@@ -1,13 +1,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:newjarvis/pages/kbase_unit_add_method.dart';
-import 'package:newjarvis/pages/kbase_unit_confluence.dart';
-import 'package:newjarvis/pages/kbase_unit_edit_kb.dart';
-import 'package:newjarvis/pages/kbase_unit_ggdrive.dart';
-import 'package:newjarvis/pages/kbase_unit_local_file.dart';
-import 'package:newjarvis/pages/kbase_unit_slack.dart';
-import 'package:newjarvis/pages/kbase_unit_web.dart';
+import 'package:newjarvis/components/knowledge_base/knowledge_base_editkb.dart';
+import 'package:newjarvis/components/knowledge_base/knowledge_unit_add.dart';
+import 'package:newjarvis/components/knowledge_base/knowledge_unit_confluence.dart';
+import 'package:newjarvis/components/knowledge_base/knowledge_unit_drive.dart';
+import 'package:newjarvis/components/knowledge_base/knowledge_unit_local_file.dart';
+import 'package:newjarvis/components/knowledge_base/knowledge_unit_slack.dart';
+import 'package:newjarvis/components/knowledge_base/knowledge_unit_web.dart';
 import 'package:newjarvis/providers/knowledge_base_provider.dart';
 import 'package:newjarvis/providers/knowledge_base_unit_provider.dart';
 import 'package:provider/provider.dart';
@@ -201,7 +201,7 @@ String formatSize(int bytes) {
 String formatDate(String isoDate) {
   try {
     final DateTime dateTime = DateTime.parse(isoDate);
-    return DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime); // Định dạng thành "Năm-Tháng-Ngày Giờ:Phút:Giây"
+    return DateFormat('dd-MM-yyyy HH:mm:ss').format(dateTime); 
   } catch (e) {
     return isoDate; // Trả về nguyên nếu lỗi
   }
@@ -446,14 +446,18 @@ String formatDate(String isoDate) {
                                     child: Column(
                                       children: [
                                         // Enable Toggle Button
-                                        Switch(
-                                          value: unit.status,
-                                          onChanged: (value) async {
-                                            await unitProvider.toggleUnitStatus(unit.id, value);
-                                          },
-                                          activeColor: Colors.green,
-                                          inactiveThumbColor: Colors.red,
+                                          Transform.scale(
+                                          scale: 0.7, // Điều chỉnh tỷ lệ (1.0 là kích thước mặc định, nhỏ hơn là giảm kích thước)
+                                          child: Switch(
+                                            value: unit.status,
+                                            onChanged: (value) async {
+                                              await unitProvider.toggleUnitStatus(unit.id, value);
+                                            },
+                                            activeColor: Colors.blueAccent,
+                                            inactiveThumbColor: Colors.red,
+                                          ),
                                         ),
+
                                         const SizedBox(height: 10),
                                         // Delete Button
                                         IconButton(
