@@ -1,7 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class CreateUnitDialogFromWeb extends StatefulWidget {
-  final Function(String, String) onConfirm;
+  final Future<void> Function(String, String) onConfirm;
 
   const CreateUnitDialogFromWeb({required this.onConfirm, super.key});
 
@@ -15,6 +16,7 @@ class _CreateUnitDialogFromWebState extends State<CreateUnitDialogFromWeb> {
 
   bool _showNameError = false;
   bool _showUrlError = false;
+  bool isLoading = false; // Trạng thái loading cho nút "Connect"
 
   @override
   void initState() {
@@ -47,18 +49,29 @@ class _CreateUnitDialogFromWebState extends State<CreateUnitDialogFromWeb> {
     super.dispose();
   }
 
-  void _submit() {
+  void _submit() async {
     setState(() {
       _showNameError = _nameController.text.trim().isEmpty;
       _showUrlError = _urlController.text.trim().isEmpty;
     });
 
     if (!_showNameError && !_showUrlError) {
-      widget.onConfirm(
-        _nameController.text.trim(),
-        _urlController.text.trim(),
-      );
-      Navigator.pop(context);
+      setState(() {
+        isLoading = true; // Bật trạng thái loading
+      });
+
+      try {
+        await widget.onConfirm(
+          _nameController.text.trim(),
+          _urlController.text.trim(),
+        );
+      } catch (e) {
+        print("Error: $e");
+      } finally {
+        setState(() {
+          isLoading = false; // Tắt trạng thái loading
+        });
+      }
     }
   }
 
@@ -169,7 +182,9 @@ class _CreateUnitDialogFromWebState extends State<CreateUnitDialogFromWeb> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _submit,
+                onPressed: isLoading
+                    ? null // Vô hiệu hóa nút khi đang xử lý
+                    : _submit,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   padding: const EdgeInsets.symmetric(vertical: 12.0),
@@ -177,14 +192,23 @@ class _CreateUnitDialogFromWebState extends State<CreateUnitDialogFromWeb> {
                     borderRadius: BorderRadius.circular(8.0),
                   ),
                 ),
-                child: const Text(
-                  'Connect',
-                  style: TextStyle(
-                    fontSize: 16.0,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
+                child: isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text(
+                        'Connect',
+                        style: TextStyle(
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
               ),
             ),
             const SizedBox(height: 15.0),

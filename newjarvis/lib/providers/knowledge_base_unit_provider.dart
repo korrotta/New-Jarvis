@@ -75,6 +75,7 @@ class UnitProvider with ChangeNotifier {
     filteredUnitList = unitList;
     _setLoading(false);
 
+
   } catch (e) {
     _setLoading(false);
       print('Error fetching units: $e');
@@ -220,6 +221,8 @@ Future<void> deleteUnit(String unitId, String knowledgeId) async {
 
     // Xóa unit khỏi danh sách trong Provider
     filteredUnitList.removeWhere((unit) => unit.id == unitId);
+
+    _updateTotalUnits();
 
     notifyListeners(); // Cập nhật giao diện
     print("Unit deleted successfully");

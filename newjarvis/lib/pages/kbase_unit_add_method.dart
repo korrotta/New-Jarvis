@@ -13,8 +13,8 @@ class _SelectMethodDialogState extends State<SelectMethodDialog> {
   String _selectedMethod = "Local Files"; 
 
   final List<Map<String, dynamic>> methods = [
-  {"name": "Local Files", "description": "Upload pdf, docx,...", "iconData": Icons.file_open_outlined},
-  {"name": "Website", "description": "Website to get data", "iconData": Icons.language},
+  {"name": "Local Files", "description": "Upload pdf, docx,...", "iconPath": 'assets/icons/iconLocalfile.png'},
+  {"name": "Website", "description": "Website to get data", "iconPath": 'assets/icons/iconWeb.png'},
   {"name": "Google Drive", "description": "GG Drive to get data", "iconPath": 'assets/icons/iconDrive.png'},
   {"name": "Slack", "description": "Slack to get data", "iconPath": 'assets/icons/iconSlack.png'},
   {"name": "Confluence", "description": "Confluence to get data", "iconPath": 'assets/icons/iconConfluence.png'},

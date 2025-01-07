@@ -20,6 +20,7 @@ class _CreateSlackUnitDialogState extends State<CreateUnitDialogFromSlack> {
   bool _showNameError = false;
   bool _showWorkspaceError = false;
   bool _showBotTokenError = false;
+  bool _isLoading = false; // Trạng thái loading cho nút "Connect"
 
   @override
   void initState() {
@@ -62,7 +63,7 @@ class _CreateSlackUnitDialogState extends State<CreateUnitDialogFromSlack> {
     super.dispose();
   }
 
-  void _submit() {
+  void _submit() async {
     setState(() {
       _showNameError = _nameController.text.trim().isEmpty;
       _showWorkspaceError = _workspaceController.text.trim().isEmpty;
@@ -70,12 +71,24 @@ class _CreateSlackUnitDialogState extends State<CreateUnitDialogFromSlack> {
     });
 
     if (!_showNameError && !_showWorkspaceError && !_showBotTokenError) {
-      widget.onConfirm(
-        _nameController.text.trim(),
-        _workspaceController.text.trim(),
-        _botTokenController.text.trim(),
-      );
-      Navigator.pop(context);
+      setState(() {
+        _isLoading = true; // Bật trạng thái loading
+      });
+
+      try {
+        await widget.onConfirm(
+          _nameController.text.trim(),
+          _workspaceController.text.trim(),
+          _botTokenController.text.trim(),
+        );
+      } catch (e) {
+        print('Error: $e');
+      } finally {
+        setState(() {
+          _isLoading = false; // Tắt trạng thái loading
+        });
+        Navigator.pop(context); // Đóng dialog sau khi xử lý xong
+      }
     }
   }
 
@@ -248,15 +261,27 @@ class _CreateSlackUnitDialogState extends State<CreateUnitDialogFromSlack> {
           child: const Text('Cancel'),
         ),
         ElevatedButton(
-          onPressed: _submit,
+          onPressed: _isLoading
+              ? null // Vô hiệu hóa nút khi đang xử lý
+              : _submit,
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.blue.shade600,
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           ),
-          child: const Text(
-            'Connect',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
+          child: _isLoading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Text(
+                  'Connect',
+                  style:
+                      TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
         ),
       ],
     );

@@ -1,7 +1,7 @@
 name: newjarvis
-description: "A new Flutter project."
+description: "Chat with AI Assistant"
 publish_to: 'none' 
-version: 1.0.0+1
+version: 1.0.0+2
 
 environment:
   sdk: ^3.5.3
@@ -25,6 +25,7 @@ dependencies:
   url_launcher: ^6.3.1
   flutter_markdown: ^0.7.5
   google_fonts: ^6.2.1
+  scrollable_positioned_list: ^0.3.8
 
 flutter_launcher_icons:
   android: "launcher_icon"
@@ -60,6 +61,8 @@ flutter:
     - assets/images/email_marketing.png
     - assets/images/empty_inbox.png
     - assets/images/fire_blue.png
+    - assets/icons/iconLocalfile.png
+    - assets/icons/iconWeb.png
 
   # fonts:
   #   - family: Schyler
