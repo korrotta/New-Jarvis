@@ -91,7 +91,7 @@ class _ChatPageState extends State<ChatPage> {
     await _checkLoginStatus();
     await _getCurentUserInfo();
     await _fetchAllConversations(isInitialFetch: true);
-    if (_currentConversationId != null) {
+    if (_currentConversationId != null && _currentConversationId != '') {
       await _getConversationHistory(_currentConversationId!);
     }
     await _fetchRemainingUsage();
@@ -352,7 +352,7 @@ class _ChatPageState extends State<ChatPage> {
 
       setState(() {
         _currentConversationHistory = Future.value(response);
-        _currentConversationId = conversationId;
+        //_currentConversationId = conversationId;
       });
 
       // Scroll to bottom
@@ -378,17 +378,20 @@ class _ChatPageState extends State<ChatPage> {
     _fetchTotalTokens();
   }
 
-  void _handleConversationSelect(String id) {
+  Future<void> _handleConversationSelect(String id) async {
     setState(() {
       // Update the current conversation ID
       _currentConversationId = id;
 
       // Reset the new thread flag
       _isNewThread = false;
+
+      // Clear chatResponse
+      _chatResponse = null;
     });
 
     // Get the conversation history based on the selected conversation ID
-    _getConversationHistory(id);
+    await _getConversationHistory(id);
   }
 
   @override
