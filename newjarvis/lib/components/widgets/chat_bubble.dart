@@ -22,9 +22,9 @@ class ChatBubble extends StatelessWidget {
             : (isDarkTheme ? Colors.grey.shade800 : Colors.grey.shade200),
         borderRadius: BorderRadius.circular(10),
       ),
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
       margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 15),
-      child: message.isEmpty
+      child: message == '...'
           ? const TypingIndicator()
           : MarkdownBody(
               data: message,
@@ -100,12 +100,7 @@ class _TypingIndicatorState extends State<TypingIndicator>
         String dots = List.filled(dotCount, '.').join();
         return Text(
           dots.padRight(3, ' '), // Always keep 3 placeholders
-          style: TextStyle(
-            fontSize: 16,
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.white
-                : Colors.black,
-          ),
+          style: const TextStyle(fontSize: 18, color: Colors.black),
         );
       },
     );

@@ -1,7 +1,7 @@
 class ChatResponseModel {
-  String? id;
-  String? message;
-  int? remainingUsage;
+  String id;
+  String message;
+  int remainingUsage;
 
   ChatResponseModel({
     required this.id,
@@ -10,13 +10,13 @@ class ChatResponseModel {
   });
 
   // Getter
-  String? get getId => id;
-  String? get getMessage => message;
-  int? get getRemainingUsage => remainingUsage;
+  String get getId => id;
+  String get getMessage => message;
+  int get getRemainingUsage => remainingUsage;
 
   factory ChatResponseModel.fromJson(Map<String, dynamic> json) {
     return ChatResponseModel(
-      id: json['id'],
+      id: json['conversationId'],
       message: json['message'],
       remainingUsage: json['remainingUsage'],
     );
@@ -24,7 +24,7 @@ class ChatResponseModel {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
-    data['id'] = id;
+    data['conversationId'] = id;
     data['message'] = message;
     data['remainingUsage'] = remainingUsage;
     return data;
@@ -32,6 +32,6 @@ class ChatResponseModel {
 
   @override
   String toString() {
-    return 'ChatResponseModel{id: $id, message: $message, remainingUsage: $remainingUsage}';
+    return 'ChatResponseModel{conversationId: $id, message: $message, remainingUsage: $remainingUsage}';
   }
 }

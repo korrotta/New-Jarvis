@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:newjarvis/components/route/route_controller.dart';
-import 'package:newjarvis/providers/auth_provider.dart';
-import 'package:newjarvis/providers/idea_email_provider.dart';
-import 'package:newjarvis/providers/knowledge_base_provider.dart';
-import 'package:newjarvis/providers/knowledge_base_unit_provider.dart';
-import 'package:newjarvis/providers/response_email_provider.dart';
+import 'package:newjarvis/providers/auth_provider/auth_provider.dart';
+import 'package:newjarvis/providers/email_provider/idea_email_provider.dart';
+import 'package:newjarvis/providers/knowledge_base_provider/knowledge_base_provider.dart';
+import 'package:newjarvis/providers/knowledge_base_provider/knowledge_base_unit_provider.dart';
+import 'package:newjarvis/providers/email_provider/response_email_provider.dart';
+import 'package:newjarvis/providers/subscriptions_provider/subscription_provider.dart';
+import 'package:newjarvis/providers/subscriptions_provider/token_usage_provider.dart';
 import 'package:newjarvis/states/category_state.dart';
 import 'package:newjarvis/states/chat_state.dart';
 import 'package:newjarvis/states/prompts_state.dart';
@@ -13,6 +16,7 @@ import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  MobileAds.instance.initialize();
   runApp(const MyApp());
 }
 
@@ -31,6 +35,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => UnitProvider()),
         ChangeNotifierProvider(create: (context) => EmailProvider()),
         ChangeNotifierProvider(create: (context) => EmailDraftIdeaProvider()),
+        ChangeNotifierProvider(create: (context) => UsageProvider()),
+        ChangeNotifierProvider(create: (context) => SubscriptionProvider()),
       ],
       child: MaterialApp(
         title: 'New Jarvis',
