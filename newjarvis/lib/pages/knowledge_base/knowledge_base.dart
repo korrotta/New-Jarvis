@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:newjarvis/components/knowledge_base/knowledge_base_createkb.dart';
 import 'package:newjarvis/components/widgets/floating_button.dart';
 import 'package:newjarvis/components/route/route_controller.dart';
 import 'package:newjarvis/components/widgets/side_bar.dart';
-import 'package:newjarvis/pages/knowledge_base_createkb.dart';
-import 'package:newjarvis/pages/knowledge_base_unit.dart';
-import 'package:newjarvis/providers/knowledge_base_provider.dart';
-import 'package:newjarvis/providers/knowledge_base_unit_provider.dart';
+import 'package:newjarvis/pages/knowledge_base/knowledge_base_unit.dart';
+import 'package:newjarvis/providers/knowledge_base_provider/knowledge_base_provider.dart';
+import 'package:newjarvis/providers/knowledge_base_provider/knowledge_base_unit_provider.dart';
 import 'package:provider/provider.dart';
 
 class KnowledgePage extends StatefulWidget {
@@ -22,8 +23,18 @@ class _KnowledgeState extends State<KnowledgePage> {
   bool isDrawerVisible = false;
   double dragOffset = 200.0;
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final knowledgeProvider = Provider.of<KnowledgeBaseProvider>(context, listen: false);
+      knowledgeProvider.loadKnowledgeList();
+    });
+  }
+
   void _onItemTapped(int index) {
     setState(() {
+
       selectedIndex = index;
       isSidebarVisible = false;
     });
@@ -32,11 +43,37 @@ class _KnowledgeState extends State<KnowledgePage> {
     RouteController.navigateTo(index);
   }
 
+  String formatDate(String isoDate) {
+  try {
+    final DateTime dateTime = DateTime.parse(isoDate);
+    return DateFormat('dd-MM-yyyy HH:mm:ss').format(dateTime);
+  } catch (e) {
+    return isoDate; // Trả về nguyên nếu lỗi
+  }
+}
+
+  String formatSize(int bytes) {
+  if (bytes >= 1000000000) {
+    // Lớn hơn hoặc bằng 1 GB
+    return '${(bytes / 1000000000).toStringAsFixed(2)} GB';
+  } else if (bytes >= 1000000) {
+    // Lớn hơn hoặc bằng 1 MB
+    return '${(bytes / 1000000).toStringAsFixed(2)} MB';
+  } else if (bytes >= 1000) {
+    // Lớn hơn hoặc bằng 1 KB
+    return '${(bytes / 1000).toStringAsFixed(2)} KB';
+  } else {
+    // Dưới 1 KB, hiển thị nguyên byte
+    return '$bytes bytes';
+  }
+}
+
   @override
   Widget build(BuildContext context) {
     final knowledgeProvider = Provider.of<KnowledgeBaseProvider>(context);
     final knowledgeList = knowledgeProvider.knowledgeList;
     final filteredKnowledgeList = knowledgeProvider.filteredKnowledgeList;
+
 
     return Scaffold(
       appBar: AppBar(
@@ -55,6 +92,7 @@ class _KnowledgeState extends State<KnowledgePage> {
       ),
       body: Stack(
         children: [
+          if (!knowledgeProvider.isLoading)
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Column(
@@ -254,7 +292,7 @@ class _KnowledgeState extends State<KnowledgePage> {
                                             ),
                                             Expanded(
                                               child: Text(
-                                                "${knowledge.totalSize}",
+                                                formatSize(knowledge.totalSize),
                                                 style: const TextStyle(
                                                   fontWeight: FontWeight.normal,
                                                 ),
@@ -275,7 +313,7 @@ class _KnowledgeState extends State<KnowledgePage> {
                                             ),
                                             Expanded(
                                               child: Text(
-                                                knowledge.updatedAt,
+                                                formatDate(knowledge.updatedAt),
                                                 style: const TextStyle(
                                                   fontWeight: FontWeight.normal,
                                                 ),
@@ -369,7 +407,7 @@ class _KnowledgeState extends State<KnowledgePage> {
               ],
             ),
           ),
-
+          
           // SideBar
           if (isSidebarVisible)
             Positioned(
@@ -416,7 +454,13 @@ class _KnowledgeState extends State<KnowledgePage> {
                 );
               },
             ),
-        ],
+          // CircularProgressIndicator khi isLoading
+          // Loading Indicator
+        if (knowledgeProvider.isLoading)
+          const Center(
+            child: CircularProgressIndicator(),
+          ),
+        ],   
       ),
     );
   }

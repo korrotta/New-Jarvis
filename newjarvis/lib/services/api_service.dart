@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:newjarvis/enums/id.dart';
 import 'package:newjarvis/models/ai_chat/ai_chat_model.dart';
 import 'package:newjarvis/models/assistant_model.dart';
 import 'package:newjarvis/models/basic_user_model.dart';
@@ -1108,4 +1107,95 @@ class ApiService {
       return {};
     }
   }
+
+  Future<Map<String, dynamic>> getUsage({
+     required BuildContext context
+  }) async {
+    final token = await getTokenWithRefresh();
+
+    if (token == null) {
+      throw Exception('No token found. Please sign in.');
+    }
+    
+    final url = Uri.parse('$_baseUrl/api/v1/subscriptions/me');
+
+  try {
+    final headers = {
+      'Authorization': 'Bearer $token',
+      'x-jarvis-guid': "",
+      'Content-Type': 'application/json',
+    };
+
+    print('Fetching usage data from URL: $url');
+
+    final response = await http.get(
+      url,
+      headers: headers,
+    );
+
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data;
+    } else {
+      _showErrorSnackbar(
+          context, "Failed to fetch usage. Status Code: ${response.statusCode}");
+      return {};
+    }
+  } catch (e) {
+    print("Error fetching usage data: $e");
+    _showErrorSnackbar(context, "Error fetching usage data: $e");
+    return {};
+  }
 }
+
+Future<Map<String, dynamic>> getSubscriptions({
+     required BuildContext context
+  }) async {
+    final token = await getTokenWithRefresh();
+
+    if (token == null) {
+      throw Exception('No token found. Please sign in.');
+    }
+    
+    final url = Uri.parse('$_baseUrl/api/v1/subscriptions/subscribe');
+
+  try {
+    final headers = {
+      'Authorization': 'Bearer $token',
+      'x-jarvis-guid': "",
+      'Content-Type': 'application/json',
+    };
+
+    print('Fetching usage data from URL: $url');
+
+    final response = await http.get(
+      url,
+      headers: headers,
+    );
+
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data;
+    } else {
+      _showErrorSnackbar(
+          context, "Failed to fetch usage. Status Code: ${response.statusCode}");
+      return {};
+    }
+  } catch (e) {
+    print("Error fetching usage data: $e");
+    _showErrorSnackbar(context, "Error fetching usage data: $e");
+    return {};
+  }
+}
+
+
+
+
+}
+

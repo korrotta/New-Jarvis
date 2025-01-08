@@ -240,7 +240,9 @@ const List<IconData> menuIcons = [
   CupertinoIcons.bolt_horizontal_circle_fill,
   CupertinoIcons.book_circle_fill,
   CupertinoIcons.envelope_fill,
+  CupertinoIcons.gift_alt_fill,
   Icons.settings_outlined,
+
 ];
 
 const List<String> menuLabels = [
@@ -248,6 +250,7 @@ const List<String> menuLabels = [
   'Assistant',
   'Knowledge Base',
   'Email',
+  'Pricing Pro',
   'Settings',
 ];
 

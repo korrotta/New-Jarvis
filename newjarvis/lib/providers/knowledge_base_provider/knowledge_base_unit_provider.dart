@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:newjarvis/models/unit_of_knowledgebase_model.dart';
+import 'package:newjarvis/models/knowledge_base/unit_of_knowledgebase_model.dart';
 import 'package:newjarvis/services/kbase_unit_data_source_service.dart';
 
 class UnitProvider with ChangeNotifier {

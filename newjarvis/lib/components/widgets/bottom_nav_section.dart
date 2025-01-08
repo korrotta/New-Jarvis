@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:newjarvis/components/ai_chat/ai_model_selection_section.dart';
 import 'package:newjarvis/components/prompt/prompt_section.dart';
 import 'package:newjarvis/components/widgets/chat_input_section.dart';
 

@@ -1,11 +1,11 @@
-import 'package:flutter/cupertino.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:newjarvis/models/response_email_model.dart';
-import 'package:newjarvis/pages/draft_email.dart';
-import 'package:newjarvis/providers/idea_email_provider.dart';
-import 'package:newjarvis/providers/response_email_provider.dart';
+import 'package:newjarvis/components/email/draft_email_component.dart';
+import 'package:newjarvis/models/email/response_email_model.dart';
+import 'package:newjarvis/providers/email_provider/idea_email_provider.dart';
+import 'package:newjarvis/providers/email_provider/response_email_provider.dart';
 import 'package:provider/provider.dart';
 
 class ScreenEmail extends StatefulWidget {

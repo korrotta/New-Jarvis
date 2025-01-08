@@ -13,7 +13,7 @@ import 'package:newjarvis/models/assistant_knowledge_model.dart';
 import 'package:newjarvis/models/assistant_thread_message_model.dart';
 import 'package:newjarvis/models/assistant_thread_model.dart';
 import 'package:newjarvis/models/basic_user_model.dart';
-import 'package:newjarvis/models/knowledge_base_model.dart';
+import 'package:newjarvis/models/knowledge_base/knowledge_base_model.dart';
 import 'package:newjarvis/models/message_text_content_model.dart';
 import 'package:newjarvis/models/thread_message_content_model.dart';
 import 'package:newjarvis/providers/knowledge_base_unit_provider.dart';
@@ -1190,7 +1190,7 @@ class _AssistantPageState extends State<AssistantPage> {
                     );
 
                   case ConnectionState.done:
-                    if (snapshot!.hasError) {
+                    if (snapshot.hasError) {
                       return Center(
                         child: Text(
                           'Error: ${snapshot.error}',

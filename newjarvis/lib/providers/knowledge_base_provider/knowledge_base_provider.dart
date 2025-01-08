@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:newjarvis/models/knowledge_base_model.dart';
+import 'package:newjarvis/models/knowledge_base/knowledge_base_model.dart';
 import 'package:newjarvis/services/kbase_knowledge_service.dart';
 
 class KnowledgeBaseProvider with ChangeNotifier{
@@ -10,12 +10,19 @@ class KnowledgeBaseProvider with ChangeNotifier{
   List<Knowledge> filteredKnowledgeList = [];
   final TextEditingController searchController = TextEditingController();
   bool isLoading = false;
+  bool isLoggedIn = false; // Trạng thái đăng nhập
 
-  KnowledgeBaseProvider(){
-    _loginKnowledgeApi();
-    loadKnowledgeList();
-    _filterKnowledgeList();
-    searchController.addListener(_filterKnowledgeList); 
+  KnowledgeBaseProvider() {
+    
+  _initialize();
+}
+
+Future<void> _initialize() async {
+    await _loginKnowledgeApi(); // Đăng nhập trước
+    if (isLoggedIn) {
+      await loadKnowledgeList(); // Chỉ tải danh sách khi đăng nhập thành công
+    }
+    searchController.addListener(_filterKnowledgeList);
   }
 
   @override
@@ -35,30 +42,38 @@ class KnowledgeBaseProvider with ChangeNotifier{
 
   Future<void> _loginKnowledgeApi() async {
     try {
+      isLoading = true;
+      notifyListeners();
+
       await _knowledgeApiService.SignInKB();
+      isLoggedIn = true;
       print('Successfully logged in to the knowledge API');
     } catch (e) {
+      isLoggedIn = false;
       print('Error during auto login: $e');
+    } finally {
+      isLoading = false;
+      notifyListeners();
     }
-    notifyListeners();
   }
 
   Future<void> loadKnowledgeList() async {
     try {
-      
-      final fetchedKnowledge =
-          await _knowledgeApiService.getKnowledge();
+      isLoading = true;
+      notifyListeners();
 
+      final fetchedKnowledge = await _knowledgeApiService.getKnowledge();
       knowledgeList = fetchedKnowledge;
       filteredKnowledgeList = knowledgeList;
-      notifyListeners();
     } catch (e) {
-      
-      notifyListeners();
       print('Error fetching knowledge: $e');
       throw Exception('Failed to load knowledge: $e');
+    } finally {
+      isLoading = false;
+      notifyListeners();
     }
   }
+
 
   void updateKnowldege(String knowledgeId, String newName, String description) async {
     try {
