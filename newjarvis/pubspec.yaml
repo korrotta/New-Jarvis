@@ -1,7 +1,7 @@
 name: newjarvis
 description: "Chat with AI Assistant"
 publish_to: 'none' 
-version: 1.0.0+2
+version: 2.0.0+0
 
 environment:
   sdk: ^3.5.3
