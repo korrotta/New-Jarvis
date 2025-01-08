@@ -650,8 +650,6 @@ class ApiService {
       if (response.statusCode == 200) {
         // Decode and return the conversation history
         final data = jsonDecode(response.body);
-        print('data: $data');
-
         final List<dynamic> items = data['items'] ?? [];
 
         conversationHistory = items.map((item) {

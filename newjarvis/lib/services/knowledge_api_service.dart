@@ -103,7 +103,6 @@ class KnowledgeApiService {
 
     if (response.statusCode == 401) {
       final result = jsonDecode(response.body);
-      print(result);
       print("KB Token Refreshed");
 
       final kbAccessToken = result['token']['accessToken'];
@@ -155,7 +154,6 @@ class KnowledgeApiService {
 
       if (response.statusCode == 200) {
         final result = jsonDecode(response.body);
-        print(result);
         final data = result['data'] as List;
         final List<AiBotModel> assistants =
             data.map((e) => AiBotModel.fromJson(e)).toList();
@@ -193,7 +191,6 @@ class KnowledgeApiService {
 
       if (response.statusCode == 200) {
         final result = jsonDecode(response.body);
-        print(result);
         final data = result['data'] as List;
         final List<AiBotModel> assistants =
             data.map((e) => AiBotModel.fromJson(e)).toList();
@@ -234,7 +231,6 @@ class KnowledgeApiService {
 
     if (response.statusCode == 201) {
       final result = jsonDecode(response.body);
-      print(result);
       return result;
     } else {
       _showErrorSnackbar(context,
@@ -261,7 +257,6 @@ class KnowledgeApiService {
 
     if (response.statusCode == 200) {
       final result = jsonDecode(response.body);
-      print(result);
       return result;
     } else {
       _showErrorSnackbar(context,
@@ -289,7 +284,6 @@ class KnowledgeApiService {
 
     if (response.statusCode == 201) {
       final result = jsonDecode(response.body);
-      print(result);
       return AiBotModel.fromJson(result);
     } else {
       _showErrorSnackbar(context,
@@ -324,7 +318,6 @@ class KnowledgeApiService {
 
     if (response.statusCode == 200) {
       final result = jsonDecode(response.body);
-      print(result);
       return AiBotModel.fromJson(result);
     } else {
       print(
@@ -380,7 +373,6 @@ class KnowledgeApiService {
 
     if (response.statusCode == 201) {
       final result = jsonDecode(response.body);
-      print(result);
 
       return AssistantThreadModel.fromJson(result);
       ;

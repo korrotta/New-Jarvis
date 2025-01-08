@@ -59,19 +59,26 @@ class _ThreadDrawerState extends State<ThreadDrawer> {
     };
 
     for (var thread in widget.threads) {
-      final createdAt = DateTime.parse(thread.createdAt.toString());
+      final updatedAt = DateTime.parse(thread.updatedAt.toString());
 
-      if (createdAt.isAfter(today)) {
+      if (updatedAt.isAfter(today)) {
         groupedConversations['Today']?.add(thread);
-      } else if (createdAt.isAfter(yesterday)) {
+      } else if (updatedAt.isAfter(yesterday)) {
         groupedConversations['Yesterday']?.add(thread);
-      } else if (createdAt.isAfter(weekAgo)) {
+      } else if (updatedAt.isAfter(weekAgo)) {
         groupedConversations['Previous 7 Days']?.add(thread);
-      } else if (createdAt.isAfter(monthAgo)) {
+      } else if (updatedAt.isAfter(monthAgo)) {
         groupedConversations['Previous 30 Days']?.add(thread);
       } else {
         groupedConversations['Older']?.add(thread);
       }
+    }
+
+    // Sort each group by `updatedAt` in descending order
+    for (var key in groupedConversations.keys) {
+      groupedConversations[key]?.sort((a, b) =>
+          DateTime.parse(b.updatedAt.toString())
+              .compareTo(DateTime.parse(a.updatedAt.toString())));
     }
 
     return groupedConversations;
@@ -185,7 +192,7 @@ class _ThreadDrawerState extends State<ThreadDrawer> {
                                 ),
                               ),
                               subtitle: Text(
-                                _formatDate(thread.createdAt.toString()),
+                                'Last updated: ${_formatDate(thread.updatedAt.toString())}',
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: Theme.of(context)

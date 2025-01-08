@@ -6,9 +6,9 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:newjarvis/components/route/route_controller.dart';
 import 'package:newjarvis/components/widgets/chat_bubble.dart';
-import 'package:newjarvis/components/widgets/chat_input_section.dart';
+import 'package:newjarvis/components/ai_chat/chat_input_section.dart';
 import 'package:newjarvis/components/widgets/chat_participant.dart';
-import 'package:newjarvis/components/widgets/thread_drawer.dart';
+import 'package:newjarvis/components/ai_assistant/thread_drawer.dart';
 import 'package:newjarvis/models/assistant/ai_bot_model.dart';
 import 'package:newjarvis/models/assistant/assistant_knowledge_model.dart';
 import 'package:newjarvis/models/assistant/assistant_thread_message_model.dart';
@@ -842,10 +842,12 @@ class _AssistantPageState extends State<AssistantPage> {
       _threads = response;
     });
 
+    print('Threads: $_threads');
+
     if (_threads.isEmpty || _threads == []) {
       _handleNewThread();
     } else {
-      _currentOpenAiThreadId = _threads.last.openAiThreadId;
+      _currentOpenAiThreadId = _threads.first.openAiThreadId;
     }
   }
 

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:newjarvis/components/ai_chat/ai_model_selection_section.dart';
-import 'package:newjarvis/components/widgets/bottom_nav_section.dart';
+import 'package:newjarvis/components/ai_chat/bottom_nav_section.dart';
 import 'package:newjarvis/components/widgets/chat_bubble.dart';
 import 'package:newjarvis/components/widgets/chat_participant.dart';
-import 'package:newjarvis/components/widgets/conversation_drawer.dart';
+import 'package:newjarvis/components/ai_chat/conversation_drawer.dart';
 import 'package:newjarvis/components/widgets/floating_button.dart';
 import 'package:newjarvis/components/route/route_controller.dart';
 import 'package:newjarvis/components/widgets/side_bar.dart';
