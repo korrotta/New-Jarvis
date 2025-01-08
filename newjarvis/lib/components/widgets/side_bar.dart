@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:newjarvis/providers/auth_provider.dart';
+import 'package:newjarvis/providers/auth_provider/auth_provider.dart';
 import 'package:provider/provider.dart';
 
 class SideBar extends StatelessWidget {
@@ -240,7 +240,7 @@ const List<IconData> menuIcons = [
   CupertinoIcons.bolt_horizontal_circle_fill,
   CupertinoIcons.book_circle_fill,
   CupertinoIcons.envelope_fill,
-  Icons.settings_outlined,
+  CupertinoIcons.gift_alt_fill,
 ];
 
 const List<String> menuLabels = [
@@ -248,7 +248,7 @@ const List<String> menuLabels = [
   'Assistant',
   'Knowledge Base',
   'Email',
-  'Settings',
+  'Pricing Pro',
 ];
 
 class CustomForwardIcon extends StatelessWidget {

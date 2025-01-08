@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:newjarvis/models/knowledge_base_model.dart';
+import 'package:newjarvis/models/knowledge_base/knowledge_base_model.dart';
 import 'package:newjarvis/services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

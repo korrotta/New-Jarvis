@@ -26,12 +26,13 @@ dependencies:
   flutter_markdown: ^0.7.5
   google_fonts: ^6.2.1
   scrollable_positioned_list: ^0.3.8
+  google_mobile_ads: ^5.2.0
 
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
   remove_alpha_ios: true
-  image_path: "assets/icons/icon_no_circle_blue.png"
+  image_path: "assets/icons/icon.png"
   adaptive_icon_background: "#ffffff"
   adaptive_icon_foreground: "assets/icons/icon.png"
 
@@ -48,6 +49,7 @@ flutter:
   assets: 
     - assets/icons/
     - assets/images/
+    - assets/icons/icon.png
     - assets/icons/book.png
     - assets/icons/menu_write.png
     - assets/icons/claude.png
@@ -61,6 +63,8 @@ flutter:
     - assets/images/email_marketing.png
     - assets/images/empty_inbox.png
     - assets/images/fire_blue.png
+    - assets/icons/iconLocalfile.png
+    - assets/icons/iconWeb.png
 
   # fonts:
   #   - family: Schyler

@@ -38,7 +38,7 @@ class FilterButton extends StatelessWidget {
             color: isSelected
                 ? Theme.of(context).colorScheme.tertiary
                 : Colors.blueAccent,
-            fontSize: 18,
+            fontSize: 16,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
         ),
