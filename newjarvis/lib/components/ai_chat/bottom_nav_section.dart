@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:newjarvis/components/prompt/prompt_section.dart';
-import 'package:newjarvis/components/widgets/chat_input_section.dart';
+import 'package:newjarvis/components/ai_chat/chat_input_section.dart';
 
 class BottomNavSection extends StatefulWidget {
   final Function(String) onSend;
@@ -44,7 +44,6 @@ class _BottomNavSectionState extends State<BottomNavSection> {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  
                   // Prompt Section
                   PromptSection(),
                 ],

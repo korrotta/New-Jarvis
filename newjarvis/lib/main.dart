@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:newjarvis/components/route/route_controller.dart';
-import 'package:newjarvis/models/subscriptions/subscription_model.dart';
-import 'package:newjarvis/providers/auth_provider.dart';
+import 'package:newjarvis/providers/auth_provider/auth_provider.dart';
 import 'package:newjarvis/providers/email_provider/idea_email_provider.dart';
 import 'package:newjarvis/providers/knowledge_base_provider/knowledge_base_provider.dart';
 import 'package:newjarvis/providers/knowledge_base_provider/knowledge_base_unit_provider.dart';
