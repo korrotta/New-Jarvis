@@ -9,6 +9,8 @@
 - [ 21120090 ] - Mai Trần Phú Khương 
 - [ 21120606 ] - Lâm Hoài Hiếu
 
+- Full Application Demo: https://youtu.be/zIpaoGJRd2U 
+
 - Milstone 01: https://www.youtube.com/watch?v=Dl0VpBBagW0 
 - Yêu cầu: Xây dựng mock-ui cho toàn bộ các màn hình trong đô án cuối kì, phần mock-ui bao gồm giao diện của tất cả các màn hình trong để tài + navigation/routing. Nhóm sinh viên tạo branch mock-ui và code trên branch này.
 - Video Demo Milstone 01: 
@@ -25,4 +27,4 @@
     Hỏi đáp trên ảnh (8)
     Soạn email (9)
     Các chức năng nâng cao (10)
-- Video Demo Milestone 03: 
+- Video Demo Milestone 03: https://youtu.be/rWiOxDpgkus
