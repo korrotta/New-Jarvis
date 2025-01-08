@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:newjarvis/components/route/route_controller.dart';
-import 'package:newjarvis/models/basic_user_model.dart';
+import 'package:newjarvis/models/user/basic_user_model.dart';
 import 'package:newjarvis/services/api_service.dart';
 
 class AuthProvider extends ChangeNotifier {

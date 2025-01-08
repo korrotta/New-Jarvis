@@ -1,4 +1,4 @@
-import 'package:newjarvis/models/thread_message_content_model.dart';
+import 'package:newjarvis/models/assistant/thread_message_content_model.dart';
 
 class AssistantThreadMessageModel {
   List<ThreadMessageContentModel> content;

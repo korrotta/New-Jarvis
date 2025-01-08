@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:newjarvis/components/ai_chat/ai_model_selection_section.dart';
-import 'package:newjarvis/components/widgets/bottom_nav_section.dart';
+import 'package:newjarvis/components/ai_chat/bottom_nav_section.dart';
 import 'package:newjarvis/components/widgets/chat_bubble.dart';
 import 'package:newjarvis/components/widgets/chat_participant.dart';
-import 'package:newjarvis/components/widgets/conversation_drawer.dart';
+import 'package:newjarvis/components/ai_chat/conversation_drawer.dart';
 import 'package:newjarvis/components/widgets/floating_button.dart';
 import 'package:newjarvis/components/route/route_controller.dart';
 import 'package:newjarvis/components/widgets/side_bar.dart';
@@ -12,14 +12,14 @@ import 'package:newjarvis/enums/id.dart';
 import 'package:newjarvis/models/ai_chat/ai_chat_metadata.dart';
 import 'package:newjarvis/models/ai_chat/ai_chat_model.dart';
 import 'package:newjarvis/models/ai_chat/chat_response_model.dart';
-import 'package:newjarvis/models/assistant_model.dart';
-import 'package:newjarvis/models/basic_user_model.dart';
+import 'package:newjarvis/models/assistant/assistant_model.dart';
+import 'package:newjarvis/models/user/basic_user_model.dart';
 import 'package:newjarvis/models/ai_chat/chat_conversation.dart';
 import 'package:newjarvis/models/ai_chat/chat_message.dart';
 import 'package:newjarvis/models/ai_chat/conversation_history_item_model.dart';
 import 'package:newjarvis/models/ai_chat/conversation_item_model.dart';
-import 'package:newjarvis/models/token_usage_model.dart';
-import 'package:newjarvis/providers/auth_provider.dart';
+import 'package:newjarvis/models/ai_chat/token_usage_model.dart';
+import 'package:newjarvis/providers/auth_provider/auth_provider.dart';
 import 'package:newjarvis/services/api_service.dart';
 import 'package:provider/provider.dart';
 
@@ -280,13 +280,11 @@ class _ChatPageState extends State<ChatPage> {
     try {
       final TokenUsageModel tokenUsage = await _apiService.getTokenUsage();
       setState(() {
-        if(tokenUsage.unlimited == true){
+        if (tokenUsage.unlimited == true) {
           _remainingUsage = 'Unlimited';
-        } 
-        else{ 
-        _remainingUsage = tokenUsage.remainingTokens;
+        } else {
+          _remainingUsage = tokenUsage.remainingTokens;
         }
-
       });
     } catch (e) {
       // Error fetching remaining tokens

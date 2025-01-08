@@ -3,9 +3,9 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:newjarvis/components/ai_chat/ai_model_selection_section.dart';
 import 'package:newjarvis/components/email/language_component.dart';
 import 'package:newjarvis/enums/id.dart';
-import 'package:newjarvis/models/assistant_model.dart';
-import 'package:newjarvis/models/token_usage_model.dart';
-import 'package:newjarvis/pages/ad_helper.dart';
+import 'package:newjarvis/models/ai_chat/token_usage_model.dart';
+import 'package:newjarvis/models/assistant/assistant_model.dart';
+import 'package:newjarvis/pages/subscriptions/ad_helper.dart';
 import 'package:newjarvis/services/api_service.dart';
 import 'package:provider/provider.dart';
 import 'package:newjarvis/components/route/route_controller.dart';
@@ -24,7 +24,6 @@ class ScreenSetUpEmail extends StatefulWidget {
 }
 
 class _ScreenSetUpEmail extends State<ScreenSetUpEmail> {
-
   String _remainingUsage = '0';
   final ApiService _apiService = ApiService();
 
@@ -82,7 +81,7 @@ class _ScreenSetUpEmail extends State<ScreenSetUpEmail> {
   void dispose() {
     contentController.dispose();
     mainIdeaController.dispose();
-    
+
     super.dispose();
   }
 
@@ -133,19 +132,16 @@ class _ScreenSetUpEmail extends State<ScreenSetUpEmail> {
       );
   }
 
-
   // Fetch remaining usage
   Future<void> _fetchRemainingUsage() async {
     try {
       final TokenUsageModel tokenUsage = await _apiService.getTokenUsage();
       setState(() {
-        if(tokenUsage.unlimited == true){
+        if (tokenUsage.unlimited == true) {
           _remainingUsage = 'Unlimited';
-        } 
-        else{ 
-        _remainingUsage = tokenUsage.remainingTokens;
+        } else {
+          _remainingUsage = tokenUsage.remainingTokens;
         }
-
       });
     } catch (e) {
       // Error fetching remaining tokens
@@ -154,41 +150,41 @@ class _ScreenSetUpEmail extends State<ScreenSetUpEmail> {
 
   // Hàm xây dựng biểu tượng ngọn lửa kèm số
   Widget _buildFireBadge(String count) {
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 7.0),
-    decoration: BoxDecoration(
-      color: Colors.grey.shade200, // Nền màu sáng
-      borderRadius: BorderRadius.circular(15.0), // Bo góc
-      boxShadow: [
-        BoxShadow(
-          color: Colors.grey.shade300,
-          blurRadius: 4.0, // Hiệu ứng bóng mờ
-          offset: const Offset(0, 2),
-        ),
-      ],
-    ),
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Image.asset(
-          "assets/images/fire_blue.png", // Thay bằng đường dẫn icon ngọn lửa của bạn
-          width: 17,
-          height: 17,
-          fit: BoxFit.cover,
-        ),
-        const SizedBox(width: 10), // Khoảng cách giữa icon và số
-        Text(
-          count,
-          style: const TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 14.0,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 7.0),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade200, // Nền màu sáng
+        borderRadius: BorderRadius.circular(15.0), // Bo góc
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade300,
+            blurRadius: 4.0, // Hiệu ứng bóng mờ
+            offset: const Offset(0, 2),
           ),
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Image.asset(
+            "assets/images/fire_blue.png", // Thay bằng đường dẫn icon ngọn lửa của bạn
+            width: 17,
+            height: 17,
+            fit: BoxFit.cover,
+          ),
+          const SizedBox(width: 10), // Khoảng cách giữa icon và số
+          Text(
+            count,
+            style: const TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+              fontSize: 14.0,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   void onGeneratePressed() async {
 
@@ -206,15 +202,15 @@ class _ScreenSetUpEmail extends State<ScreenSetUpEmail> {
    
 
     // Hiển thị loading dialog
-  showDialog(
-    context: context,
-    barrierDismissible: false, // Không cho phép đóng dialog khi nhấn ra ngoài
-    builder: (BuildContext context) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
-    },
-  );
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Không cho phép đóng dialog khi nhấn ra ngoài
+      builder: (BuildContext context) {
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      },
+    );
 
     // Chuẩn bị dữ liệu để gọi API
     final String content = contentController.text;
@@ -366,12 +362,11 @@ class _ScreenSetUpEmail extends State<ScreenSetUpEmail> {
 
   AppBar _buildAppBar() {
     return AppBar(
-      backgroundColor: const Color.fromARGB(136, 200, 200, 200),  // .fromRGBO(238, 238, 238, 1),
+      backgroundColor: const Color.fromARGB(
+          136, 200, 200, 200), // .fromRGBO(238, 238, 238, 1),
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          
-
           AiModelSelectionSection(
             onAiSelected: (String aiId) {
               _handleSelectedAI(context, aiId);
@@ -440,33 +435,36 @@ class _ScreenSetUpEmail extends State<ScreenSetUpEmail> {
               const SizedBox(height: 5.0),
 
               Container(
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.3, // Giới hạn chiều cao tối đa
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(117, 231, 227, 227),
-                borderRadius: BorderRadius.circular(16.0),
-              ),
-              child: SingleChildScrollView(
-                child: TextField(
-                  controller: contentController,
-                  decoration: const InputDecoration(
-                    hintText: 'Enter the text content you want AI to help answer',
-                    hintStyle: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 12,
-                      fontFamily: 'Arial',
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height *
+                      0.3, // Giới hạn chiều cao tối đa
+                ),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0, vertical: 12.0),
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(117, 231, 227, 227),
+                  borderRadius: BorderRadius.circular(16.0),
+                ),
+                child: SingleChildScrollView(
+                  child: TextField(
+                    controller: contentController,
+                    decoration: const InputDecoration(
+                      hintText:
+                          'Enter the text content you want AI to help answer',
+                      hintStyle: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 12,
+                        fontFamily: 'Arial',
+                      ),
+                      border: InputBorder.none,
                     ),
-                    border: InputBorder.none,
+                    keyboardType: TextInputType.multiline,
+                    maxLines: null, // Cho phép nhập nhiều dòng
+                    scrollPhysics:
+                        const BouncingScrollPhysics(), // Cuộn nội dung
                   ),
-                  keyboardType: TextInputType.multiline,
-                  maxLines: null, // Cho phép nhập nhiều dòng
-                  scrollPhysics: const BouncingScrollPhysics(), // Cuộn nội dung
                 ),
               ),
-            ),
-
 
               const SizedBox(height: 11.0),
 
@@ -485,33 +483,35 @@ class _ScreenSetUpEmail extends State<ScreenSetUpEmail> {
               const SizedBox(height: 5.0),
 
               Container(
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.3, // Giới hạn chiều cao tối đa
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(117, 231, 227, 227),
-                borderRadius: BorderRadius.circular(16.0),
-              ),
-              child: SingleChildScrollView(
-                child: TextField(
-                  controller: mainIdeaController,
-                  decoration: const InputDecoration(
-                    hintText: 'Main idea of the answer you want to generate',
-                    hintStyle: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 12,
-                      fontFamily: 'Arial',
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height *
+                      0.3, // Giới hạn chiều cao tối đa
+                ),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0, vertical: 12.0),
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(117, 231, 227, 227),
+                  borderRadius: BorderRadius.circular(16.0),
+                ),
+                child: SingleChildScrollView(
+                  child: TextField(
+                    controller: mainIdeaController,
+                    decoration: const InputDecoration(
+                      hintText: 'Main idea of the answer you want to generate',
+                      hintStyle: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 12,
+                        fontFamily: 'Arial',
+                      ),
+                      border: InputBorder.none,
                     ),
-                    border: InputBorder.none,
+                    keyboardType: TextInputType.multiline,
+                    maxLines: null, // Cho phép nhập nhiều dòng
+                    scrollPhysics:
+                        const BouncingScrollPhysics(), // Cuộn nội dung
                   ),
-                  keyboardType: TextInputType.multiline,
-                  maxLines: null, // Cho phép nhập nhiều dòng
-                  scrollPhysics: const BouncingScrollPhysics(), // Cuộn nội dung
                 ),
               ),
-            ),
-
 
               const SizedBox(height: 11.0),
 

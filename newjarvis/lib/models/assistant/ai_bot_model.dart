@@ -25,6 +25,19 @@ class AiBotModel {
     this.updatedBy,
   });
 
+  AiBotModel.error(String error)
+      : assistantName = error,
+        createdAt = DateTime.now(),
+        createdBy = '',
+        description = '',
+        id = '',
+        instructions = '',
+        openAiAssistantId = '',
+        openAiThreadIdPlay = '',
+        isFavorite = false,
+        updatedAt = DateTime.now(),
+        updatedBy = '';
+
   factory AiBotModel.fromJson(Map<String, dynamic> json) {
     return AiBotModel(
       assistantName: json['assistantName'],

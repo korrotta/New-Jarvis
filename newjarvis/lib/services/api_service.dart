@@ -2,12 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:newjarvis/models/ai_chat/ai_chat_model.dart';
-import 'package:newjarvis/models/assistant_model.dart';
-import 'package:newjarvis/models/basic_user_model.dart';
+import 'package:newjarvis/models/assistant/assistant_model.dart';
+import 'package:newjarvis/models/user/basic_user_model.dart';
 import 'package:newjarvis/models/ai_chat/chat_response_model.dart';
 import 'package:newjarvis/models/ai_chat/conversation_history_item_model.dart';
 import 'package:newjarvis/models/ai_chat/conversation_response_model.dart';
-import 'package:newjarvis/models/token_usage_model.dart';
+import 'package:newjarvis/models/ai_chat/token_usage_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
@@ -161,8 +161,6 @@ class ApiService {
         // Get token
         final token = data['token'];
 
-        print('token response: $token');
-
         // Format the token into access and refresh tokens
         final accessToken = token['accessToken'];
         final refreshToken = token['refreshToken'];
@@ -309,52 +307,52 @@ class ApiService {
     }
   }
 
-  // Google sign in
-  Future<Map<String, dynamic>> googleSignIn({
-    required String idToken,
-    required BuildContext context,
-  }) async {
-    final url = Uri.parse('$_baseUrl/api/v1/auth/google-sign-in');
+  // // Google sign in
+  // Future<Map<String, dynamic>> googleSignIn({
+  //   required String idToken,
+  //   required BuildContext context,
+  // }) async {
+  //   final url = Uri.parse('$_baseUrl/api/v1/auth/google-sign-in');
 
-    try {
-      final response = await http.post(
-        url,
-        body: {
-          'token': idToken,
-        },
-      );
+  //   try {
+  //     final response = await http.post(
+  //       url,
+  //       body: {
+  //         'token': idToken,
+  //       },
+  //     );
 
-      if (response.statusCode == 200) {
-        // Decode and return JSON response
-        final data = jsonDecode(response.body);
+  //     if (response.statusCode == 200) {
+  //       // Decode and return JSON response
+  //       final data = jsonDecode(response.body);
 
-        // Get token
-        final token = data['token'];
+  //       // Get token
+  //       final token = data['token'];
 
-        print('token response: $token');
+  //       print('token response: $token');
 
-        // // Format the token into access and refresh tokens
-        // final accessToken = token['accessToken'];
-        // final refreshToken = token['refreshToken'];
-        // final expiresIn = 60; // Could be different
+  //       // // Format the token into access and refresh tokens
+  //       // final accessToken = token['accessToken'];
+  //       // final refreshToken = token['refreshToken'];
+  //       // final expiresIn = 60; // Could be different
 
-        // // Store accessToken in SharedPreferences for future use
-        // await _storeToken(accessToken, expiresIn);
-        // await _storeRefreshToken(refreshToken);
+  //       // // Store accessToken in SharedPreferences for future use
+  //       // await _storeToken(accessToken, expiresIn);
+  //       // await _storeRefreshToken(refreshToken);
 
-        return data;
-      } else {
-        // Format the error message to get issue
-        var error = (jsonDecode(response.body)["details"]);
-        error = error.toString().substring(9, error.toString().length - 2);
-        _showErrorSnackbar(context, "Failed to sign in. \n$error");
-        return {};
-      }
-    } catch (e) {
-      // Error during sign in
-      return {};
-    }
-  }
+  //       return data;
+  //     } else {
+  //       // Format the error message to get issue
+  //       var error = (jsonDecode(response.body)["details"]);
+  //       error = error.toString().substring(9, error.toString().length - 2);
+  //       _showErrorSnackbar(context, "Failed to sign in. \n$error");
+  //       return {};
+  //     }
+  //   } catch (e) {
+  //     // Error during sign in
+  //     return {};
+  //   }
+  // }
 
   // Sign out
   Future<void> signOut(BuildContext context) async {
@@ -366,6 +364,8 @@ class ApiService {
       await prefs.remove('auth_token');
       await prefs.remove('expiration_time');
       await prefs.remove('refresh_token');
+      await prefs.remove('kb_token');
+      await prefs.remove('kb_refresh_token');
 
       return;
     }
@@ -387,6 +387,8 @@ class ApiService {
         await prefs.remove('auth_token');
         await prefs.remove('expiration_time');
         await prefs.remove('refresh_token');
+        await prefs.remove('kb_token');
+        await prefs.remove('kb_refresh_token');
       } else {
         throw Exception(
             "Failed to sign out. Status Code: ${response.statusCode}");
@@ -505,8 +507,6 @@ class ApiService {
     final content = aiChat.content;
     final files = aiChat.files;
     final metadata = aiChat.metadata;
-
-    print('aiChat: ${aiChat.toString()}');
 
     try {
       final response = await http.post(
@@ -650,8 +650,6 @@ class ApiService {
       if (response.statusCode == 200) {
         // Decode and return the conversation history
         final data = jsonDecode(response.body);
-        print('data: $data');
-
         final List<dynamic> items = data['items'] ?? [];
 
         conversationHistory = items.map((item) {
@@ -1108,94 +1106,86 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> getUsage({
-     required BuildContext context
-  }) async {
+  Future<Map<String, dynamic>> getUsage({required BuildContext context}) async {
     final token = await getTokenWithRefresh();
 
     if (token == null) {
       throw Exception('No token found. Please sign in.');
     }
-    
+
     final url = Uri.parse('$_baseUrl/api/v1/subscriptions/me');
 
-  try {
-    final headers = {
-      'Authorization': 'Bearer $token',
-      'x-jarvis-guid': "",
-      'Content-Type': 'application/json',
-    };
+    try {
+      final headers = {
+        'Authorization': 'Bearer $token',
+        'x-jarvis-guid': "",
+        'Content-Type': 'application/json',
+      };
 
-    print('Fetching usage data from URL: $url');
+      print('Fetching usage data from URL: $url');
 
-    final response = await http.get(
-      url,
-      headers: headers,
-    );
+      final response = await http.get(
+        url,
+        headers: headers,
+      );
 
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return data;
-    } else {
-      _showErrorSnackbar(
-          context, "Failed to fetch usage. Status Code: ${response.statusCode}");
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data;
+      } else {
+        _showErrorSnackbar(context,
+            "Failed to fetch usage. Status Code: ${response.statusCode}");
+        return {};
+      }
+    } catch (e) {
+      print("Error fetching usage data: $e");
+      _showErrorSnackbar(context, "Error fetching usage data: $e");
       return {};
     }
-  } catch (e) {
-    print("Error fetching usage data: $e");
-    _showErrorSnackbar(context, "Error fetching usage data: $e");
-    return {};
   }
-}
 
-Future<Map<String, dynamic>> getSubscriptions({
-     required BuildContext context
-  }) async {
+  Future<Map<String, dynamic>> getSubscriptions(
+      {required BuildContext context}) async {
     final token = await getTokenWithRefresh();
 
     if (token == null) {
       throw Exception('No token found. Please sign in.');
     }
-    
+
     final url = Uri.parse('$_baseUrl/api/v1/subscriptions/subscribe');
 
-  try {
-    final headers = {
-      'Authorization': 'Bearer $token',
-      'x-jarvis-guid': "",
-      'Content-Type': 'application/json',
-    };
+    try {
+      final headers = {
+        'Authorization': 'Bearer $token',
+        'x-jarvis-guid': "",
+        'Content-Type': 'application/json',
+      };
 
-    print('Fetching usage data from URL: $url');
+      print('Fetching usage data from URL: $url');
 
-    final response = await http.get(
-      url,
-      headers: headers,
-    );
+      final response = await http.get(
+        url,
+        headers: headers,
+      );
 
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return data;
-    } else {
-      _showErrorSnackbar(
-          context, "Failed to fetch usage. Status Code: ${response.statusCode}");
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data;
+      } else {
+        _showErrorSnackbar(context,
+            "Failed to fetch usage. Status Code: ${response.statusCode}");
+        return {};
+      }
+    } catch (e) {
+      print("Error fetching usage data: $e");
+      _showErrorSnackbar(context, "Error fetching usage data: $e");
       return {};
     }
-  } catch (e) {
-    print("Error fetching usage data: $e");
-    _showErrorSnackbar(context, "Error fetching usage data: $e");
-    return {};
   }
 }
-
-
-
-
-}
-
