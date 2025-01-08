@@ -47,15 +47,24 @@ class _ScreenEmailState extends State<ScreenEmail> {
   
   final ScrollController _scrollController = ScrollController();
 
+  final List<String> _chatData = [];
+
+
   @override
   void initState() {
     super.initState();
   // Hiển thị emailContent đầu tiên
   _chatWidgets.add(_buildEmailContentReceived(widget.emailContent));
+  _chatData.add(widget.emailContent); // Đồng bộ _chatData
+
   // Hiển thị mainIdea từ emailContent
   _chatWidgets.add(_buildUserChat(widget.mainIdea));
+  _chatData.add(widget.mainIdea); // Đồng bộ _chatData
+
   // Hiển thị phản hồi AI đầu tiên
   _chatWidgets.add(_buildAIReply(widget.emailResponse.email));
+  _chatData.add(widget.emailResponse.email); // Đồng bộ _chatData
+  
 
   }
 
@@ -131,6 +140,7 @@ class _ScreenEmailState extends State<ScreenEmail> {
     // Thêm nội dung mới của người dùng (màu xanh)
     setState(() {
       _chatWidgets.add(_buildUserChat(newMainIdea));
+      _chatData.add(newMainIdea);
       
       _isOptionVisible = false;
       _chatController.clear();
@@ -148,6 +158,7 @@ class _ScreenEmailState extends State<ScreenEmail> {
       if (newAIResponse != null) {
       setState(() {
         _chatWidgets.add(_buildAIReply(newAIResponse.email)); // Truy cập email nếu không null
+        _chatData.add(newAIResponse.email);
         _fireCount = newAIResponse.remainingUsage;
         _isOptionVisible = true;
       });
@@ -385,25 +396,11 @@ Widget _buildAIReply(String content) {
   );
 }
 
+  ///////////////////
 
   Future<void> _handleRefreshReply(String currentReply) async {
-  // Tìm chỉ số của reply hiện tại
-  final int replyIndex = _chatWidgets.indexWhere((widget) {
-    if (widget is Builder) {
-      final Widget builtWidget = widget.builder(context);
-      if (builtWidget is Container && builtWidget.child is Column) {
-        final Column column = builtWidget.child as Column;
-        final Text? replyText = column.children
-            .whereType<Text>()
-            .firstWhere(
-              (child) => child.data == currentReply,
-              orElse: () => const Text(''),
-            );
-        return replyText != null && replyText.data == currentReply;
-      }
-    }
-    return false;
-  });
+  // Tìm chỉ số của reply hiện tại trong _chatData
+  final int replyIndex = _chatData.indexOf(currentReply);
 
   // Nếu không tìm thấy reply, thông báo lỗi
   if (replyIndex == -1) {
@@ -413,70 +410,35 @@ Widget _buildAIReply(String content) {
     return;
   }
 
-  // Lấy widget ngay phía trên
+  // Lấy nội dung từ ô phía trên
   final int aboveIndex = replyIndex - 1;
   if (aboveIndex < 0) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Không thể lấy nội dung phía trên!')),
+      const SnackBar(content: Text('Không có nội dung phía trên để làm mới!')),
     );
     return;
   }
 
-  // Lấy nội dung từ ô khung chat ngay phía trên
-  String contentToSend = "";
-  final Widget aboveWidget = _chatWidgets[aboveIndex];
-
-  if (aboveWidget is Builder) {
-    final Widget builtWidget = aboveWidget.builder(context);
-    if (builtWidget is Container && builtWidget.child is Text) {
-      contentToSend = (builtWidget.child as Text).data ?? "";
-    } else if (builtWidget is Text) {
-      contentToSend = builtWidget.data ?? "";
-    }
-  } else if (aboveWidget is Container && aboveWidget.child is Text) {
-    contentToSend = (aboveWidget.child as Text).data ?? "";
-  } else if (aboveWidget is Text) {
-    contentToSend = aboveWidget.data ?? "";
-  }
-
-  // Nếu không tìm thấy nội dung, thông báo lỗi
-  if (contentToSend.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Không thể lấy nội dung phía trên!')),
-    );
-    return;
-  }
+  final String contentToSend = _chatData[aboveIndex];
 
   try {
     // Gọi API để tạo reply mới
-    final newReply = await _onGenerateContinue(contentToSend);
-    
-    if(newReply != null){
+    final EmailResponseModel? newReply = await _onGenerateContinue(contentToSend);
 
-    if (newReply.email.isEmpty) {
+    if (newReply == null || newReply.email.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Không thể tạo reply mới!')),
       );
       return;
     }
-    }
 
-    if(newReply != null){
     // Cập nhật reply mới
     setState(() {
       _fireCount = newReply.remainingUsage;
       _chatWidgets[replyIndex] = _buildAIReply(newReply.email);
-    });
-    // Đảm bảo cuộn sau khi giao diện hoàn thành
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollToBottom();
+      _chatData[replyIndex] = newReply.email; // Cập nhật dữ liệu
     });
 
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Không thể tạo reply mới!')),
-      );
-    }
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Đã làm mới reply!')),
     );
@@ -486,6 +448,8 @@ Widget _buildAIReply(String content) {
     );
   }
 }
+
+
 
 
 
