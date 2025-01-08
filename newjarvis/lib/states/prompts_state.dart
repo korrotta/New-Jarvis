@@ -35,7 +35,6 @@ class PromptState with ChangeNotifier {
       } else if (selectedCategory == 'favorites') {
         favoritesPrompts = await ApiService().getPrompts(
           context: context,
-          category: category?.isEmpty ?? true ? 'business' : category!,
           isFavorite: selectedCategory == 'favorites',
           limit: 20,
         );
