@@ -135,45 +135,6 @@ class _AssistantPageState extends State<AssistantPage> {
     return DateFormat('dd/MM/yyyy HH:mm:ss').format(parsedDate);
   }
 
-  Future<void> _performSearch(String query) async {
-    try {
-      if (query == '' || query.isEmpty) {
-        final response = await _knowledgeBaseApiService.getKnowledge();
-
-        setState(() {
-          _knowledges = response;
-        });
-        return;
-      }
-
-      final response = await _knowledgeBaseApiService.getKnowledge(
-        query: query,
-      );
-
-      setState(() {
-        _knowledges = response;
-      });
-      return;
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.red,
-          elevation: 0,
-          content: customSnackbar(true, "Failed to search knowledge"),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    }
-  }
-
-  void _clearSearch() {
-    setState(() {
-      _knowledgeTextController.clear();
-    });
-    _performSearch(''); // Trigger search with an empty query
-  }
-
   Future<void> _getAssistantKnowledges() async {
     final response = await _knowledgeApiService.getKnowledgeAssistant(
       context: context,
@@ -250,6 +211,49 @@ class _AssistantPageState extends State<AssistantPage> {
                 const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
             content: StatefulBuilder(
               builder: (context, setState) {
+                Future<void> performSearch(String query) async {
+                  try {
+                    if (query == '' || query.isEmpty) {
+                      final response =
+                          await _knowledgeBaseApiService.getKnowledge();
+
+                      setState(() {
+                        _knowledges = response;
+                      });
+
+                      return;
+                    }
+
+                    final response =
+                        await _knowledgeBaseApiService.getKnowledge(
+                      query: query,
+                    );
+
+                    setState(() {
+                      _knowledges = response;
+                    });
+                    return;
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        behavior: SnackBarBehavior.floating,
+                        backgroundColor: Colors.red,
+                        elevation: 0,
+                        content:
+                            customSnackbar(true, "Failed to search knowledge"),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                }
+
+                void clearSearch() {
+                  setState(() {
+                    _knowledgeTextController.clear();
+                  });
+                  performSearch(''); // Trigger search with an empty query
+                }
+
                 return SizedBox(
                   height: MediaQuery.of(context).size.height * 0.6,
                   width: MediaQuery.of(context).size.width * 0.7,
@@ -261,13 +265,13 @@ class _AssistantPageState extends State<AssistantPage> {
                         controller: _knowledgeTextController,
                         onFieldSubmitted: (text) {
                           if (text == _knowledgeTextController.text) {
-                            _performSearch(text);
+                            performSearch(text);
                           }
                         },
                         decoration: InputDecoration(
                           prefixIcon: IconButton(
                             onPressed: () =>
-                                _performSearch(_knowledgeTextController.text),
+                                performSearch(_knowledgeTextController.text),
                             icon: const Icon(
                               CupertinoIcons.search,
                               color: Colors.blueAccent,
@@ -279,7 +283,7 @@ class _AssistantPageState extends State<AssistantPage> {
                                     CupertinoIcons.clear,
                                     color: Colors.blueAccent,
                                   ),
-                                  onPressed: _clearSearch,
+                                  onPressed: clearSearch,
                                 )
                               : null,
                           hintText: "Search",
@@ -300,7 +304,7 @@ class _AssistantPageState extends State<AssistantPage> {
                       ),
                       const SizedBox(height: 16),
                       Expanded(
-                        child: _knowledges.isEmpty || _knowledges == []
+                        child: (_knowledges.isEmpty || _knowledges == [])
                             ? Center(
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -411,11 +415,11 @@ class _AssistantPageState extends State<AssistantPage> {
                                         ),
                                       ),
                                       onTap: () {
-                                        setState(() {
-                                          _selectedKnowledgeId = knowledge.id;
-                                        });
-                                        print(
-                                            'Selected Knowledge: $_selectedKnowledgeId');
+                                        setState(
+                                          () {
+                                            _selectedKnowledgeId = knowledge.id;
+                                          },
+                                        );
                                       },
                                       title: Text(
                                         knowledge.name,
@@ -679,6 +683,7 @@ class _AssistantPageState extends State<AssistantPage> {
                 ),
               ),
               onPressed: () {
+                Navigator.of(context).pop();
                 showDialog(
                   context: context,
                   barrierDismissible: false,
