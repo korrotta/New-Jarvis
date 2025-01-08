@@ -259,14 +259,15 @@ class _AssistantPageState extends State<AssistantPage> {
                     children: [
                       TextFormField(
                         controller: _knowledgeTextController,
+                        onFieldSubmitted: (text) {
+                          if (text == _knowledgeTextController.text) {
+                            _performSearch(text);
+                          }
+                        },
                         decoration: InputDecoration(
                           prefixIcon: IconButton(
-                            onPressed: () => Future.delayed(
-                              const Duration(milliseconds: 1000),
-                              () {
-                                _performSearch(_knowledgeTextController.text);
-                              },
-                            ),
+                            onPressed: () =>
+                                _performSearch(_knowledgeTextController.text),
                             icon: const Icon(
                               CupertinoIcons.search,
                               color: Colors.blueAccent,
