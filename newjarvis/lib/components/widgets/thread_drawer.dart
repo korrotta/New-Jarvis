@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:newjarvis/models/assistant_thread_model.dart';
+import 'package:newjarvis/models/assistant/assistant_thread_model.dart';
 
 class ThreadDrawer extends StatefulWidget {
   final List<AssistantThreadModel> threads;

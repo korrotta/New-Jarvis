@@ -3,10 +3,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:newjarvis/enums/order.dart';
-import 'package:newjarvis/models/ai_bot_model.dart';
-import 'package:newjarvis/models/assistant_knowledge_model.dart';
-import 'package:newjarvis/models/assistant_thread_message_model.dart';
-import 'package:newjarvis/models/assistant_thread_model.dart';
+import 'package:newjarvis/models/assistant/ai_bot_model.dart';
+import 'package:newjarvis/models/assistant/assistant_knowledge_model.dart';
+import 'package:newjarvis/models/assistant/assistant_thread_message_model.dart';
+import 'package:newjarvis/models/assistant/assistant_thread_model.dart';
 import 'package:newjarvis/services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -27,9 +27,6 @@ class KnowledgeApiService {
   // Instance of ApiService
   final ApiService _apiService = ApiService.instance;
 
-  // Kb Token timer
-  Timer? _kbTokenTimer;
-
   // Show error snackbar
   void _showErrorSnackbar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -44,16 +41,6 @@ class KnowledgeApiService {
         ),
         duration: const Duration(seconds: 5),
       ),
-    );
-  }
-
-  // Auto refresh the kb token every 30 seconds
-  void autoRefreshKbToken() {
-    _kbTokenTimer = Timer.periodic(
-      const Duration(seconds: 30),
-      (timer) async {
-        await refreshToken();
-      },
     );
   }
 
@@ -489,16 +476,13 @@ class KnowledgeApiService {
 
     if (response.statusCode == 200) {
       final List<dynamic> result = jsonDecode(response.body);
-      print('Messages: $result');
 
       messages =
           result.map((e) => AssistantThreadMessageModel.fromJson(e)).toList();
 
       return messages;
     } else {
-      print(
-          'Failed to get messages, code: ${response.statusCode}, body: ${response.body}');
-      throw Exception('Failed to get messages');
+      throw Exception('Failed to get messages $response');
     }
   }
 
@@ -581,8 +565,6 @@ class KnowledgeApiService {
           .map((e) =>
               AssistantKnowledgeModel.fromJson(e as Map<String, dynamic>))
           .toList();
-
-      final metadata = result['meta'];
 
       return knowledges;
     } else {

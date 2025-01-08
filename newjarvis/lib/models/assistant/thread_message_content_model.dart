@@ -1,4 +1,4 @@
-import 'package:newjarvis/models/message_text_content_model.dart';
+import 'package:newjarvis/models/assistant/message_text_content_model.dart';
 
 class ThreadMessageContentModel {
   final String type;

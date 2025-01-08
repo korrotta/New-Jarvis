@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:newjarvis/providers/auth_provider.dart';
+import 'package:newjarvis/providers/auth_provider/auth_provider.dart';
 import 'package:provider/provider.dart';
 
 class SideBar extends StatelessWidget {
@@ -242,7 +242,6 @@ const List<IconData> menuIcons = [
   CupertinoIcons.envelope_fill,
   CupertinoIcons.gift_alt_fill,
   Icons.settings_outlined,
-
 ];
 
 const List<String> menuLabels = [

@@ -7,9 +7,9 @@ import 'package:newjarvis/components/widgets/filter_button.dart';
 import 'package:newjarvis/components/widgets/floating_button.dart';
 import 'package:newjarvis/components/route/route_controller.dart';
 import 'package:newjarvis/components/widgets/side_bar.dart';
-import 'package:newjarvis/models/ai_bot_model.dart';
-import 'package:newjarvis/models/basic_user_model.dart';
-import 'package:newjarvis/pages/assistant_page.dart';
+import 'package:newjarvis/models/assistant/ai_bot_model.dart';
+import 'package:newjarvis/models/user/basic_user_model.dart';
+import 'package:newjarvis/pages/assistant/assistant_page.dart';
 import 'package:newjarvis/services/api_service.dart';
 import 'package:newjarvis/services/knowledge_api_service.dart';
 

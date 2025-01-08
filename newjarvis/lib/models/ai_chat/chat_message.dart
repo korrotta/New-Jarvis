@@ -1,4 +1,4 @@
-import 'package:newjarvis/models/assistant_model.dart';
+import 'package:newjarvis/models/assistant/assistant_model.dart';
 
 class ChatMessage {
   AssistantModel assistant;

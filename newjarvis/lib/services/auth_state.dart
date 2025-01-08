@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:newjarvis/pages/login_page.dart';
-import 'package:newjarvis/pages/register_page.dart';
+import 'package:newjarvis/pages/authentication/login_page.dart';
+import 'package:newjarvis/pages/authentication/register_page.dart';
 
 class Authentication extends StatefulWidget {
   const Authentication({super.key});

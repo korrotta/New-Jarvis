@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:newjarvis/components/widgets/custom_button.dart';
 import 'package:newjarvis/components/widgets/custom_textfield.dart';
-import 'package:newjarvis/models/user_model.dart';
 import 'package:newjarvis/services/api_service.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -61,15 +60,10 @@ class _RegisterPageState extends State<RegisterPage> {
       });
 
       if (response.isNotEmpty) {
-        // Create a new user object
-        final UserModel user = UserModel.fromMap(response["user"]);
-
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Registered successfully')),
         );
-
-        print('User: $user');
 
         // Navigate to the login
         widget.onTap!();
