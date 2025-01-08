@@ -6,7 +6,7 @@ class AssistantKnowledgeModel {
   String knowledgeName;
   DateTime? updatedAt;
   String? updatedBy;
-  String knowledgeId;
+  String id;
 
   AssistantKnowledgeModel({
     required this.userId,
@@ -14,14 +14,14 @@ class AssistantKnowledgeModel {
     this.createdBy,
     required this.description,
     required this.knowledgeName,
-    required this.knowledgeId,
+    required this.id,
     this.updatedAt,
     this.updatedBy,
   });
 
   factory AssistantKnowledgeModel.fromJson(Map<String, dynamic> json) {
     return AssistantKnowledgeModel(
-      knowledgeId: json['knowledgeId'],
+      id: json['id'],
       userId: json['userId'],
       createdAt: DateTime.parse(json['createdAt']),
       createdBy: json['createdBy'],
@@ -35,7 +35,7 @@ class AssistantKnowledgeModel {
 
   Map<String, dynamic> toJson() {
     return {
-      'knowledgeId': knowledgeId,
+      'id': id,
       'userId': userId,
       'createdAt': createdAt.toIso8601String(),
       'createdBy': createdBy,
@@ -48,6 +48,6 @@ class AssistantKnowledgeModel {
 
   @override
   String toString() {
-    return 'AssistantKnowledgeModel(userId: $userId, createdAt: $createdAt, createdBy: $createdBy, description: $description, knowledgeName: $knowledgeName, updatedAt: $updatedAt, updatedBy: $updatedBy, knowledgeId: $knowledgeId)';
+    return 'AssistantKnowledgeModel(userId: $userId, createdAt: $createdAt, createdBy: $createdBy, description: $description, knowledgeName: $knowledgeName, updatedAt: $updatedAt, updatedBy: $updatedBy, knowledgeId: $id)';
   }
 }

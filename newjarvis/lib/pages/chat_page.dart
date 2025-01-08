@@ -7,7 +7,6 @@ import 'package:newjarvis/components/widgets/chat_participant.dart';
 import 'package:newjarvis/components/widgets/conversation_drawer.dart';
 import 'package:newjarvis/components/widgets/floating_button.dart';
 import 'package:newjarvis/components/route/route_controller.dart';
-import 'package:newjarvis/components/widgets/scroll_to_bottom_fab.dart';
 import 'package:newjarvis/components/widgets/side_bar.dart';
 import 'package:newjarvis/components/ai_chat/welcome_chat_section.dart';
 import 'package:newjarvis/enums/id.dart';

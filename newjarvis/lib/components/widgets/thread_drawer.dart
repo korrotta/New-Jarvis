@@ -207,7 +207,7 @@ class _ThreadDrawerState extends State<ThreadDrawer> {
                 : const Center(
                     child: Text(
                       'No threads available.',
-                      style: TextStyle(fontSize: 14),
+                      style: TextStyle(fontSize: 16),
                     ),
                   ),
           ),

@@ -340,11 +340,10 @@ class KnowledgeApiService {
       print(result);
       return AiBotModel.fromJson(result);
     } else {
-      _showErrorSnackbar(context,
-          'Failed to update assistant, code: ${response.statusCode}, body: ${response.body}');
       print(
           'Failed to update assistant, code: ${response.statusCode}, body: ${response.body}');
-      throw Exception('Failed to update assistant');
+      return AiBotModel.error(
+          'Failed to update assistant, code: ${response.statusCode}');
     }
   }
 
@@ -367,8 +366,6 @@ class KnowledgeApiService {
       print(result);
       return AiBotModel.fromJson(result);
     } else {
-      _showErrorSnackbar(context,
-          'Failed to get assistant by ID, Details: ${jsonDecode(response.body)}');
       print(
           'Failed to get assistant by ID, Details: ${jsonDecode(response.body)}');
       throw Exception('Failed to get assistant by ID');
@@ -401,8 +398,6 @@ class KnowledgeApiService {
       return AssistantThreadModel.fromJson(result);
       ;
     } else {
-      _showErrorSnackbar(context,
-          'Failed to create thread, code: ${response.statusCode}, body: ${response.body}');
       print(
           'Failed to create thread, code: ${response.statusCode}, body: ${response.body}');
       throw Exception('Failed to create thread');
@@ -436,8 +431,6 @@ class KnowledgeApiService {
       print('Ask Assistant: $result');
       return result;
     } else {
-      _showErrorSnackbar(context,
-          'Failed to ask assistant, code: ${response.statusCode}, body: ${response.body}');
       print(
           'Failed to ask assistant, code: ${response.statusCode}, body: ${response.body}');
       throw Exception('Failed to ask assistant');
@@ -471,8 +464,6 @@ class KnowledgeApiService {
 
       return threads;
     } else {
-      _showErrorSnackbar(context,
-          'Failed to get threads, code: ${response.statusCode}, body: ${response.body}');
       print(
           'Failed to get threads, code: ${response.statusCode}, body: ${response.body}');
       throw Exception('Failed to get threads');
@@ -505,8 +496,6 @@ class KnowledgeApiService {
 
       return messages;
     } else {
-      _showErrorSnackbar(context,
-          'Failed to get messages, code: ${response.statusCode}, body: ${response.body}');
       print(
           'Failed to get messages, code: ${response.statusCode}, body: ${response.body}');
       throw Exception('Failed to get messages');
@@ -534,11 +523,9 @@ class KnowledgeApiService {
       print(result);
       return result;
     } else {
-      _showErrorSnackbar(context,
-          'Failed to import knowledge, code: ${response.statusCode}, body: ${response.body}');
       print(
           'Failed to import knowledge, code: ${response.statusCode}, body: ${response.body}');
-      throw Exception('Failed to import knowledge');
+      return false;
     }
   }
 
@@ -560,14 +547,13 @@ class KnowledgeApiService {
 
     if (response.statusCode == 200) {
       final result = jsonDecode(response.body);
-      print(result);
+      print(
+          'Remove KnowledgeId: $knowledgeId from AssistantId: $assistantId with result: $result');
       return result;
     } else {
-      _showErrorSnackbar(context,
-          'Failed to remove knowledge, code: ${response.statusCode}, body: ${response.body}');
       print(
           'Failed to remove knowledge, code: ${response.statusCode}, body: ${response.body}');
-      throw Exception('Failed to remove knowledge');
+      return false;
     }
   }
 
@@ -600,11 +586,9 @@ class KnowledgeApiService {
 
       return knowledges;
     } else {
-      _showErrorSnackbar(context,
-          'Failed to get knowledge in assistant, code: ${response.statusCode}, body: ${response.body}');
       print(
           'Failed to get knowledge in assistant, code: ${response.statusCode}, body: ${response.body}');
-      throw Exception('Failed to get knowledge in assistant');
+      return [];
     }
   }
 }
