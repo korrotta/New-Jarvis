@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:newjarvis/components/ai_chat/ai_model_selection_section.dart';
 import 'package:newjarvis/components/email/language_component.dart';
 import 'package:newjarvis/enums/id.dart';
 import 'package:newjarvis/models/assistant_model.dart';
 import 'package:newjarvis/models/token_usage_model.dart';
+import 'package:newjarvis/pages/ad_helper.dart';
 import 'package:newjarvis/services/api_service.dart';
 import 'package:provider/provider.dart';
 import 'package:newjarvis/components/route/route_controller.dart';
@@ -31,6 +33,9 @@ class _ScreenSetUpEmail extends State<ScreenSetUpEmail> {
   final TextEditingController mainIdeaController = TextEditingController();
   // Biến để lưu ngôn ngữ được chọn
   String? selectedLanguage;
+
+  BannerAd? _bannerAd;
+  InterstitialAd? _interstitialAd;
 
   int selectedIndex = 0;
   int selectedSmallIndexLENGTH = -1;
@@ -94,6 +99,38 @@ class _ScreenSetUpEmail extends State<ScreenSetUpEmail> {
   void initState() {
     super.initState();
     _fetchRemainingUsage();
+    BannerAd (
+      adUnitId: AdHelper.BannerAdUnitId,
+      request: AdRequest(),
+      size: AdSize.banner,  
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          setState(() {
+            _bannerAd = ad as BannerAd;
+          });
+        },
+        onAdFailedToLoad: (ad, err) {
+          print('Failed to load a banner ad: ${err.message}');
+          ad.dispose();
+        }
+        )
+
+      ).load();
+
+      InterstitialAd.load (
+      adUnitId: AdHelper.InterstatialAdUnitId,
+      request: AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (ad){
+          _interstitialAd = ad;
+          ad.fullScreenContentCallback = FullScreenContentCallback(
+            onAdDismissedFullScreenContent: (ad) {});
+        }, 
+        onAdFailedToLoad: (err) {
+          print('Failed to load an interstitial ad: ${err.message}');
+        }
+      ),
+      );
   }
 
 
@@ -154,6 +191,9 @@ class _ScreenSetUpEmail extends State<ScreenSetUpEmail> {
 }
 
   void onGeneratePressed() async {
+
+    _interstitialAd?.show();
+
     if (contentController.text.trim().isEmpty ||
         mainIdeaController.text.trim().isEmpty ||
         selectedLanguage == null) {
@@ -162,6 +202,8 @@ class _ScreenSetUpEmail extends State<ScreenSetUpEmail> {
       );
       return;
     }
+
+   
 
     // Hiển thị loading dialog
   showDialog(
@@ -256,6 +298,15 @@ class _ScreenSetUpEmail extends State<ScreenSetUpEmail> {
         appBar: _buildAppBar(),
         body: Stack(
           children: [
+            if(_bannerAd != null)
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                width: _bannerAd!.size.width.toDouble(),
+                height: _bannerAd!.size.height.toDouble(),
+                child: AdWidget(ad: _bannerAd!),
+              ),
+            ),
             _buildBody(),
             _buildSideBarOrFloatingButton(),
           ],
