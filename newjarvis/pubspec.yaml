@@ -26,6 +26,7 @@ dependencies:
   flutter_markdown: ^0.7.5
   google_fonts: ^6.2.1
   scrollable_positioned_list: ^0.3.8
+  google_mobile_ads: ^5.2.0
 
 flutter_launcher_icons:
   android: "launcher_icon"

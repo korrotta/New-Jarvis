@@ -3,7 +3,7 @@ import 'package:newjarvis/pages/knowledge_base/knowledge_base.dart';
 import 'package:newjarvis/pages/assistant/personal_page.dart';
 import 'package:newjarvis/pages/ai_chat/chat_page.dart';
 import 'package:newjarvis/pages/email/screen_write.dart';
-import 'package:newjarvis/pages/plan_pricing_page.dart';
+import 'package:newjarvis/pages/subscriptions/plan_pricing_page.dart';
 import 'package:newjarvis/services/auth_gate.dart';
 import 'package:flutter/cupertino.dart';
 
