@@ -117,10 +117,8 @@ class _PersonalPageState extends State<PersonalPage> {
   }
 
   Future<void> _performSearchAndFilter(String text, String filter) async {
-    print('Searching for: $text and filtering by: $filter');
     setState(() {
       _selectedFilter = filter;
-      print('Selected filter: $_selectedFilter');
     });
 
     try {
@@ -370,7 +368,6 @@ class _PersonalPageState extends State<PersonalPage> {
                   _searchText = text;
                 });
                 _performSearchAndFilter(text, _selectedFilter);
-                print('Search text: $text');
               }
             });
           },

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:newjarvis/pages/knowledge_base/knowledge_base_unit.dart';
@@ -101,6 +103,14 @@ class _AssistantPageState extends State<AssistantPage> {
     _initKnowledge();
   }
 
+  @override
+  void dispose() {
+    _assistantPersonaController.dispose();
+    _knowledgeTextController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   void _initAssistant() async {
     _assistant = widget.selectedAssistant;
     _assistantPersonaController.text = _assistant.instructions ?? '';
@@ -123,6 +133,45 @@ class _AssistantPageState extends State<AssistantPage> {
   String _formatDate(String date) {
     final parsedDate = DateTime.parse(date);
     return DateFormat('dd/MM/yyyy HH:mm:ss').format(parsedDate);
+  }
+
+  Future<void> _performSearch(String query) async {
+    try {
+      if (query == '' || query.isEmpty) {
+        final response = await _knowledgeBaseApiService.getKnowledge();
+
+        setState(() {
+          _knowledges = response;
+        });
+        return;
+      }
+
+      final response = await _knowledgeBaseApiService.getKnowledge(
+        query: query,
+      );
+
+      setState(() {
+        _knowledges = response;
+      });
+      return;
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red,
+          elevation: 0,
+          content: customSnackbar(true, "Failed to search knowledge"),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  void _clearSearch() {
+    setState(() {
+      _knowledgeTextController.clear();
+    });
+    _performSearch(''); // Trigger search with an empty query
   }
 
   Future<void> _getAssistantKnowledges() async {
@@ -192,181 +241,240 @@ class _AssistantPageState extends State<AssistantPage> {
               child: Text(
                 "Select Knowledge",
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 20,
                   color: Theme.of(context).colorScheme.inversePrimary,
                 ),
               ),
             ),
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
-            content: StatefulBuilder(builder: (context, setState) {
-              return SizedBox(
-                height: MediaQuery.of(context).size.height * 0.6,
-                width: MediaQuery.of(context).size.width * 0.7,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          flex: 2,
-                          child: TextFormField(
-                            controller: _knowledgeTextController,
-                            decoration: InputDecoration(
-                              prefixIcon: const Icon(
-                                CupertinoIcons.search,
-                                color: Colors.blueAccent,
-                              ),
-                              hintText: "Search",
-                              hintStyle: TextStyle(
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(
-                                  color: Colors.blueAccent,
-                                ),
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                vertical: 12.0,
-                                horizontal: 16.0,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        ElevatedButton.icon(
-                          icon: const Icon(
-                            CupertinoIcons.add,
-                            color: Colors.white,
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 12),
-                            backgroundColor: Colors.blueAccent,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12.0),
-                            ),
-                            shadowColor:
-                                Colors.black.withOpacity(0.2), // Button shadow
-                            elevation: 5,
-                          ),
-                          onPressed: () {
-                            // Navigate to Create Knowledge Page
-                            RouteController.navigateReplacementNamed(
-                                RouteController.knowledge);
-                          },
-                          label: const Text(
-                            "Knowledge",
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: _knowledges.length,
-                        itemBuilder: (context, index) {
-                          final knowledge = _knowledges[index];
-                          return Container(
-                            margin: const EdgeInsets.symmetric(vertical: 8.0),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.3),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ],
-                              color: Theme.of(context).colorScheme.surface,
-                              border: knowledge.id == _selectedKnowledgeId
-                                  ? Border.all(
-                                      color: Colors.blueAccent,
-                                      width: 2,
-                                    )
-                                  : Border.all(
-                                      color: Colors.transparent,
-                                      width: 2,
-                                    ),
-                            ),
-                            child: ListTile(
-                              leading: Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: Colors.orangeAccent,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Image.asset(
-                                  'assets/images/coins.png',
-                                  width: 30,
-                                  height: 30,
-                                  color: Theme.of(context).colorScheme.tertiary,
-                                ),
-                              ),
-                              onTap: () {
-                                setState(() {
-                                  _selectedKnowledgeId = knowledge.id;
-                                });
-                                print(
-                                    'Selected Knowledge: $_selectedKnowledgeId');
+            content: StatefulBuilder(
+              builder: (context, setState) {
+                return SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.6,
+                  width: MediaQuery.of(context).size.width * 0.7,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextFormField(
+                        controller: _knowledgeTextController,
+                        decoration: InputDecoration(
+                          prefixIcon: IconButton(
+                            onPressed: () => Future.delayed(
+                              const Duration(milliseconds: 1000),
+                              () {
+                                _performSearch(_knowledgeTextController.text);
                               },
-                              title: Text(
-                                knowledge.name,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .inversePrimary,
-                                ),
-                              ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      _buildBadge(knowledge.numUnits.toString(),
-                                          Colors.blueAccent),
-                                      const SizedBox(width: 8),
-                                      _buildBadge(
-                                          knowledge.totalSize.toString(),
-                                          Colors.redAccent),
-                                    ],
+                            ),
+                            icon: const Icon(
+                              CupertinoIcons.search,
+                              color: Colors.blueAccent,
+                            ),
+                          ),
+                          suffixIcon: _knowledgeTextController.text.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(
+                                    CupertinoIcons.clear,
+                                    color: Colors.blueAccent,
                                   ),
-                                  const SizedBox(height: 4),
-                                  Row(
-                                    children: [
-                                      Icon(Icons.access_time,
-                                          size: 16,
+                                  onPressed: _clearSearch,
+                                )
+                              : null,
+                          hintText: "Search",
+                          hintStyle: TextStyle(
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: Colors.blueAccent,
+                            ),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 12.0,
+                            horizontal: 16.0,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Expanded(
+                        child: _knowledges.isEmpty || _knowledges == []
+                            ? Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(
+                                      CupertinoIcons.folder,
+                                      size: 64,
+                                      color: Colors.grey,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      "No Knowledge Found",
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface
+                                            .withOpacity(0.7),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      "Add knowledge using the button below.",
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface
+                                            .withOpacity(0.5),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    ElevatedButton.icon(
+                                      icon: const Icon(
+                                        CupertinoIcons.add,
+                                        color: Colors.white,
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 10, vertical: 12),
+                                        backgroundColor: Colors.blueAccent,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(12.0),
+                                        ),
+                                        shadowColor: Colors.black
+                                            .withOpacity(0.2), // Button shadow
+                                        elevation: 5,
+                                      ),
+                                      onPressed: () {
+                                        // Navigate to Create Knowledge Page
+                                        RouteController
+                                            .navigateReplacementNamed(
+                                                RouteController.knowledge);
+                                      },
+                                      label: const Text(
+                                        "Knowledge",
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : ListView.builder(
+                                itemCount: _knowledges.length,
+                                itemBuilder: (context, index) {
+                                  final knowledge = _knowledges[index];
+                                  return Container(
+                                    margin: const EdgeInsets.symmetric(
+                                        vertical: 8.0),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(12),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.3),
+                                          blurRadius: 6,
+                                          offset: const Offset(0, 3),
+                                        ),
+                                      ],
+                                      color:
+                                          Theme.of(context).colorScheme.surface,
+                                      border:
+                                          knowledge.id == _selectedKnowledgeId
+                                              ? Border.all(
+                                                  color: Colors.blueAccent,
+                                                  width: 2,
+                                                )
+                                              : Border.all(
+                                                  color: Colors.transparent,
+                                                  width: 2,
+                                                ),
+                                    ),
+                                    child: ListTile(
+                                      leading: Container(
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          color: Colors.orangeAccent,
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                        ),
+                                        child: Image.asset(
+                                          'assets/images/coins.png',
+                                          width: 30,
+                                          height: 30,
                                           color: Theme.of(context)
                                               .colorScheme
-                                              .primary),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        _formatDate(knowledge.createdAt),
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .primary,
+                                              .tertiary,
                                         ),
                                       ),
-                                    ],
-                                  ),
-                                ],
+                                      onTap: () {
+                                        setState(() {
+                                          _selectedKnowledgeId = knowledge.id;
+                                        });
+                                        print(
+                                            'Selected Knowledge: $_selectedKnowledgeId');
+                                      },
+                                      title: Text(
+                                        knowledge.name,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .inversePrimary,
+                                        ),
+                                      ),
+                                      subtitle: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              _buildBadge(
+                                                  knowledge.numUnits.toString(),
+                                                  Colors.blueAccent),
+                                              const SizedBox(width: 8),
+                                              _buildBadge(
+                                                  knowledge.totalSize
+                                                      .toString(),
+                                                  Colors.redAccent),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Row(
+                                            children: [
+                                              Icon(Icons.access_time,
+                                                  size: 16,
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .primary),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                _formatDate(
+                                                    knowledge.createdAt),
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .primary,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
-                            ),
-                          );
-                        },
                       ),
-                    ),
-                  ],
-                ),
-              );
-            }),
+                    ],
+                  ),
+                );
+              },
+            ),
             actions: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

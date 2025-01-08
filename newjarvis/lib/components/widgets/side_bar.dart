@@ -241,7 +241,6 @@ const List<IconData> menuIcons = [
   CupertinoIcons.book_circle_fill,
   CupertinoIcons.envelope_fill,
   CupertinoIcons.gift_alt_fill,
-  Icons.settings_outlined,
 ];
 
 const List<String> menuLabels = [
@@ -250,7 +249,6 @@ const List<String> menuLabels = [
   'Knowledge Base',
   'Email',
   'Pricing Pro',
-  'Settings',
 ];
 
 class CustomForwardIcon extends StatelessWidget {
