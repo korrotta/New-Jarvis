@@ -516,6 +516,8 @@ class _PersonalPageState extends State<PersonalPage> {
         ElevatedButton(
           onPressed: () {
             Navigator.of(context).pop();
+            assistantNameController.clear();
+            assistantDescriptionController.clear();
           },
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -544,6 +546,8 @@ class _PersonalPageState extends State<PersonalPage> {
             _validateFields(assistantNameController, context);
             _createNewAssistant(assistantNameController,
                 assistantDescriptionController, context);
+            assistantNameController.clear();
+            assistantDescriptionController.clear();
           },
           child: const Text(
             "Create",
