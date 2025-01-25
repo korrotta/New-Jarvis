@@ -1,3 +1,5 @@
+// ignore_for_file: unused_field
+
 import 'package:flutter/material.dart';
 import 'package:newjarvis/components/ai_chat/ai_model_selection_section.dart';
 import 'package:newjarvis/components/ai_chat/bottom_nav_section.dart';
@@ -69,6 +71,7 @@ class _ChatPageState extends State<ChatPage> {
   String _totalUsage = '0';
 
   // Default AI
+  // ignore: prefer_final_fields
   AssistantModel _assistant = AssistantModel(
     id: Id.CLAUDE_3_HAIKU_20240307.value,
   );
@@ -189,7 +192,7 @@ class _ChatPageState extends State<ChatPage> {
   Future<void> _handleSend(String message) async {
     // Add the user message to the current conversation history
 
-    final _userMessage = ConversationHistoryItemModel(
+    final userMessage = ConversationHistoryItemModel(
       answer: '...',
       createdAt: DateTime.now().millisecondsSinceEpoch,
       files: [],
@@ -198,7 +201,7 @@ class _ChatPageState extends State<ChatPage> {
 
     List<ConversationHistoryItemModel> currentHistory =
         await _currentConversationHistory!;
-    currentHistory = [...currentHistory, _userMessage];
+    currentHistory = [...currentHistory, userMessage];
     setState(() {
       _currentConversationHistory = Future.value(currentHistory);
     });
@@ -222,6 +225,8 @@ class _ChatPageState extends State<ChatPage> {
 
     // Send the message to the AI
     try {
+      if (!mounted) return;
+
       final response = await _apiService.sendMessage(
         context: context,
         aiChat: AiChatModel(

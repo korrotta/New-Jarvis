@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
 class AiAgent extends StatelessWidget {
-  final String AiIcon;
-  final String AiName;
+  final String aiIcon;
+  final String aiName;
 
-  AiAgent({
+  const AiAgent({
     super.key,
-    required this.AiIcon,
-    required this.AiName,
+    required this.aiIcon,
+    required this.aiName,
   });
 
   @override
@@ -19,7 +19,7 @@ class AiAgent extends StatelessWidget {
           child: Container(
             color: Colors.blue.shade800,
             child: Image.asset(
-              AiIcon,
+              aiIcon,
               fit: BoxFit.cover,
               width: 20,
               height: 21,
@@ -28,7 +28,7 @@ class AiAgent extends StatelessWidget {
         ),
         const SizedBox(width: 7),
         Text(
-          AiName,
+          aiName,
           style: const TextStyle(
             color: Colors.black87,
             fontSize: 12,

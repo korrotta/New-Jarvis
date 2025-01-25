@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 
 class CreateUnitDialogFromSlack extends StatefulWidget {
@@ -38,8 +40,7 @@ class _CreateSlackUnitDialogState extends State<CreateUnitDialogFromSlack> {
     });
 
     _workspaceController.addListener(() {
-      if (_showWorkspaceError &&
-          _workspaceController.text.trim().isNotEmpty) {
+      if (_showWorkspaceError && _workspaceController.text.trim().isNotEmpty) {
         setState(() {
           _showWorkspaceError = false;
         });
@@ -82,7 +83,7 @@ class _CreateSlackUnitDialogState extends State<CreateUnitDialogFromSlack> {
           _botTokenController.text.trim(),
         );
       } catch (e) {
-        print('Error: $e');
+        debugPrint('Error: $e');
       } finally {
         setState(() {
           _isLoading = false; // Tắt trạng thái loading
@@ -140,7 +141,9 @@ class _CreateSlackUnitDialogState extends State<CreateUnitDialogFromSlack> {
                         borderSide: BorderSide(
                           color: showError
                               ? Colors.red
-                              : (isFocused ? Colors.blue : Colors.grey.shade400),
+                              : (isFocused
+                                  ? Colors.blue
+                                  : Colors.grey.shade400),
                           width: 2.0,
                         ),
                       ),
@@ -279,8 +282,8 @@ class _CreateSlackUnitDialogState extends State<CreateUnitDialogFromSlack> {
                 )
               : const Text(
                   'Connect',
-                  style:
-                      TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold),
                 ),
         ),
       ],

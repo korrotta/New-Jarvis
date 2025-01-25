@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class CreateUnitDialogFromWeb extends StatefulWidget {
@@ -7,7 +6,8 @@ class CreateUnitDialogFromWeb extends StatefulWidget {
   const CreateUnitDialogFromWeb({required this.onConfirm, super.key});
 
   @override
-  State<CreateUnitDialogFromWeb> createState() => _CreateUnitDialogFromWebState();
+  State<CreateUnitDialogFromWeb> createState() =>
+      _CreateUnitDialogFromWebState();
 }
 
 class _CreateUnitDialogFromWebState extends State<CreateUnitDialogFromWeb> {
@@ -66,7 +66,7 @@ class _CreateUnitDialogFromWebState extends State<CreateUnitDialogFromWeb> {
           _urlController.text.trim(),
         );
       } catch (e) {
-        print("Error: $e");
+        debugPrint("Error: $e");
       } finally {
         setState(() {
           isLoading = false; // Tắt trạng thái loading

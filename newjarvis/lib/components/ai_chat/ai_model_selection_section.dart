@@ -41,12 +41,14 @@ class _AiModelSelectionSectionState extends State<AiModelSelectionSection> {
       decoration: BoxDecoration(
         color: const Color.fromARGB(150, 114, 189, 255),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color.fromARGB(152, 114, 135, 255), width: 1.5),
+        border: Border.all(
+            color: const Color.fromARGB(152, 114, 135, 255), width: 1.5),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: _selectedAiId,
-          icon: const Icon(Icons.arrow_forward_ios, color: Colors.blueAccent, size: 12),
+          icon: const Icon(Icons.arrow_forward_ios,
+              color: Colors.blueAccent, size: 12),
           borderRadius: BorderRadius.circular(20),
           dropdownColor: Colors.blue.shade100,
           onChanged: (String? newValue) {
@@ -69,8 +71,8 @@ class _AiModelSelectionSectionState extends State<AiModelSelectionSection> {
             return DropdownMenuItem<String>(
               value: value,
               child: AiAgent(
-                AiIcon: 'assets/icons/$imageName.png',
-                AiName: _formatAiId(value),
+                aiIcon: 'assets/icons/$imageName.png',
+                aiName: _formatAiId(value),
               ),
             );
           }).toList(),

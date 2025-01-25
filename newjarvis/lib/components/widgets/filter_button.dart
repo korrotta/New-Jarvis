@@ -52,10 +52,10 @@ class FilterBar extends StatelessWidget {
   final Function(String) onFilterSelected;
 
   const FilterBar({
-    Key? key,
+    super.key,
     required this.selectedFilter,
     required this.onFilterSelected,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

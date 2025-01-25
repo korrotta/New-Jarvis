@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -14,7 +16,6 @@ import 'package:http/http.dart' as http;
 class ApiService {
   // Base URL
   static const String _baseUrl = 'https://api.dev.jarvis.cx';
-  static const String _baseUrlNoHTTPS = 'api.dev.jarvis.cx';
 
   // Private Constructor
   ApiService._privateConstructor();
@@ -164,7 +165,7 @@ class ApiService {
         // Format the token into access and refresh tokens
         final accessToken = token['accessToken'];
         final refreshToken = token['refreshToken'];
-        final expiresIn = 60; // Could be different
+        const expiresIn = 60; // Could be different
 
         // Store accessToken in SharedPreferences for future use
         await _storeToken(accessToken, expiresIn);
@@ -249,12 +250,10 @@ class ApiService {
         // Decode and return the new token
         final data = jsonDecode(response.body);
         final newToken = data['token']['accessToken'];
-        final expiresIn = 60;
+        const expiresIn = 60;
         await _storeToken(newToken, expiresIn);
-        print('Token refreshed successfully');
         return newToken;
       } else {
-        print('Failed to refresh token. Code: ${jsonDecode(response.body)}');
         throw Exception(
             "Failed to refresh token. Status Code: ${response.statusCode}");
       }
@@ -539,13 +538,10 @@ class ApiService {
       } else {
         _showErrorSnackbar(context,
             "Failed to send message. Status Code: ${response.statusCode}");
-        print(
-            "Failed to send message. Status Code: ${response.statusCode}. Details: ${jsonDecode(response.body)['message']}");
         return chatResponse;
       }
     } catch (e) {
       _showErrorSnackbar(context, "Error sending message: $e");
-      print('Error sending message: $e');
       return chatResponse;
     }
   }
@@ -660,8 +656,6 @@ class ApiService {
       } else {
         _showErrorSnackbar(context,
             "Failed to get conversation history. Details: ${jsonDecode(response.body)['message']}");
-        print(
-            "Failed to get conversation history. Details: ${jsonDecode(response.body)}");
         return [];
       }
     } catch (e) {
@@ -713,8 +707,6 @@ class ApiService {
         '$_baseUrl/api/v1/prompts?query=$query&offset=$offset&limit=$limit&isFavorite=$isFavorite&isPublic=$isPublic'
         '${category != null ? '&category=$category' : ''}');
 
-    print('Fetching prompts from URL: $url');
-
     try {
       final headers = {
         'Authorization': 'Bearer $token',
@@ -728,7 +720,6 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final responseBody = await response.stream.bytesToString();
-        print('Response body: $responseBody');
 
         final data = jsonDecode(responseBody);
 
@@ -741,7 +732,6 @@ class ApiService {
         return [];
       }
     } catch (e) {
-      print("Error fetching prompts: $e");
       _showErrorSnackbar(context, "Error fetching prompts: $e");
       return [];
     }
@@ -765,8 +755,6 @@ class ApiService {
 
     final url = Uri.parse('$_baseUrl/api/v1/prompts');
 
-    print('Creating prompt at URL: $url');
-
     try {
       final headers = {
         'Authorization': 'Bearer $token',
@@ -788,9 +776,6 @@ class ApiService {
         body: body,
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
       if (response.statusCode == 201) {
         // Decode and return the response
         final data = jsonDecode(response.body);
@@ -801,7 +786,6 @@ class ApiService {
         return {};
       }
     } catch (e) {
-      print("Error creating prompt: $e");
       _showErrorSnackbar(context, "Error creating prompt: $e");
       return {};
     }
@@ -825,8 +809,6 @@ class ApiService {
 
     final url = Uri.parse('$_baseUrl/api/v1/prompts/$promptId');
 
-    print('Updating prompt at URL: $url');
-
     try {
       final headers = {
         'Authorization': 'Bearer $token',
@@ -848,9 +830,6 @@ class ApiService {
         body: body,
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
       if (response.statusCode == 200) {
         // Decode and return the response
         final data = jsonDecode(response.body);
@@ -861,7 +840,6 @@ class ApiService {
         return {};
       }
     } catch (e) {
-      print("Error updating prompt: $e");
       _showErrorSnackbar(context, "Error updating prompt: $e");
       return {};
     }
@@ -933,8 +911,6 @@ class ApiService {
 
     final url = Uri.parse('$_baseUrl/api/v1/prompts/$promptId/favorite');
 
-    print('Adding prompt to favorites at URL: $url');
-
     try {
       final headers = {
         'Authorization': 'Bearer $token',
@@ -946,9 +922,6 @@ class ApiService {
         headers: headers,
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
       if (response.statusCode == 200) {
         // Decode and return the response
         final data = jsonDecode(response.body);
@@ -959,7 +932,6 @@ class ApiService {
         return {};
       }
     } catch (e) {
-      print("Error adding prompt to favorites: $e");
       _showErrorSnackbar(context, "Error adding prompt to favorites: $e");
       return {};
     }
@@ -1013,7 +985,6 @@ class ApiService {
           "language": language,
         },
       };
-      print("Request Body: ${jsonEncode(requestBody)}");
 
       final response = await http.post(
         url,
@@ -1078,7 +1049,6 @@ class ApiService {
           "language": language,
         },
       };
-      print("Request Body: ${jsonEncode(requestBody)}");
 
       final response = await http.post(
         url,
@@ -1091,11 +1061,8 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
-        print("Response Body: ${response.body}");
         return jsonDecode(response.body);
       } else {
-        print("Status Code: ${response.statusCode}");
-        print("Response Body: ${response.body}");
         _showErrorSnackbar(contextUI,
             "Failed to generate email. Status Code: ${response.statusCode}");
         return {};
@@ -1122,15 +1089,10 @@ class ApiService {
         'Content-Type': 'application/json',
       };
 
-      print('Fetching usage data from URL: $url');
-
       final response = await http.get(
         url,
         headers: headers,
       );
-
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -1141,7 +1103,6 @@ class ApiService {
         return {};
       }
     } catch (e) {
-      print("Error fetching usage data: $e");
       _showErrorSnackbar(context, "Error fetching usage data: $e");
       return {};
     }
@@ -1164,15 +1125,10 @@ class ApiService {
         'Content-Type': 'application/json',
       };
 
-      print('Fetching usage data from URL: $url');
-
       final response = await http.get(
         url,
         headers: headers,
       );
-
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -1183,7 +1139,6 @@ class ApiService {
         return {};
       }
     } catch (e) {
-      print("Error fetching usage data: $e");
       _showErrorSnackbar(context, "Error fetching usage data: $e");
       return {};
     }

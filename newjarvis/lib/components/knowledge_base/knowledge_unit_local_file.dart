@@ -1,5 +1,7 @@
 // Local Files
 
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
@@ -25,8 +27,20 @@ class _CreateUnitDialogFromLocalFileState
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: [
-          'c', 'cpp', 'docx', 'html', 'java', 'json', 'md', 'pdf', 
-          'php', 'pptx', 'py', 'rb', 'tex', 'txt'
+          'c',
+          'cpp',
+          'docx',
+          'html',
+          'java',
+          'json',
+          'md',
+          'pdf',
+          'php',
+          'pptx',
+          'py',
+          'rb',
+          'tex',
+          'txt'
         ], // Các extension được phép upload
       );
 
@@ -50,7 +64,7 @@ class _CreateUnitDialogFromLocalFileState
         });
       }
     } catch (e) {
-      print('Error picking file: $e');
+      debugPrint('Error picking file: $e');
       setState(() {
         _showFileError = true;
       });
@@ -70,7 +84,7 @@ class _CreateUnitDialogFromLocalFileState
       try {
         await widget.onConfirm(_selectedFileName!);
       } catch (e) {
-        print('Error: $e');
+        debugPrint('Error: $e');
       } finally {
         setState(() {
           _isLoading = false; // Tắt trạng thái loading
@@ -246,8 +260,8 @@ class _CreateUnitDialogFromLocalFileState
                 )
               : const Text(
                   'Connect',
-                  style:
-                      TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold),
                 ),
         ),
       ],

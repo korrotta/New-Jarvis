@@ -1,8 +1,10 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:newjarvis/services/gg_drive_service.dart';
 
 class GoogleDriveExplorer extends StatefulWidget {
-  const GoogleDriveExplorer({Key? key}) : super(key: key);
+  const GoogleDriveExplorer({super.key});
 
   @override
   State<GoogleDriveExplorer> createState() => _GoogleDriveExplorerState();

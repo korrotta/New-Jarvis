@@ -97,7 +97,7 @@ class _CreateUnitDialogFromConfluenceState
           _accessTokenController.text.trim(),
         );
       } catch (e) {
-        print('Error: $e');
+        debugPrint('Error: $e');
       } finally {
         setState(() {
           _isLoading = false; // Tắt trạng thái loading

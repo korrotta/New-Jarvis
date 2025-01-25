@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -76,7 +78,6 @@ class KnowledgeApiService {
 
     if (response.statusCode == 200) {
       final result = jsonDecode(response.body);
-      print('Sign in knowledge API: $result');
 
       final kbAccessToken = result['token']['accessToken'];
       final kbRefreshToken = result['token']['refreshToken'];
@@ -103,7 +104,6 @@ class KnowledgeApiService {
 
     if (response.statusCode == 401) {
       final result = jsonDecode(response.body);
-      print("KB Token Refreshed");
 
       final kbAccessToken = result['token']['accessToken'];
       final kbRefreshToken = result['token']['refreshToken'];
@@ -130,7 +130,7 @@ class KnowledgeApiService {
     bool? isAll,
   }) async {
     if (isAll == false || isAll == null) {
-      final _queryParameters = {
+      final queryParameters = {
         'q': query ?? '',
         'order': order ?? 'ASC',
         'order_field': orderField ?? 'createdAt',
@@ -141,7 +141,7 @@ class KnowledgeApiService {
       };
 
       final url = Uri.parse('$_baseUrl/kb-core/v1/ai-assistant').replace(
-        queryParameters: _queryParameters,
+        queryParameters: queryParameters,
       );
 
       final token = await _getToken();
@@ -158,18 +158,15 @@ class KnowledgeApiService {
         final List<AiBotModel> assistants =
             data.map((e) => AiBotModel.fromJson(e)).toList();
 
-        final metadata = result['metadata'];
         return assistants;
       } else {
         _showErrorSnackbar(context,
             'Failed to get assistants, Details: ${jsonDecode(response.body)}');
 
-        print(
-            'Failed to get assistants, Details: ${jsonDecode(response.body)}');
         throw Exception('Failed to get assistants');
       }
     } else {
-      final _queryParameters = {
+      final queryParameters0 = {
         'q': query ?? '',
         'order': order ?? 'ASC',
         'order_field': orderField ?? 'createdAt',
@@ -178,7 +175,7 @@ class KnowledgeApiService {
       };
 
       final url = Uri.parse('$_baseUrl/kb-core/v1/ai-assistant').replace(
-        queryParameters: _queryParameters,
+        queryParameters: queryParameters0,
       );
 
       final token = await _getToken();
@@ -195,14 +192,11 @@ class KnowledgeApiService {
         final List<AiBotModel> assistants =
             data.map((e) => AiBotModel.fromJson(e)).toList();
 
-        final metadata = result['metadata'];
         return assistants;
       } else {
         _showErrorSnackbar(context,
             'Failed to get assistants, Details: ${jsonDecode(response.body)}');
 
-        print(
-            'Failed to get assistants, Details: ${jsonDecode(response.body)}');
         throw Exception('Failed to get assistants');
       }
     }
@@ -235,8 +229,6 @@ class KnowledgeApiService {
     } else {
       _showErrorSnackbar(context,
           'Failed to create assistant, code: ${response.statusCode}, body: ${response.body}');
-      print(
-          'Failed to create assistant, code: ${response.statusCode}, body: ${response.body}');
       throw Exception('Failed to create assistant');
     }
   }
@@ -260,8 +252,6 @@ class KnowledgeApiService {
       return result;
     } else {
       _showErrorSnackbar(context,
-          'Failed to delete assistant, code: ${response.statusCode}, body: ${response.body}');
-      print(
           'Failed to delete assistant, code: ${response.statusCode}, body: ${response.body}');
       throw Exception('Failed to delete assistant');
     }
@@ -287,8 +277,6 @@ class KnowledgeApiService {
       return AiBotModel.fromJson(result);
     } else {
       _showErrorSnackbar(context,
-          'Failed to favorite assistant, code: ${response.statusCode}, body: ${response.body}');
-      print(
           'Failed to favorite assistant, code: ${response.statusCode}, body: ${response.body}');
       throw Exception('Failed to favorite assistant');
     }
@@ -320,8 +308,6 @@ class KnowledgeApiService {
       final result = jsonDecode(response.body);
       return AiBotModel.fromJson(result);
     } else {
-      print(
-          'Failed to update assistant, code: ${response.statusCode}, body: ${response.body}');
       return AiBotModel.error(
           'Failed to update assistant, code: ${response.statusCode}');
     }
@@ -343,11 +329,8 @@ class KnowledgeApiService {
 
     if (response.statusCode == 200) {
       final result = jsonDecode(response.body);
-      print(result);
       return AiBotModel.fromJson(result);
     } else {
-      print(
-          'Failed to get assistant by ID, Details: ${jsonDecode(response.body)}');
       throw Exception('Failed to get assistant by ID');
     }
   }
@@ -375,10 +358,7 @@ class KnowledgeApiService {
       final result = jsonDecode(response.body);
 
       return AssistantThreadModel.fromJson(result);
-      ;
     } else {
-      print(
-          'Failed to create thread, code: ${response.statusCode}, body: ${response.body}');
       throw Exception('Failed to create thread');
     }
   }
@@ -407,11 +387,8 @@ class KnowledgeApiService {
 
     if (response.statusCode != 401) {
       final result = response.body;
-      print('Ask Assistant: $result');
       return result;
     } else {
-      print(
-          'Failed to ask assistant, code: ${response.statusCode}, body: ${response.body}');
       throw Exception('Failed to ask assistant');
     }
   }
@@ -433,18 +410,13 @@ class KnowledgeApiService {
 
     if (response.statusCode == 200) {
       final result = jsonDecode(response.body);
-      print(result);
       final data = result['data'] as List;
 
       final List<AssistantThreadModel> threads =
           data.map((e) => AssistantThreadModel.fromJson(e)).toList();
 
-      final metadata = result['meta'];
-
       return threads;
     } else {
-      print(
-          'Failed to get threads, code: ${response.statusCode}, body: ${response.body}');
       throw Exception('Failed to get threads');
     }
   }
@@ -496,11 +468,8 @@ class KnowledgeApiService {
 
     if (response.statusCode == 200) {
       final result = jsonDecode(response.body);
-      print(result);
       return result;
     } else {
-      print(
-          'Failed to import knowledge, code: ${response.statusCode}, body: ${response.body}');
       return false;
     }
   }
@@ -523,12 +492,8 @@ class KnowledgeApiService {
 
     if (response.statusCode == 200) {
       final result = jsonDecode(response.body);
-      print(
-          'Remove KnowledgeId: $knowledgeId from AssistantId: $assistantId with result: $result');
       return result;
     } else {
-      print(
-          'Failed to remove knowledge, code: ${response.statusCode}, body: ${response.body}');
       return false;
     }
   }
@@ -550,7 +515,6 @@ class KnowledgeApiService {
 
     if (response.statusCode == 200) {
       final result = jsonDecode(response.body);
-      print(result);
       final List<dynamic> data = result['data'];
 
       final List<AssistantKnowledgeModel> knowledges = data
@@ -560,8 +524,6 @@ class KnowledgeApiService {
 
       return knowledges;
     } else {
-      print(
-          'Failed to get knowledge in assistant, code: ${response.statusCode}, body: ${response.body}');
       return [];
     }
   }

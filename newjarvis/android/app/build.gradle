@@ -30,8 +30,8 @@ android {
         applicationId = "com.advancedmobile.newjarvis"
         minSdk = 23
         targetSdk = flutter.targetSdkVersion
-        versionCode = 3
-        versionName = 1.3
+        versionCode = 9
+        versionName = 1.9
     }
 
     signingConfigs {
@@ -51,4 +51,8 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+  implementation 'com.google.android.gms:play-services-ads:23.6.0'
 }
